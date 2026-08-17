@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ titulo }} - Gestión de Obras</title>
+    <style>
+        :root {
+            --granate-principal: #800020;
+            --rosa-claro: #fff0f5;
+            --rosa-fuerte: #db7093;
+            --texto-oscuro: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fafafa;
+            color: var(--texto-oscuro);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+            margin: 20px;
+        }
+
+        h1 {
+            color: var(--granate-principal);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Estilo de los campos del formulario */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--granate-principal);
+        }
+
+        /* Aplicamos estilo a los inputs que genera Django */
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--rosa-fuerte);
+            background-color: var(--rosa-claro);
+            box-shadow: 0 0 5px rgba(219, 112, 147, 0.2);
+        }
+
+        .helptext {
+            font-size: 0.8em;
+            color: #888;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .errorlist {
+            color: #d9534f;
+            font-size: 0.85em;
+            list-style: none;
+            padding: 0;
+            margin: 5px 0;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--granate-principal);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--rosa-fuerte);
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: var(--granate-principal);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--rosa-fuerte);
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h1>{{ titulo }}</h1>
+    <p class="subtitle">Crea tu cuenta de <strong>{{ tipo_rol }}</strong> para empezar.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                
+                {% if field.help_text %}
+                    <span class="helptext">{{ field.help_text }}</span>
+                {% endif %}
+                
+                {% if field.errors %}
+                    <div class="errorlist">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Finalizar Registro</button>
+    </form>
+
+    <a href="{% url 'users:register_selection' %}" class="back-link">&larr; Volver atrás</a>
+</div>
+
+</body>
+</html>

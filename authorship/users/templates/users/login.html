@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - Gestión de Obras</title>
+    <style>
+        :root {
+            --granate-principal: #800020;
+            --rosa-claro: #fff0f5;
+            --rosa-fuerte: #db7093;
+            --texto-oscuro: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fafafa;
+            color: var(--texto-oscuro);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Centra el login verticalmente */
+            margin: 0;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 20px;
+        }
+
+        h1 {
+            color: var(--granate-principal);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Estilo para los párrafos que genera {{ form.as_p }} */
+        form p {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--granate-principal);
+        }
+
+        /* Estilo de los inputs (Usuario y Contraseña) */
+        input[type="text"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--rosa-fuerte);
+            background-color: var(--rosa-claro);
+            box-shadow: 0 0 8px rgba(219, 112, 147, 0.2);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--granate-principal);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--rosa-fuerte);
+            transform: translateY(-2px);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+
+        .footer-links a {
+            color: var(--granate-principal);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--rosa-fuerte);
+        }
+
+        /* Estilo para errores de login */
+        .errorlist {
+            color: #d9534f;
+            background-color: #fce4e4;
+            padding: 10px;
+            border-radius: 5px;
+            list-style: none;
+            text-align: center;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1>Acceder</h1>
+    <p class="subtitle">Gestiona tus obras y licencias</p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {# Muestra errores generales de autenticación si los hay #}
+        {% if form.non_field_errors %}
+            <div class="errorlist">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+
+    <div class="footer-links">
+        <p>¿Aún no tienes cuenta? <br>
+           <a href="{% url 'users:register_selection' %}">Regístrate como Autor o Consumidor</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

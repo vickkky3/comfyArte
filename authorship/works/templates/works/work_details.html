@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de Obra - {{ obra.title }}</title>
+    <style>
+        :root { --granate: #800020; --rosa-claro: #fff0f5; --rosa-fuerte: #db7093; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fafafa; padding: 40px; }
+        
+        .navbar { 
+            background: var(--granate); color: white; padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 0 0 15px 15px; margin-bottom: 30px;
+        }
+        
+        .container {
+            background: white; padding: 40px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 700px; margin: auto;
+        }
+
+        h1 { color: var(--granate); text-align: center; margin-bottom: 10px; }
+        .type-badge { 
+            display: block; text-align: center; color: var(--rosa-fuerte); 
+            font-weight: bold; text-transform: uppercase; margin-bottom: 30px; 
+        }
+
+        .info-section { margin-bottom: 25px; border-bottom: 1px solid var(--rosa-claro); padding-bottom: 15px; }
+        .label { display: block; font-weight: bold; color: var(--granate); font-size: 0.9em; }
+        .value { display: block; color: #333; margin-top: 5px; font-size: 1.1em; }
+
+        /* Ficha técnica específica */
+        .technical-sheet {
+            background-color: var(--rosa-claro);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--granate);
+            margin: 20px 0;
+        }
+        .technical-sheet h3 { margin-top: 0; color: var(--granate); font-size: 1em; }
+
+        /* Estilo para el archivo (Servidor de ficheros) */
+        .file-box {
+            background: white; border: 2px dashed var(--rosa-fuerte);
+            padding: 20px; text-align: center; border-radius: 10px; margin-top: 20px;
+        }
+
+        .btn-action {
+            display: inline-block; width: 100%; background: var(--rosa-claro); color: white;
+            padding: 12px; border: none; border-radius: 8px; text-align: center;
+            font-weight: bold; cursor: pointer; transition: 0.3s; text-decoration: none; color: black;
+            margin-top: 10px;
+        }
+        .btn-action:hover { background: var(--rosa-fuerte); }
+        
+        .btn-download { background: var(--rosa-claro); margin-top: 5px; }
+
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <span><strong>Detalles de la obra</strong> | {{ user.username }}</span>
+        <form action="{% url 'users:logout' %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+        </form>
+    </nav>
+    <div class="container">
+        <h1>{{obra.title}}</h1>
+        <div class="info-section">
+            <span class="label">Tipo de obra:</span>
+            <span class="value">{{obra.get_work_type}}</span>
+        </div>
+        
+        <div class="info-section">
+            <span class="label">Autor:</span>
+            <span class="value">{{obra.author.username}}</span>
+        </div>
+        <div class="info-section">
+            <span class="label">Fecha de Registro:</span>
+            <span class="value">{{ obra.created_at|date:"d F Y" }}</span>
+        </div>
+    
+        <div class="info-section">
+            <span class="label">Descripción:</span>
+            <span class="value">{{ obra.description}}</span>
+        </div>
+    
+        <div class="technical-sheet">
+            <h3>Ficha Técnica Específica</h3>
+            
+            {% if obra.book %}
+                <p><strong>Páginas:</strong> {{ obra.book.pages }}</p>
+                <p><strong>ISBN:</strong> {{ obra.book.isbn }}</p>
+            
+            {% elif obra.music or obra.video %}
+                <p><strong>Duración:</strong> {{ obra.music.duration }}{{ obra.video.duration }} minutos</p>
+            
+            {% elif obra.software %}
+                <p><strong>Lenguaje:</strong> {{ obra.software.programming_language }}</p>
+                {% if obra.software.repository_url %}
+                    <p><strong>Repositorio:</strong> <a href="{{ obra.software.repository_url }}">{{ obra.software.repository_url }}</a></p>
+                {% endif %}
+            
+            {% elif obra.paint or obra.sculpture %}
+                <p><strong>Dimensiones:</strong> {{ obra.paint.height }}{{ obra.sculpture.height }}cm x {{ obra.paint.weight }}{{ obra.sculpture.weight }}kg</p>
+                <p><strong>Material/Técnica:</strong> {{ obra.paint.get_type_display }}{{ obra.sculpture.get_type_display }}</p>
+            {% endif %}
+        </div>
+    
+        {% if obra.binary_file %}
+        <div class="file-box">
+            <span class="label" style="margin-bottom: 10px;">Archivo</span>
+            {% if "image" in obra.file_type %}
+                <img src="{% url 'works:serve_file' obra.pk %}" alt="Vista previa" style="max-width: 100%; border-radius: 5px; margin-bottom: 10px;">
+            {% endif %}
+            <a href="{% url 'works:serve_file' obra.pk %}" class="btn-action btn-download">Descargar Original ({{ obra.file_name }})</a>
+        </div>
+        {% endif %}
+    
+        {% if perms.works.generate_hash %}
+            <a href="#" class="btn-action">Generar Hash de Autoría</a>
+        {% endif %}
+    
+        <a href="{% url 'works:work_list' %}" class="back-link">&larr; Volver al Listado</a>
+    </div>
+
+</body>
+</html>

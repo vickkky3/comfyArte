@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Nueva Obra</title>
+    <style>
+        :root { --granate: #800020; --rosa-claro: #fff0f5; --rosa-fuerte: #db7093; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fafafa; padding: 40px; }
+
+        .navbar { 
+            background: var(--granate); color: white; padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 0 0 15px 15px; margin-bottom: 30px;
+        }
+        
+        .form-container {
+            background: white; padding: 40px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 600px; margin: auto;
+        }
+        h1 { color: var(--granate); text-align: center; }
+        form p { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; color: var(--granate); margin-bottom: 5px; }
+        input, textarea, select {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 8px; box-sizing: border-box;
+        }
+        input:focus { outline: none; border-color: var(--rosa-fuerte); background: var(--rosa-claro); }
+        .btn-save {
+            width: 100%; background: var(--granate); color: white;
+            padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-save:hover { background: var(--rosa-fuerte); }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <span><strong>Gestión de Obras</strong> | {{ user.username }}</span>
+        <form action="{% url 'users:logout' %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+        </form>
+    </nav>
+    <div class="form-container">
+        <h1>Nueva Obra: {{ request.GET.type|capfirst }}</h1>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-save">Guardar y Proteger Obra</button>
+        </form>
+    
+        <a href="{% url 'users:landing' %}" class="back-link">&larr; Volver al Panel</a>
+    </div>
+
+</body>
+</html>

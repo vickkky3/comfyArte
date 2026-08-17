@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Principal - {{ user.username }}</title>
+    <style>
+        :root { --granate: #800020; --rosa-claro: #fff0f5; --rosa-fuerte: #db7093; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fafafa; padding: 20px; margin: 0; }
+        
+        .navbar { 
+            background: var(--granate); color: white; padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 0 0 15px 15px; margin-bottom: 30px;
+        }
+
+        .container { max-width: 1000px; margin: auto; }
+
+        .header-panel { margin-bottom: 25px; }
+        .header-panel h1 { color: var(--granate); margin: 0; }
+
+        .grid-acciones { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .card-accion { 
+            background: white; border: 2px solid var(--rosa-claro); padding: 25px; 
+            border-radius: 12px; text-align: center; text-decoration: none; color: var(--granate);
+            transition: 0.3s; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .card-accion:hover { 
+            background: var(--rosa-claro); border-color: var(--rosa-fuerte); 
+            transform: translateY(-5px); 
+        }
+
+        .btn-logout {
+            background: white; color: var(--granate); border: none;
+            padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <span><strong>Gestión de Obras</strong> | {{ user.username }}</span>
+        <form action="{% url 'users:logout' %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+        </form>
+    </nav>
+
+    <div class="container">
+        {% if es_autor %}
+            <div class="header-panel">
+                <h1>Panel de Control de Autor</h1>
+                <p>Hola {{ user.username }}, ¿qué obra vamos a proteger hoy?</p>
+            </div>
+
+            <div class="grid-acciones">
+                <a href="{% url 'works:work_create' %}?type=book" class="card-accion">Registrar Libro</a>
+                <a href="{% url 'works:work_create' %}?type=music" class="card-accion">Registrar Música</a>
+                <a href="{% url 'works:work_create' %}?type=video" class="card-accion">Registrar Video</a>
+                <a href="{% url 'works:work_create' %}?type=software" class="card-accion">Registrar Software</a>
+                <a href="{% url 'works:work_create' %}?type=paint" class="card-accion">Registrar Pintura</a>
+                <a href="{% url 'works:work_create' %}?type=sculpture" class="card-accion">Registrar Escultura</a>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center;">
+                <a href="{% url 'works:work_list' %}" style="color: var(--rosa-fuerte); font-weight: bold;">
+                    Ver mi catálogo completo de obras &rarr;
+                </a>
+            </div>
+
+            {% elif es_consumidor %}
+            <div class="header-panel">
+                <h1>Catálogo de Obras</h1>
+                <p>Explora y adquiere licencias legales.</p>
+            </div>
+            
+            <a href="{% url 'works:work_list' %}" class="card-accion" style="display: block; margin-top: 20px;">
+                🔍 Explorar Catálogo Completo
+            </a>
+        {% endif %}
+    </div>
+
+</body>
+</html>

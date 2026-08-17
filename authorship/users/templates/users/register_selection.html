@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Únete a la Plataforma - Gestión de Obras</title>
+    <style>
+        :root {
+            --granate-principal: #800020;
+            --rosa-claro: #fff0f5;
+            --rosa-fuerte: #db7093;
+            --texto-oscuro: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fafafa;
+            color: var(--texto-oscuro);
+        }
+
+        .selection-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .card {
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 30px;
+            width: 280px;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--texto-oscuro);
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--rosa-fuerte);
+            background-color: var(--rosa-claro);
+            box-shadow: 0 8px 15px rgba(128, 0, 32, 0.1);
+        }
+
+        .card h2 {
+            color: var(--granate-principal);
+            margin-bottom: 15px;
+        }
+
+        .card strong {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--rosa-fuerte);
+        }
+
+        .btn-login {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1.1em;
+        }
+
+        .btn-login a {
+            color: var(--granate-principal);
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .btn-login a:hover {
+            color: var(--rosa-fuerte);
+            border-bottom: 2px solid var(--rosa-fuerte);
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center; color: var(--granate-principal); margin-top: 40px;">
+        Bienvenido a la Plataforma de Gestión de Obras
+    </h1>
+    <h3 style="text-align: center; color: #666;">¿Cómo quieres empezar?</h3>
+
+    <div class="selection-container">
+        <a href="{% url 'users:register_user' 'author' %}" class="card">
+            <h2>Soy Autor</h2>
+            <p>Registra tus creaciones, protege tu autoría y gestiona tus licencias.</p>
+            <strong>Registrarme como Creador &rarr;</strong>
+        </a>
+
+        <a href="{% url 'users:register_user' 'consumer' %}" class="card">
+            <h2>Soy Consumidor</h2>
+            <p>Explora obras y obtén licencias de uso de forma legal y segura.</p>
+            <strong>Registrarme como Usuario &rarr;</strong>
+        </a>
+    </div>
+
+    <div class="btn-login">
+        <p>¿Ya tienes una cuenta? <a href="{% url 'users:login' %}">Inicia sesión aquí</a></p>
+    </div>
+
+</body>
+</html>

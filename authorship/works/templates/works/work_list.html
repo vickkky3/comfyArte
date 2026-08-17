@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Obras - Panel de Autor</title>
+    <style>
+        :root { --granate: #800020; --rosa-claro: #fff0f5; --rosa-fuerte: #db7093; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fafafa; padding: 40px; }
+
+        .navbar { 
+            background: var(--granate); color: white; padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 0 0 15px 15px; margin-bottom: 30px;
+        }
+        
+        .container {
+            background: white; padding: 40px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 900px; margin: auto;
+        }
+
+        h1 { color: var(--granate); text-align: center; margin-bottom: 30px; }
+
+        /* Estilos específicos para la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        thead {
+            border-bottom: 2px solid var(--granate);
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--granate);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--rosa-claro);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background-color: #fffafc; /* Un toque sutil de rosa al pasar el ratón */
+        }
+
+        .label-tipo { 
+            color: var(--rosa-fuerte); 
+            font-weight: bold; 
+            font-size: 0.85em; 
+            text-transform: uppercase;
+        }
+
+        .work-title {
+            color: black;
+            font-weight: bold;
+            font-size: 1.05em;
+            display: block;
+        }
+
+        /* Botón estilo btn-action pero ajustado para tabla */
+        .btn-table {
+            display: inline-block;
+            background: var(--rosa-claro);
+            color: black;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .btn-table:hover {
+            background: var(--rosa-fuerte);
+            color: white;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <span><strong>Listado de Obras</strong> | {{ user.username }}</span>
+        <form action="{% url 'users:logout' %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Cerrar Sesión</button>
+        </form>
+    </nav>
+    <div class="container">
+        <h1>Mis Obras Registradas</h1>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Título de la Obra</th>
+                    <th>Fecha</th>
+                    <th style="text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for work in object_list %}
+                <tr>
+                    <td>
+                        <span class="label-tipo">{{ work.get_work_type }}</span>
+                    </td>
+                    <td>
+                        <span class="work-title">{{ work.title }}</span>
+                    </td>
+                    <td>
+                        <span style="color: #555;">{{ work.created_at|date:"d/m/Y" }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'works:work_details' pk=work.pk %}?type={{ work.get_work_type }}" class="btn-table">
+                            Ver Detalles
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-msg">
+                        Aún no has registrado ninguna obra en la plataforma.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+        <a href="{% url 'users:landing' %}" class="back-link">&larr; Volver al Panel Principal</a>
+    </div>
+
+</body>
+</html>
