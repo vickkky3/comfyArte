@@ -10,7 +10,7 @@
       <div class="navbar-left">
         <img src="/logo.png" class="logo-img" alt="Logo comforART" />
         <span class="nav-title">
-          <span class="text-comfor">Comfor</span><span class="text-art">ART</span>
+          <span class="text-comfor">Comfy</span><span class="text-art">ARTE</span>
         </span>
         <span class="nav-separator">|</span>
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
