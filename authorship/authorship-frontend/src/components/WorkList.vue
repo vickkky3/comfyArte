@@ -185,9 +185,9 @@
             </div>
 
             <div class="author-card-actions">
-              <router-link :to="`/authors/${authorItem.id}`" class="btn-table" style="width: 100%;">
+              <button @click="openAuthorModal(authorItem)" class="btn-table" style="width: 100%;">
                 Ver Perfil y Suscribirse
-              </router-link>
+              </button>
             </div>
 
           </div>
@@ -196,6 +196,97 @@
         <div v-else class="empty-msg">
           <p>No se han encontrado autores que coincidan con la búsqueda.</p>
         </div>
+
+        <Teleport to="body">
+          <div v-if="selectedAuthor" class="modal-overlay" @click.self="closeAuthorModal">
+            <div class="modal-card">
+
+              <button class="modal-close-btn" @click="closeAuthorModal">&times;</button>
+
+              <div class="modal-header">
+                <div class="avatar-ring">
+                  <div class="avatar-circle-large">
+                    {{ selectedAuthor.first_name?.charAt(0) || selectedAuthor.username?.charAt(0) }}
+                  </div>
+                </div>
+                <h2>
+                  <template v-if="selectedAuthor.first_name">
+                    {{ selectedAuthor.first_name }} {{ selectedAuthor.last_name || '' }}
+                  </template>
+                  <template v-else>
+                    {{ selectedAuthor.username }}
+                  </template>
+                </h2>
+                <span class="author-handle">@{{ selectedAuthor.username }}</span>
+              </div>
+
+              <div class="modal-body">
+
+                <!-- Sección Biografía -->
+                <div class="info-section">
+                  <div class="section-icon">
+                    <i class="fa-regular fa-user"></i>
+                  </div>
+                  <div class="section-content">
+                    <!-- 🎯 Envoltorio para centrar el título con el icono -->
+                    <div class="section-header-row">
+                      <span class="section-title">BIOGRAFÍA / PERFIL</span>
+                    </div>
+                    <p class="section-text">
+                      {{ selectedAuthor.biography || 'Este autor aún no ha añadido una biografía pública.' }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Sección Obras -->
+                <div class="info-section">
+                  <div class="section-icon">
+                    <i class="fa-regular fa-newspaper"></i>
+                  </div>
+                  <div class="section-content">
+                    <!-- 🎯 Envoltorio para centrar el título con el icono -->
+                    <div class="section-header-row">
+                      <span class="section-title">OBRAS</span>
+                    </div>
+
+                    <div v-if="authorWorks.length > 0" class="table-container">
+                      <table class="modal-works-table">
+                        <thead>
+                          <tr>
+                            <th>TIPO</th>
+                            <th>TÍTULO DE LA OBRA</th>
+                            <th style="text-align: right;">FECHA</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="work in authorWorks" :key="work.id">
+                            <td>
+                              <span class="pill-type">{{ getWorkTypeName(work.work_type) }}</span>
+                            </td>
+                            <td class="work-title-cell">{{ work.title }}</td>
+                            <td class="work-date-cell">{{ formatDate(work.created_at) }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p v-else class="empty-works-text">
+                      Este autor aún no tiene obras publicadas.
+                    </p>
+
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="modal-footer">
+                <button @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
+                  <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </Teleport>
       </div>
 
       <router-link to="/dashboard" class="btn-back-link" style="margin-top: 30px;">
@@ -216,6 +307,7 @@ const route = useRoute();
 const router = useRouter();
 
 const works = ref([]);
+const authorWorks = ref([]);
 const loading = ref(true);
 const user = ref({ interests: "" });
 
@@ -360,6 +452,48 @@ const filteredAuthors = computed(() => {
     a.first_name?.toLowerCase().includes(query)
   );
 });
+
+const selectedAuthor = ref(null);
+
+const openAuthorModal = async (author) => {
+  selectedAuthor.value = author;
+  authorWorks.value = [];
+
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(`http://localhost:8000/api/works/authors/${author.id}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+    authorWorks.value = response.data;
+
+  } catch (error) {
+    console.error("Error al obtener las obras del autor:", error);
+
+  }
+};
+
+const closeAuthorModal = () => {
+  selectedAuthor.value = null;
+  authorWorks.value = [];
+};
+
+const subscribeToAuthor = async (authorId) => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    await axios.post(
+      `http://localhost:8000/api/subscriptions/subscribe/`,
+      { author_id: authorId },
+      { headers: { Authorization: `Token ${token}` } }
+    );
+
+    alert("¡Te has suscrito con éxito a este autor!");
+    closeAuthorModal();
+  } catch (error) {
+    console.error("Error al suscribirse:", error);
+    alert("No se pudo completar la suscripción.");
+  }
+};
 
 const fetchWorks = async () => {
   try {
@@ -895,5 +1029,242 @@ tr:hover {
 
 .author-card-actions {
   margin-top: 15px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px 25px 25px 25px;
+  width: 90%;
+  max-width: 560px;
+  position: relative;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: var(--granate-principal);
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar-ring {
+  background: #fff0f3;
+  padding: 6px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.avatar-circle-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #800020;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.5em;
+  text-transform: uppercase;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #222;
+  font-weight: 700;
+}
+
+.author-handle {
+  font-size: 0.85em;
+  color: #e65c8a;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.info-section {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background-color: #fde8ef;
+  color: #800020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+  flex-shrink: 0;
+}
+
+.section-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 48px);
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 0.82em;
+  font-weight: 800;
+  color: #800020;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+
+.section-text {
+  font-size: 0.9em;
+  color: #555;
+  margin: 0;
+}
+
+.table-container {
+  margin-top: 8px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.modal-works-table {
+  width: 100% !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.modal-works-table th,
+.modal-works-table td {
+  box-sizing: border-box;
+}
+
+.modal-works-table thead tr {
+  background-color: #fcf0f3;
+}
+
+.modal-works-table th:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.modal-works-table th:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.modal-works-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pill-type {
+  display: inline-block;
+  background-color: #fde8ef;
+  color: #e65c8a;
+  font-size: 0.7em;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.work-title-cell {
+  font-weight: 700;
+  color: #222;
+}
+
+.work-date-cell {
+  text-align: right;
+  color: #666;
+  font-size: 0.85em;
+}
+
+.empty-works-text {
+  font-size: 0.85em;
+  color: #888;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.btn-subscribe {
+  width: 100%;
+  background: #800020;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+}
+
+.btn-subscribe:hover {
+  background: #a00028;
+  transform: translateY(-1px);
 }
 </style>

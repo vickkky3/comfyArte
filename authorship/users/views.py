@@ -62,3 +62,16 @@ class AuthorListAPIView(APIView):
             
         serializer = AuthorPublicSerializer(queryset, many=True)
         return Response(serializer.data)
+    
+class SubscribeToAuthorAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        author_id = request.data.get("author_id")
+        
+        try:
+            author = User.objects.get(id=author_id, role="author")
+        except User.DoesNotExist:
+            return Response({"detail": "El autor no existe."}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"detail": f"Suscrito a {author.username} correctamente."}, status=status.HTTP_200_OK)

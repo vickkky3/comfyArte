@@ -1,11 +1,13 @@
 from django.urls import path
-from . import views
+from .views import WorkListCreateAPIView, ServeWorkFileAPIView, WorkDetailAPIView, ServeWorkResumeAPIView, ListWorksByAuthorAPIView
+
 
 app_name = 'works'
 
 urlpatterns = [
-    path('', views.WorkListCreateAPIView.as_view(), name='work_list_create'),
-    path('<int:pk>/serve/', views.ServeWorkFileAPIView.as_view(), name='serve-work-file'),
-    path('<int:pk>/', views.WorkDetailAPIView.as_view(), name='work_details'),
-    path('<int:pk>/serve-resume/', views.ServeWorkResumeAPIView.as_view(), name='serve-work-resume'),
+    path('', WorkListCreateAPIView.as_view(), name='work_list_create'),
+    path('<int:pk>/serve/', ServeWorkFileAPIView.as_view(), name='serve-work-file'),
+    path('<int:pk>/', WorkDetailAPIView.as_view(), name='work_details'),
+    path('<int:pk>/serve-resume/', ServeWorkResumeAPIView.as_view(), name='serve-work-resume'),
+    path('authors/<int:author_id>/', ListWorksByAuthorAPIView.as_view(), name='author_work_list'),
 ]

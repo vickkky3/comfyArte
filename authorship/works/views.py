@@ -248,7 +248,16 @@ class WorkDetailAPIView(APIView):
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+    
+class ListWorksByAuthorAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, author_id):
+        queryset = Work.objects.filter(author_id=author_id)
+        
+        serializer = WorkSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+          
     
 class ServeWorkFileAPIView(APIView):
     """

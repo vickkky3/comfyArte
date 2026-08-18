@@ -11,5 +11,5 @@ urlpatterns = [
     path('authors/', AuthorListAPIView.as_view(), name='api_author_list'),
     path('login/', obtain_auth_token, name='api_token_auth'), 
     path('logout/', auth_views.LogoutView.as_view(), name='api_logout'),
-    path('<int:pk>/', WorkDetailAPIView.as_view(), name='author_details'),
+    path('<int:pk>/', UserDataAPIView.as_view(), name='author_details'),
 ]
