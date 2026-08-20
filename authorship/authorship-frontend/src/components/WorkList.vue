@@ -222,13 +222,11 @@
 
               <div class="modal-body">
 
-                <!-- Sección Biografía -->
                 <div class="info-section">
                   <div class="section-icon">
                     <i class="fa-regular fa-user"></i>
                   </div>
                   <div class="section-content">
-                    <!-- 🎯 Envoltorio para centrar el título con el icono -->
                     <div class="section-header-row">
                       <span class="section-title">BIOGRAFÍA / PERFIL</span>
                     </div>
@@ -238,13 +236,11 @@
                   </div>
                 </div>
 
-                <!-- Sección Obras -->
                 <div class="info-section">
                   <div class="section-icon">
                     <i class="fa-regular fa-newspaper"></i>
                   </div>
                   <div class="section-content">
-                    <!-- 🎯 Envoltorio para centrar el título con el icono -->
                     <div class="section-header-row">
                       <span class="section-title">OBRAS</span>
                     </div>
@@ -1154,12 +1150,12 @@ tr:hover {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 48px);
+  width: 100%;
   min-width: 0;
 }
 
 .section-title {
-  font-size: 0.82em;
+  font-size: 0.9f2em;
   font-weight: 800;
   color: #800020;
   letter-spacing: 0.5px;
@@ -1186,7 +1182,7 @@ tr:hover {
 }
 
 .modal-works-table {
-  width: 100% !important;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: auto;
@@ -1218,7 +1214,7 @@ tr:hover {
 .pill-type {
   display: inline-block;
   background-color: #fde8ef;
-  color: #e65c8a;
+  color: var(--rosa-fuerte);
   font-size: 0.7em;
   font-weight: 800;
   padding: 4px 12px;
