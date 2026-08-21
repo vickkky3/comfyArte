@@ -6,6 +6,8 @@ from django.http import HttpResponse
 
 from subscriptions.models import SubscriptionPlan
 from .models import Work
+from users.models import Notification, User
+from subscriptions.models import AuthorSubscription
 from .serializers import WorkSerializer
 from .models import Work, Book, Music, Video, Software, Paint, Sculpture
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -120,9 +122,24 @@ class WorkListCreateAPIView(APIView):
                     create_data['resume_type'] = resume.content_type
                                     
                 obj = model_class.objects.create(author=request.user, **create_data)
-                    
-                return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
                 
+                subscriptions = AuthorSubscription.objects.filter(author=request.user)
+                
+                notifications_to_create = []
+                for sub in subscriptions:
+                    notifications_to_create.append(
+                        Notification(
+                            recipient=sub.consumer,
+                            work=obj,
+                            message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
+                        )
+                    )
+                    
+                if notifications_to_create:
+                    Notification.objects.bulk_create(notifications_to_create)
+
+                return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
+                            
             except Exception as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             

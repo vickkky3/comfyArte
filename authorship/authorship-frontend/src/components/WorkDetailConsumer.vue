@@ -13,6 +13,47 @@
       </div>
       <div class="navbar-right">
         <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+        
+        <div class="notifications-wrapper">
+          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+
+          <div v-if="isNotificationsOpen" class="notifications-dropdown">
+
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+            </div>
+
+            <div class="notif-body">
+              <div v-if="notifications.length > 0">
+                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-icon-circle">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
+
+                  <div class="notif-content">
+                    <div class="notif-title-row">
+                      <span class="notif-title">Nueva obra disponible</span>
+                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                    </div>
+                    <p class="notif-text">
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
+                        notif.work_title }}"</em>.
+                    </p>
+                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="notif-empty">
+                <p>No tienes notificaciones por ahora.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
@@ -441,6 +482,34 @@ const canSeeProtectedContent = computed(() => {
 
 const handleSubscribe = () => {
   router.push("/subscription/plans");
+};
+
+const isNotificationsOpen = ref(false);
+
+const notifications = ref([
+]);
+
+const unreadCount = computed(() => {
+  return notifications.value.filter(n => !n.is_read).length;
+});
+
+const toggleNotifications = () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  if (isNotificationsOpen.value) {
+    fetchNotifications();
+  }
+};
+
+const fetchNotifications = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+      headers: { Authorization: `Token ${token}` }
+    });
+    notifications.value = response.data;
+  } catch (error) {
+    console.error("Error al cargar notificaciones:", error);
+  }
 };
 
 const handleLogout = async () => {

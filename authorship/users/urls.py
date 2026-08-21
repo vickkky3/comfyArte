@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterAPIView, UserDataAPIView, AuthorListAPIView
+from .views import RegisterAPIView, UserDataAPIView, AuthorListAPIView, NotificationsAPIView
 from django.contrib.auth import views as auth_views
 from rest_framework.authtoken.views import obtain_auth_token 
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path('login/', obtain_auth_token, name='api_token_auth'), 
     path('logout/', auth_views.LogoutView.as_view(), name='api_logout'),
     path('<int:pk>/', UserDataAPIView.as_view(), name='author_details'),
+    path('notifications/', NotificationsAPIView.as_view(), name='notifications'),
 ]

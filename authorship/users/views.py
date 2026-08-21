@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.models import Group
-from .serializers import UserSerializer, AuthorPublicSerializer
+from .serializers import UserSerializer, AuthorPublicSerializer, NotificationSerializer
+from .models import User, Notification
 
 class RegisterAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -52,8 +53,6 @@ class UserDataAPIView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-User = get_user_model()
-
 class AuthorListAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -63,15 +62,11 @@ class AuthorListAPIView(APIView):
         serializer = AuthorPublicSerializer(queryset, many=True)
         return Response(serializer.data)
     
-class SubscribeToAuthorAPIView(APIView):
+class NotificationsAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        author_id = request.data.get("author_id")
-        
-        try:
-            author = User.objects.get(id=author_id, role="author")
-        except User.DoesNotExist:
-            return Response({"detail": "El autor no existe."}, status=status.HTTP_404_NOT_FOUND)
-        
-        return Response({"detail": f"Suscrito a {author.username} correctamente."}, status=status.HTTP_200_OK)
+    
+    def get(self, request):        
+        queryset = Notification.objects.filter(recipient=request.user)
+            
+        serializer = NotificationSerializer(queryset, many=True)
+        return Response(serializer.data)

@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from users.models import User
 from .models import SubscriptionPlan
 from .serializers import SubscriptionPlanSerializer
 from rest_framework.views import APIView
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .models import UserSubscription
+from .models import AuthorSubscription
 from .models import UserWallet
 from .serializers import UserSubscriptionSerializer
 from .serializers import UserWalletSerializer
@@ -61,7 +63,6 @@ class SubscribeAPIView(APIView):
                 status=400
             )
 
-        # 2. Si no está suscrito, el código sigue su curso normal...
         try:
             plan_id = request.data.get('plan_id')
             plan = SubscriptionPlan.objects.get(id=plan_id)
@@ -92,3 +93,69 @@ class SubscribeAPIView(APIView):
         
         except Exception as e:
             return Response({"error": "Hubo un error al procesar el pago de la suscripción."}, status=500)
+        
+class AuthorSubscribeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        author_id = request.data.get('author_id')
+        consumer = request.user
+        
+        try:
+            author = User.objects.get(id=author_id, role="author")
+        except User.DoesNotExist:
+            return Response({"detail": "No existe este autor"}, status=404)
+        
+        if consumer.id == author.id:
+            return Response({"detail": "No puedes suscribirte a ti mismo."}, status=400)
+
+        is_subscrited = AuthorSubscription.objects.filter(
+            consumer=consumer, 
+            author=author
+        ).exists()
+
+        if is_subscrited:
+            return Response(
+                {"detail": "Ya estás suscrito a este autor."}, 
+                status=400
+            )
+            
+        AuthorSubscription.objects.create(
+                consumer=consumer,
+                author=author
+            )
+            
+        return Response({"detail": f"Te has suscrito con éxito al autor {author.username}"})
+    
+class AuthorSubscribeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        author_id = request.data.get('author_id')
+        consumer = request.user
+        
+        try:
+            author = User.objects.get(id=author_id, role="author")
+        except User.DoesNotExist:
+            return Response({"detail": "No existe este autor"}, status=404)
+        
+        if consumer.id == author.id:
+            return Response({"detail": "No puedes suscribirte a ti mismo."}, status=400)
+
+        is_subscrited = AuthorSubscription.objects.filter(
+            consumer=consumer, 
+            author=author
+        ).exists()
+
+        if is_subscrited:
+            return Response(
+                {"detail": "Ya estás suscrito a este autor."}, 
+                status=400
+            )
+            
+        AuthorSubscription.objects.create(
+                consumer=consumer,
+                author=author
+            )
+            
+        return Response({"detail": f"Te has suscrito con éxito al autor {author.username}"})

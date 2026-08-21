@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+from django.conf import settings
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -17,7 +18,24 @@ class User(AbstractUser):
     
     public_key = models.TextField(blank=True, null=True)
     private_key = models.TextField(blank=True, null=True)
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    work = models.ForeignKey('works.Work', on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notificación para {self.recipient.username}"
+    
+           
 @receiver(post_save, sender=User)
 def generate_user_rsa_keys(sender, instance, created, **kwargs):
     if created:

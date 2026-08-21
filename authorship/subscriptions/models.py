@@ -45,3 +45,24 @@ class UserWallet(models.Model):
     
     def __str__(self):
         return f"Cartera de {self.user.username} — Saldo: {self.points} puntos"
+    
+class AuthorSubscription(models.Model):
+    consumer = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='author_subscriptions'
+    )
+    
+    author = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='subscribers'
+    )
+
+    start_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('consumer', 'author')
+
+    def __str__(self):
+        return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.name}"

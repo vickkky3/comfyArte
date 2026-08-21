@@ -476,9 +476,9 @@ const closeAuthorModal = () => {
 const subscribeToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-
++
     await axios.post(
-      `http://localhost:8000/api/subscriptions/subscribe/`,
+      `http://localhost:8000/api/subscriptions/authors/subscribe/`,
       { author_id: authorId },
       { headers: { Authorization: `Token ${token}` } }
     );
