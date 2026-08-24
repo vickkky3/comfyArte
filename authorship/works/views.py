@@ -17,6 +17,28 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 
+ALLOWED_EXTENSIONS = {
+    'pdf', 'jpg', 'jpeg', 'png', 'webp', 
+    
+    'mp3', 'wav', 'ogg', 
+    'mp4', 'avi', 'mov', 
+    
+    'zip',
+
+    'py', 'js', 'ts', 'jsx', 'tsx', 'vue', 'html', 'css', 
+    'java', 'c', 'cpp', 'cs', 'php', 'rb', 'go', 'rs', 
+    'swift', 'kt', 'sql', 'sh', 'ipynb', 'json', 'xml', 'yaml', 'yml'
+}
+
+def is_extension_allowed(filename):
+        if not filename or '.' not in filename:
+            return False
+        
+        if any(filename.endswith(ext) for ext in ALLOWED_EXTENSIONS):
+            return True
+        
+        return False
+
 class WorkListCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -97,6 +119,21 @@ class WorkListCreateAPIView(APIView):
                     )
                 
                 if file:
+                    
+                    if not is_extension_allowed(file.name):
+                        return Response(
+                            {"error": "Formato de archivo no permitido. Los formatos aceptados son: .pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                        
+
+                    if resume and not is_extension_allowed(resume.name):
+                        return Response(
+                            {"error": "Formato del archivo de muestra no permitido."},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+    
+    
                     binary_file = file.read()
                     create_data['binary_file'] = binary_file
                     create_data['file_name'] = file.name

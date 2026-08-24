@@ -118,14 +118,25 @@
       </div>
 
       <div class="form-group file-upload-section">
-        <label for="file">Archivo de la Obra (PDF, MP3, MP4, JPG...)</label>
+        <label for="file">Archivo de la Obra (.pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov,
+          .zip)</label>
         <div class="file-input-wrapper">
-          <input type="file" id="file" @change="handleFileChange" required>
-          <p class="file-help">El archivo se almacenará de forma segura en nuestro servidor.</p>
+          <input type="file" id="file" @change="handleFileChange"
+            accept=".pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
+            required>
+          <p class="file-help">
+            <strong>Formatos permitidos:</strong> Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.
+          </p>
         </div>
-        <label for="file">Resumen de la Obra (PDF, MP3, MP4, JPG...)</label>
+        <label for="file">Resumen de la Obra (.pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov,
+          .zip)</label>
         <div class="file-input-wrapper">
-          <input type="file" id="file" @change="handleResumeChange" required>
+          <input type="file" id="file" @change="handleResumeChange"
+            accept=".pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
+            required>
+          <p class="file-help">
+            <strong>Formatos permitidos:</strong> Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.
+          </p>
         </div>
       </div>
 

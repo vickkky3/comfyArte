@@ -6,6 +6,8 @@ import base64
 from pypdf import PdfReader
 from django.conf import settings
 
+max_chars = 5000
+
 def validate_work_content(title, description, file_info, resume_info):
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
     
@@ -73,7 +75,7 @@ def validate_work_content(title, description, file_info, resume_info):
         }
     
 def process_file_for_ai(file_obj):
-    max_chars = 5000
+    
     
     if not file_obj:
         return 'none', None
@@ -85,23 +87,59 @@ def process_file_for_ai(file_obj):
     file_obj.seek(0)
 
     if filename.endswith('.pdf') or 'pdf' in content_type:
+        return process_pdf_for_ai(file_bytes)
+        
+
+    elif any(filename.endswith('.' + ext) for ext in ['jpg', 'jpeg', 'png', 'webp']) or content_type.startswith('image/'):
+        b64_image = base64.b64encode(file_bytes).decode('utf-8')
+        mime = content_type if content_type.startswith('image/') else 'image/jpeg'
+        return 'image', {'b64': b64_image, 'mime': mime}
+    
+    elif any(filename.endswith('.' + ext) for ext in ['mp3', 'wav', 'ogg']) or content_type.startswith('audio/'):
+        return process_audio_for_ai(file_bytes, filename)
+    
+    elif any(filename.endswith('.' + ext) for ext in ['py', 'js', 'ts', 'jsx', 'tsx', 'vue', 'html', 'css', 'java', 'c', 'cpp', 'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'sql', 'sh', 'ipynb', 'json', 'xml', 'yaml', 'yml']):
         try:
+            code_text = file_bytes.decode('utf-8', errors='ignore')
+            return 'text', code_text[:max_chars]
+        
+        except Exception:
+            return 'none', None
+
+    return 'none', None
+
+def process_pdf_for_ai(file_bytes):
+    try:
             pdf_file = io.BytesIO(file_bytes)
             reader = PdfReader(pdf_file)
             text = ""
+            
             for page in reader.pages:
                 extracted = page.extract_text()
                 if extracted:
                     text += extracted + "\n"
+                    
                 if len(text) >= max_chars:
                     break
+                
             return 'text', text[:max_chars]
-        except Exception:
-            return 'none', None
+        
+    except Exception:
+        return 'none', None
 
-    elif any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']) or content_type.startswith('image/'):
-        b64_image = base64.b64encode(file_bytes).decode('utf-8')
-        mime = content_type if content_type.startswith('image/') else 'image/jpeg'
-        return 'image', {'b64': b64_image, 'mime': mime}
-
-    return 'none', None
+def process_audio_for_ai(file_bytes, filename):
+    try:
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        
+        audio_file = io.BytesIO(file_bytes)
+        audio_file.name = filename
+        
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1", 
+            file=audio_file
+        )
+        return 'text', transcript.text[:max_chars]
+    
+    except Exception:
+        return 'none', None
+        
