@@ -1,0 +1,107 @@
+import openai
+import json
+import io
+import base64
+
+from pypdf import PdfReader
+from django.conf import settings
+
+def validate_work_content(title, description, file_info, resume_info):
+    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+    
+    prompt = f"""
+    Eres un auditor de contenidos para la plataforma de propiedad intelectual ComfyARTE.
+    Tu única función es actuar como filtro de seguridad contra contenido estrictamente indebido o ilegal.
+
+    DATOS DE LA OBRA:
+    - Título: {title}
+    - Descripción: {description}
+    """
+
+    if file_info[0] == 'text' and file_info[1]:
+        prompt += f"\n- Texto extraído de la obra: {file_info[1]}"
+    if resume_info[0] == 'text' and resume_info[1]:
+        prompt += f"\n- Texto extraído de la muestra: {resume_info[1]}"
+
+    prompt += """
+
+
+    REGLAS DE EVALUACIÓN (CRITERIO DE RECHAZO ESTRICTO):
+
+    1. QUÉ DEBES RECHAZAR OBLIGATORIAMENTE (is_valid: false):
+       - Contenido explícito no permitido, pornografía o violencia gráfica.
+       - Discurso de odio, acoso, discriminación o incitación a la violencia.
+       - Promoción de actividades ilegales, estafas, malware o vulneraciones de seguridad.
+       - Spam evidente (secuencias aleatorias de caracteres sin sentido alguno).
+
+    2. QUÉ DEBES ACEPTAR SIEMPRE (is_valid: true):
+       - Obras sencillas, cortas, principiantes, infantiles o de tema cotidiano.
+       - Textos breves, código fuente simple, composiciones básicas o imágenes minimalistas.
+       - NO evalúes la calidad artística, la complejidad técnica ni el valor comercial.
+       - Si la obra no incumple ninguna regla de contenido indebido, debes aprobarla.
+
+    Responde estrictamente en formato JSON:
+    {{"is_valid": true/false, "reason": "Si se aprueba, indica 'Obra apta para publicación'. Si se rechaza, explica el motivo exacto en español."}}
+    """
+    
+    user_payload = [{"type": "text", "text": prompt}]
+    
+    if file_info[0] == 'image':
+        user_payload.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:{file_info[1]['mime']};base64,{file_info[1]['b64']}"}
+        })
+
+
+    if resume_info[0] == 'image':
+        user_payload.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:{resume_info[1]['mime']};base64,{resume_info[1]['b64']}"}
+        })
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": user_payload}],
+            response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        return {
+            "is_valid": False,
+            "reason": f"Error al procesar la validación con la IA: {str(e)}"
+        }
+    
+def process_file_for_ai(file_obj):
+    max_chars = 5000
+    
+    if not file_obj:
+        return 'none', None
+    
+    filename = file_obj.name.lower()
+    content_type = getattr(file_obj, 'content_type', '').lower()
+    
+    file_bytes = file_obj.read()
+    file_obj.seek(0)
+
+    if filename.endswith('.pdf') or 'pdf' in content_type:
+        try:
+            pdf_file = io.BytesIO(file_bytes)
+            reader = PdfReader(pdf_file)
+            text = ""
+            for page in reader.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    text += extracted + "\n"
+                if len(text) >= max_chars:
+                    break
+            return 'text', text[:max_chars]
+        except Exception:
+            return 'none', None
+
+    elif any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']) or content_type.startswith('image/'):
+        b64_image = base64.b64encode(file_bytes).decode('utf-8')
+        mime = content_type if content_type.startswith('image/') else 'image/jpeg'
+        return 'image', {'b64': b64_image, 'mime': mime}
+
+    return 'none', None

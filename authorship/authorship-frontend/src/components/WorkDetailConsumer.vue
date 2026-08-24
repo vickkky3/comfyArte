@@ -65,7 +65,7 @@
         <div class="container-card" v-if="work">
           <div class="back-link2">
             <i class="fa-solid fa-circle-arrow-left"></i>
-            <router-link :to="{ path: '/dashboard' }">Volver</router-link>
+            <router-link :to="{ path: '/works' }">Volver</router-link>
           </div>
 
           <div class="main-content-layout">

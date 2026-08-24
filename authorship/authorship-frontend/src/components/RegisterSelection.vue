@@ -13,7 +13,7 @@
     <div class="brand-block">
       <img src="/logo.png" class="welcome-logo-circle" alt="Icono CA" />
       <h1 class="welcome-title">
-        <span class="text-light">Comfor</span><span class="text-bold">ART</span>
+        <span class="text-light">Comfy</span><span class="text-bold">ARTE</span>
       </h1>
     </div>
 

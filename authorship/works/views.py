@@ -12,7 +12,7 @@ from .serializers import WorkSerializer
 from .models import Work, Book, Music, Video, Software, Paint, Sculpture
 from rest_framework.parsers import MultiPartParser, FormParser
 import base64
-
+from .services import validate_work_content, process_file_for_ai
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
@@ -79,6 +79,22 @@ class WorkListCreateAPIView(APIView):
                 
                 file = request.FILES.get('file_upload')
                 resume = request.FILES.get('resume_upload')
+                
+                title = data.get('title')
+                description = data.get('description')
+                
+                file_info = process_file_for_ai(file)
+                resume_info = process_file_for_ai(resume)
+                
+                result_ai_validator = validate_work_content(title, description, file_info, resume_info)
+                
+                print("--- RESULTADO DE LA IA ---", result_ai_validator)
+                
+                if not result_ai_validator.get("is_valid"):
+                    return Response(
+                        {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 
                 if file:
                     binary_file = file.read()
