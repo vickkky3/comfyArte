@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 
 ALLOWED_EXTENSIONS = {
-    'pdf', 'jpg', 'jpeg', 'png', 'webp', 
+    'pdf', 'txt', 'jpg', 'jpeg', 'png', 'webp', 
     
     'mp3', 'wav', 'ogg', 
     'mp4', 'avi', 'mov', 
@@ -34,7 +34,7 @@ def is_extension_allowed(filename):
         if not filename or '.' not in filename:
             return False
         
-        if any(filename.endswith(ext) for ext in ALLOWED_EXTENSIONS):
+        if any(filename.endswith('.' + ext) for ext in ALLOWED_EXTENSIONS):
             return True
         
         return False

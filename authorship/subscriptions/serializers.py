@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import SubscriptionPlan, UserSubscription, UserWallet
+from users.models import User
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):  
     class Meta:
@@ -24,4 +25,10 @@ class UserWalletSerializer(serializers.ModelSerializer):
         model = UserWallet
         fields = '__all__'
         read_only_fields = ['user', 'points']
+        
+
+class SubscribedAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'biography', 'role']
 

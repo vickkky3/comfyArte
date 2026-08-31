@@ -120,16 +120,6 @@
         </aside>
 
         <main class="main-content">
-          <header class="content-header">
-
-            <h1>
-              <template v-if="user.role === 'author'">Panel de Control de Autor</template>
-              <template v-else>Catálogo de Obras</template>
-            </h1>
-            <template v-if="user.role === 'author'">Gestiona tus creaciones y protege tu propiedad
-              intelectual.</template>
-          </header>
-
           <section v-if="user.es_autor" class="action-section">
             <label class="section-label">Registrar nueva obra</label>
             <div class="grid-acciones">
@@ -157,43 +147,50 @@
           <div class="footer-card">
             <label class="section-label">
               <template v-if="user.es_author">Tu catálogo de obras</template>
-              <template v-else>Catálogo de obras</template>
             </label>
 
-            <p v-if="user.es_author">
-              Accede a la lista completa de tus obras registradas y descarga sus certificados.
-            </p>
-            <p v-else>
-              Explora todas las creaciones disponibles y protegidas en la plataforma.
-            </p>
+            <div class="content-header">
+              <i class="fas fa-book"></i>
+              <div class="header-text">
+                <h1>Catálogo de Obras</h1>
+                <p v-if="user.es_author">
+                  Accede a la lista completa de tus obras registradas y descarga sus certificados.
+                </p>
+                <p v-else>
+                  Explora todas las creaciones disponibles y protegidas en la plataforma.
+                </p>
+              </div>
+            </div>
 
             <div v-if="user.es_consumidor" class="recommended-container">
               <h3 class="recommended-title"><i class="fa-solid fa-star"></i> Obras Recomendadas para ti</h3>
 
-              <table v-if="recommendedWorks.length > 0" class="recommended-table">
-                <thead>
-                  <tr>
-                    <th>Tipo</th>
-                    <th>Título de la Obra</th>
-                    <th style="text-align: center;">Detalles</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="work in recommendedWorks" :key="work.id">
-                    <td>
-                      <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
-                    </td>
-                    <td>
-                      <span class="work-title-sm">{{ work.title }}</span>
-                    </td>
-                    <td style="text-align: center;">
-                      <router-link :to="`/works/${work.id}`" class="btn-table-sm">
-                        Consultar
-                      </router-link>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-if="recommendedWorks.length > 0" class="table-scroll-wrapper">
+                <table class="recommended-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Título de la Obra</th>
+                      <th style="text-align: center;">Detalles</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="work in recommendedWorks" :key="work.id">
+                      <td>
+                        <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                      </td>
+                      <td>
+                        <span class="work-title-sm">{{ work.title }}</span>
+                      </td>
+                      <td style="text-align: center;">
+                        <router-link :to="`/works/${work.id}`" class="btn-table-sm">
+                          Consultar
+                        </router-link>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
               <p v-else class="no-recommendations-msg">
                 No hay obras disponibles que coincidan con tus intereses seleccionados.
@@ -205,6 +202,67 @@
               <template v-else>Ver Catálogo Completo</template>
               &rarr;
             </router-link>
+          </div>
+          <div v-if="user.es_consumidor" class="secondary-cards-grid">
+
+            <div class="card-section">
+              <div class="card-header-flex">
+                <div class="card-title-group">
+                  <i class="fa-solid fa-users icon-primary"></i>
+                  <h3>Autores a los que estás suscrito</h3>
+                </div>
+                <router-link to="/authors" class="link-see-all">Ver todos &rarr;</router-link>
+              </div>
+
+              <div v-if="subscribedAuthors.length > 0" class="authors-grid">
+                <div v-for="authorItem in subscribedAuthors.slice(0, 3)" :key="authorItem.id" class="author-item">
+                  <div class="author-main-info">
+                    <div class="avatar-circle">
+                      {{ authorItem.name?.charAt(0) || authorItem.username?.charAt(0) }}
+                    </div>
+
+                    <span class="author-name">
+                      {{ authorItem.first_name }} {{ authorItem.last_name }}
+                    </span>
+
+                    <span class="author-username">
+                      @{{ authorItem.username }}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="card-section">
+              <div class="card-header-flex">
+                <div class="card-title-group">
+                  <i class="fa-solid fa-heart icon-primary"></i>
+                  <h3>Obras guardadas</h3>
+                </div>
+                <router-link to="/saved-works" class="link-see-all">Ver todas &rarr;</router-link>
+              </div>
+
+              <div v-if="savedWorks && savedWorks.length > 0" class="saved-works-list">
+                <div v-for="work in savedWorks" :key="work.id" class="saved-work-item">
+                  <div class="work-icon-box">
+                    <i :class="getWorkIconClass(work.work_type)"></i>
+                  </div>
+                  <div class="work-info">
+                    <h4 class="work-title">{{ work.title }}</h4>
+                    <p class="work-author">{{ work.author_name }}</p>
+                  </div>
+                  <div class="work-actions">
+                    <span class="label-tipo-sm">{{ getWorkTypeName(work.work_type) }}</span>
+                    <button @click="toggleSaveWork(work.id)" class="btn-heart-active">
+                      <i class="fa-solid fa-heart"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="info-text-empty">No tienes obras guardadas en tu lista.</p>
+            </div>
+
           </div>
         </main>
 
@@ -236,6 +294,7 @@ const user = ref({
 });
 
 const works = ref([]);
+const subscribedAuthors = ref([]);
 const error = ref("");
 const loading = ref(true);
 const isEditing = ref(false);
@@ -355,6 +414,23 @@ const getUserPoints = async () => {
   }
 };
 
+const getSuscribedAuthors = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    const response = await axios.get("http://localhost:8000/api/subscriptions/authors/subscribe/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    subscribedAuthors.value = response.data;
+    console.log("Suscripciones del usuario cargadas");
+  } catch (err) {
+    console.error("Error en la petición:", err);
+  }
+};
+
 const modifyProfile = async () => {
   try {
     loading.value = true;
@@ -416,6 +492,7 @@ const handleLogout = async () => {
 onMounted(() => {
   getUserData();
   getUserPoints();
+  getSuscribedAuthors();
 });
 </script>
 
@@ -428,6 +505,39 @@ onMounted(() => {
   margin: 40px auto;
   padding: 0 20px;
   gap: 40px;
+}
+
+.content-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.content-header i {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 0;
+  border: 2px solid var(--granate-principal);
+}
+
+.header-text h1 {
+  margin: 0 0 5px 0;
+  color: #000;
+}
+
+.header-text p {
+  margin: 0;
+  color: #666;
 }
 
 .profile-card {
@@ -735,12 +845,12 @@ onMounted(() => {
   border-bottom: 2px solid var(--rosa-claro);
   padding-bottom: 5px;
 
-  display: flex; 
+  display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.recommended-title i{
+.recommended-title i {
   width: 40px;
   height: 40px;
 
@@ -825,5 +935,203 @@ onMounted(() => {
 
 .btn-primary-save:hover {
   background-color: var(--rosa-fuerte);
+}
+
+.secondary-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.card-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title-group h3 {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--granate-principal, #700020);
+  margin: 0;
+}
+
+.link-see-all {
+  color: var(--granate-principal, #700020);
+  font-size: 0.85em;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.authors-grid {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+}
+
+.author-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar-circle-sm {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #fde8ed;
+  color: #700020;
+  font-weight: bold;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.author-name {
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.author-username {
+  font-size: 0.75em;
+  color: #888;
+}
+
+.saved-works-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-work-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fafafa;
+  padding: 10px 12px;
+  color: var(--granate-principal);
+  border-radius: 8px;
+}
+
+.work-icon-box {
+  width: 36px;
+  height: 36px;
+  background: #fde8ed;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #700020;
+}
+
+.work-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.work-title {
+  margin: 0;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.work-author {
+  margin: 0;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.work-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-heart-active {
+  background: none;
+  border: none;
+  color: #700020;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+
+.table-scroll-wrapper {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--rosa-fuerte);
+  border-radius: 4px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+}
+
+.authors-grid {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.author-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.avatar-circle-sm {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--rosa-claro, #fde8ed);
+  color: var(--granate-principal, #700020);
+  font-weight: bold;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.author-name {
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+.author-username {
+  font-size: 0.75em;
+  color: #777;
 }
 </style>

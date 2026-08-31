@@ -11,6 +11,7 @@ from .models import AuthorSubscription
 from .models import UserWallet
 from .serializers import UserSubscriptionSerializer
 from .serializers import UserWalletSerializer
+from .serializers import SubscribedAuthorSerializer
 from django.utils import timezone
 from django.db import transaction
 from datetime import timedelta
@@ -129,6 +130,15 @@ class AuthorSubscribeAPIView(APIView):
     
 class AuthorSubscribeAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    def get(self, request):        
+        consumer = request.user
+        
+        subscriptions = AuthorSubscription.objects.filter(consumer=consumer).select_related('author')
+        authors = [sub.author for sub in subscriptions]
+        
+        serializer = SubscribedAuthorSerializer(authors, many=True)
+        return Response(serializer.data, status=200)
 
     def post(self, request):
         author_id = request.data.get('author_id')

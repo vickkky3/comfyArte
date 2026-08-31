@@ -9,5 +9,4 @@ urlpatterns = [
     path('subscribe/', SubscribeAPIView.as_view(), name='subscribe_action'),
     path('points/', MyWalletAPIView.as_view(), name='my_wallet'),
     path('authors/subscribe/', AuthorSubscribeAPIView.as_view(), name='author_subscription'),
-    path('authors/subscribe/', AuthorSubscribeAPIView.as_view(), name='author_subscription'),
 ]
