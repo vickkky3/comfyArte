@@ -68,7 +68,7 @@ class AuthorSubscription(models.Model):
     def __str__(self):
         return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.name}"
     
-class SavedWork(models.Model):
+class SaveWork(models.Model):
     consumer = models.ForeignKey(
         User, 
         on_delete=models.CASCADE,

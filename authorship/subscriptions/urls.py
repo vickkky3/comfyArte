@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SubscriptionPlanListAPIView, MySubscriptionAPIView, SubscribeAPIView, MyWalletAPIView, AuthorSubscribeAPIView
+from .views import SubscriptionPlanListAPIView, MySubscriptionAPIView, SubscribeAPIView, MyWalletAPIView, AuthorSubscribeAPIView, SaveWorkAPIView
 
 app_name = 'subscriptions'
 
@@ -9,4 +9,6 @@ urlpatterns = [
     path('subscribe/', SubscribeAPIView.as_view(), name='subscribe_action'),
     path('points/', MyWalletAPIView.as_view(), name='my_wallet'),
     path('authors/subscribe/', AuthorSubscribeAPIView.as_view(), name='author_subscription'),
+    path('works/subscribe/', SaveWorkAPIView.as_view(), name='work_subscription'),
+
 ]

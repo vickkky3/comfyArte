@@ -13,7 +13,7 @@
       </div>
       <div class="navbar-right">
         <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
-        
+
         <div class="notifications-wrapper">
           <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
             <i class="fa-solid fa-bell"></i>
@@ -76,10 +76,21 @@
             </div>
 
             <div class="info-side">
-              <div class="paralel">
-                <h1>{{ work.title }}</h1>
-                <span class="circle-pink">{{ workType }}</span>
+              <div class="header-title-actions">
+                <div class="title-with-badge">
+                  <h1 class="work-main-title">{{ work.title }}</h1>
+                  <span class="circle-pink">{{ workType }}</span>
+                </div>
+
+                <div class="save-btn-wrapper">
+                  <button type="button" @click="saveWork(work.id)" class="btn-save-detail"
+                    :class="{ 'is-saved': isSaved(work.id) }">
+                    <i :class="isSaved(work.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
+                    <span>{{ isSaved(work.id) ? 'Guardada' : 'Guardar obra' }}</span>
+                  </button>
+                </div>
               </div>
+
               <div class="paralel-fields">
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-circle-user"></i>Autor/a</span>
@@ -310,6 +321,9 @@ const authStore = useAuthStore();
 const loading = ref(true);
 const works = ref([]);
 
+const savedWorks = ref([]);
+const savedWorkIds = ref(new Set());
+
 const user = ref({
   id: null,
   username: "",
@@ -423,6 +437,28 @@ const fetchMySubscription = async () => {
   }
 };
 
+const isSaved = (workId) => {
+  return savedWorkIds.value.has(Number(workId));
+};
+
+const fetchSavedWorks = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    const response = await axios.get("http://localhost:8000/api/subscriptions/works/subscribe/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    savedWorks.value = response.data;
+    savedWorkIds.value = new Set(response.data.map(item => item.work_id || item.id));
+    console.log("Obras guardadas cargadas");
+  } catch (err) {
+    console.error("Error en la petición:", err);
+  }
+};
+
 const fetchSubscriptionPlan = async () => {
   try {
     const response = await axios.get(`http://localhost:8000/api/subscriptions/plans/`, {
@@ -512,6 +548,34 @@ const fetchNotifications = async () => {
   }
 };
 
+const saveWork = async (workId) => {
+  const token = authStore.token || localStorage.getItem("token");
+  const config = {
+    headers: { Authorization: `Token ${token}` },
+    data: { work_id: workId }
+  };
+
+  try {
+    if (isSaved(workId)) {
+
+      await axios.delete(`http://localhost:8000/api/subscriptions/works/subscribe/`, config);
+      savedWorkIds.value.delete(workId);
+
+      savedWorks.value = savedWorks.value.filter(item => (item.work_id || item.id) !== workId);
+      alert("¡Obra eliminada de tus favoritos!");
+    } else {
+
+      await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      savedWorkIds.value.add(workId);
+      alert("¡Obra guardada en favoritos!");
+    }
+  } catch (error) {
+    console.error("Error al actualizar guardados:", error);
+  }
+};
+
 const handleLogout = async () => {
   try {
     await axios.post("http://localhost:8000/api/users/", {}, {
@@ -548,6 +612,7 @@ onMounted(async () => {
     fetchWorkDetails(),
     fetchSubscriptionPlan(),
     fetchMySubscription()
+  fetchSavedWorks()
 });
 </script>
 
@@ -936,5 +1001,80 @@ onMounted(async () => {
 
 .btn-subscribe-now:hover {
   background: var(--rosa-claro) !important;
+}
+
+.header-title-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.title-with-badge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+}
+
+.work-main-title {
+  margin: 0;
+  font-size: 1.85em;
+  color: #111;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.circle-pink {
+  background: var(--rosa-claro, #fff0f3);
+  color: var(--granate-principal, #700020);
+  border: 1px solid var(--rosa-fuerte, #db7093);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.save-btn-wrapper {
+  flex-shrink: 0;
+}
+
+.btn-save-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: white;
+  border: 1.5px solid var(--granate-principal, #700020);
+  color: var(--granate-principal, #700020);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.btn-save-detail i {
+  font-size: 1.05em;
+  color: var(--granate-principal, #700020);
+}
+
+.btn-save-detail:hover {
+  background-color: var(--rosa-claro, #fff0f3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(112, 0, 32, 0.1);
+}
+
+.btn-save-detail.is-saved {
+  background-color: var(--rosa-claro, #fff0f3);
+  color: var(--granate-principal, #700020);
 }
 </style>

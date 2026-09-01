@@ -126,7 +126,7 @@
                   <label class="label-mini">Mis Intereses</label>
 
                   <div class="interests-grid">
-                    <div v-for="work in workTypes" :key="work.id" class="checkbox-item">
+                    <div v-for="work in availableWorkTypes" :key="work.id" class="checkbox-item">
                       <label class="checkbox-wrapper">
                         <input type="checkbox" :value="work.id" v-model="editForm.interests" class="custom-check">
                         <span class="check-label">{{ work.label }}</span>
@@ -281,26 +281,22 @@
                   <i class="fa-solid fa-heart icon-primary"></i>
                   <h3>Obras guardadas</h3>
                 </div>
-                <router-link to="/saved-works" class="link-see-all">Ver todas &rarr;</router-link>
+                <router-link to="/subscription/works/subscribe" class="link-see-all">Ver todas &rarr;</router-link>
               </div>
 
               <div v-if="savedWorks && savedWorks.length > 0" class="saved-works-list">
                 <div v-for="work in savedWorks" :key="work.id" class="saved-work-item">
-                  <div class="work-icon-box">
-                    <i :class="getWorkIconClass(work.work_type)"></i>
+
+                  <div class="saved-work-left">
+                    <i :class="getWorkIcon(work.work_type)" class="saved-work-icon"></i>
+                    <span class="saved-work-title" :title="work.title">{{ work.title }}</span>
                   </div>
-                  <div class="work-info">
-                    <h4 class="work-title">{{ work.title }}</h4>
-                    <p class="work-author">{{ work.author_name }}</p>
-                  </div>
-                  <div class="work-actions">
-                    <span class="label-tipo-sm">{{ getWorkTypeName(work.work_type) }}</span>
-                    <button @click="toggleSaveWork(work.id)" class="btn-heart-active">
-                      <i class="fa-solid fa-heart"></i>
-                    </button>
-                  </div>
+
+                  <span class="label-tipo-sm">{{ getWorkTypeName(work.work_type) }}</span>
+
                 </div>
               </div>
+
               <p v-else class="info-text-empty">No tienes obras guardadas en tu lista.</p>
             </div>
 
@@ -336,20 +332,41 @@ const user = ref({
 
 const works = ref([]);
 const subscribedAuthors = ref([]);
+const savedWorks = ref([]);
 const error = ref("");
 const loading = ref(true);
 const isEditing = ref(false);
 const editForm = ref({});
 const userPoints = ref(0);
 
-const workTypes = [
-  { id: 'libro', label: 'Libros' },
-  { id: 'music', label: 'Música' },
-  { id: 'video', label: 'Vídeos' },
-  { id: 'software', label: 'Software' },
-  { id: 'paint', label: 'Pintura' },
-  { id: 'sculpture', label: 'Escultura' }
+const availableWorkTypes = [
+  { id: 'libro', label: 'LIBRO' },
+  { id: 'music', label: 'MÚSICA' },
+  { id: 'video', label: 'VIDEO' },
+  { id: 'software', label: 'SOFTWARE' },
+  { id: 'paint', label: 'PINTURA' },
+  { id: 'sculpture', label: 'ESCULTURA' }
 ];
+
+const workTypeNames = {
+  libro: 'Libro', book: 'Libro',
+  music: 'Música', video: 'Video',
+  software: 'Software', paint: 'Pintura',
+  sculpture: 'Escultura'
+};
+
+const workIconMap = {
+  book: 'fa-solid fa-book-open',
+  libro: 'fa-solid fa-book-open',
+  music: 'fa-solid fa-music',
+  video: 'fa-solid fa-video',
+  software: 'fa-solid fa-code',
+  paint: 'fa-solid fa-palette',
+  sculpture: 'fa-solid fa-hammer'
+};
+
+const getWorkTypeName = (type) => workTypeNames[type] || 'Obra';
+const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 
 const userInterestsArray = computed(() => {
   if (user.value.interests) {
@@ -375,23 +392,12 @@ const recommendedWorks = computed(() => {
 });
 
 const getInterestLabel = (id) => {
-  const found = workTypes.find(type => type.id === id);
-
+  const found = availableWorkTypes.find(type => type.id === id);
   if (found) {
     return found.label;
   } else {
     return id;
   }
-};
-
-const getWorkTypeName = (type) => {
-  const types = {
-    libro: 'Libro', book: 'Libro',
-    music: 'Música', video: 'Video',
-    software: 'Software', paint: 'Pintura',
-    sculpture: 'Escultura'
-  };
-  return types[type] || 'Obra';
 };
 
 const startEditing = () => {
@@ -467,6 +473,23 @@ const getSuscribedAuthors = async () => {
 
     subscribedAuthors.value = response.data;
     console.log("Suscripciones del usuario cargadas");
+  } catch (err) {
+    console.error("Error en la petición:", err);
+  }
+};
+
+const getSavedWorks = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    const response = await axios.get("http://localhost:8000/api/subscriptions/works/subscribe/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    savedWorks.value = response.data;
+    console.log("Obras guardadas del usuario cargadas");
   } catch (err) {
     console.error("Error en la petición:", err);
   }
@@ -569,6 +592,7 @@ onMounted(() => {
   getUserData();
   getUserPoints();
   getSuscribedAuthors();
+  getSavedWorks()
 });
 </script>
 
@@ -1015,16 +1039,11 @@ onMounted(() => {
 
 .secondary-cards-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 25px;
   margin-top: 25px;
-}
-
-.card-section {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .card-header-flex {
@@ -1032,12 +1051,14 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  gap: 10px;
 }
 
 .card-title-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap; 
 }
 
 .card-title-group h3 {
@@ -1052,6 +1073,8 @@ onMounted(() => {
   font-size: 0.85em;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap; 
+  flex-shrink: 0;
 }
 
 .authors-grid {
@@ -1101,10 +1124,42 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fafafa;
-  padding: 10px 12px;
-  color: var(--granate-principal);
+  background-color: #fffafc;
+  border: 1px solid var(--rosa-claro);
+  padding: 10px 14px;
   border-radius: 8px;
+  gap: 12px;
+}
+
+.saved-work-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-work-icon {
+  color: var(--granate-principal);
+  font-size: 1em;
+  flex-shrink: 0; 
+}
+
+.saved-work-title {
+  font-size: 0.88em;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.label-tipo-sm {
+  flex-shrink: 0;
+  color: var(--rosa-fuerte);
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .work-icon-box {

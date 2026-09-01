@@ -143,49 +143,55 @@
         </div>
 
         <div v-if="sortedWorks.length > 0" class="table-works">
-        <table>
-          <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>Título de la Obra</th>
-              <th v-if="isConsumer">Recomendación</th>
-              <th v-else>Fecha</th>
-              <th style="text-align: center;">Detalles</th>
-              <th v-if="isAuthor">Eliminar Obra</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="work in sortedWorks" :key="work.id">
-              <td>
-                <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
-              </td>
-              <td>
-                <span class="work-title">{{ work.title }}</span>
-              </td>
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Título de la Obra</th>
+                <th v-if="isConsumer">Recomendación</th>
+                <th v-else>Fecha</th>
+                <th style="text-align: center;">Detalles</th>
+                <th v-if="isAuthor">Eliminar Obra</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="work in sortedWorks" :key="work.id">
+                <td>
+                  <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                </td>
+                <td>
+                  <span class="work-title">{{ work.title }}</span>
+                </td>
 
-              <td v-if="isAuthor">
-                <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
-              </td>
-              <td v-else>
-                <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
-                <span v-else class="badge-neutral">-</span>
-              </td>
+                <td v-if="isAuthor">
+                  <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
+                </td>
+                <td v-else>
+                  <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
+                  <span v-else class="badge-neutral">-</span>
+                </td>
 
-              <td style="text-align: center;">
-                <router-link v-if="isAuthor" :to="`/worksAuthor/${work.id}`" class="btn-table">
-                  <span>Ver Detalles</span>
-                </router-link>
-                <router-link v-else :to="`/works/${work.id}`" class="btn-table">
-                  <span>Consultar</span>
-                </router-link>
-              </td>
+                <td style="text-align: center;">
+                  <div class="actions-cell">
+                    <router-link v-if="isAuthor" :to="`/worksAuthor/${work.id}`" class="btn-table">
+                      <span>Ver Detalles</span>
+                    </router-link>
+                    <router-link v-else :to="`/works/${work.id}`" class="btn-table">
+                      <span>Consultar</span>
+                    </router-link>
+                    <button v-if="isConsumer" type="button" @click="saveWork(work.id)" class="btn-icon"
+                      :title="isSaved(work.id) ? 'Quitar de guardados' : 'Guardar obra'">
+                      <i :class="isSaved(work.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
+                    </button>
+                  </div>
+                </td>
 
-              <td v-if="isAuthor" style="text-align: center;">
-                <button @click="deleteWork(work.id)" class="btn-delete">Eliminar</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td v-if="isAuthor" style="text-align: center;">
+                  <button @click="deleteWork(work.id)" class="btn-delete">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div v-else class="empty-msg">
@@ -519,18 +525,66 @@ const closeAuthorModal = () => {
 const subscribeToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    +
-      await axios.post(
-        `http://localhost:8000/api/subscriptions/authors/subscribe/`,
-        { author_id: authorId },
-        { headers: { Authorization: `Token ${token}` } }
-      );
+    await axios.post(
+      `http://localhost:8000/api/subscriptions/authors/subscribe/`,
+      { author_id: authorId },
+      { headers: { Authorization: `Token ${token}` } }
+    );
 
     alert("¡Te has suscrito con éxito a este autor!");
     closeAuthorModal();
   } catch (error) {
     console.error("Error al suscribirse:", error);
     alert("No se pudo completar la suscripción.");
+  }
+};
+
+const savedWorkIds = ref(new Set());
+const isSaved = (workId) => {
+  return savedWorkIds.value.has(workId);
+};
+
+const fetchSavedWorks = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(`http://localhost:8000/api/subscriptions/works/subscribe/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    savedWorkIds.value = new Set(response.data.map(item => item.work_id || item.id));
+
+  } catch (error) {
+    console.error("Error al cargar obras guardadas:", error);
+  }
+};
+
+
+const saveWork = async (workId) => {
+  const token = authStore.token || localStorage.getItem("token");
+  const config = {
+    headers: { Authorization: `Token ${token}` },
+    data: { work_id: workId }
+  };
+
+  try {
+    if (isSaved(workId)) {
+
+      await axios.delete(`http://localhost:8000/api/subscriptions/works/subscribe/`, config);
+      savedWorkIds.value.delete(workId);
+
+      alert("¡Has eliminado de guardados con éxito esta obra!");
+
+    } else {
+
+      await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      savedWorkIds.value.add(workId);
+
+      alert("¡Te has guardado con éxito esta obra!");
+    }
+  } catch (error) {
+    console.error("Error al actualizar guardados:", error);
   }
 };
 
@@ -657,6 +711,7 @@ onMounted(() => {
   fetchWorks();
   getUserPoints();
   fetchAuthors();
+  fetchSavedWorks();
 });
 </script>
 
@@ -1393,5 +1448,30 @@ tr:hover {
 .authors-grid::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25em;
+  color: var(--granate-principal);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.15);
+  opacity: 0.85;
+}
+
+.actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 </style>

@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from users.models import User
+from works.models import Work
 from .models import SubscriptionPlan
 from .serializers import SubscriptionPlanSerializer
 from rest_framework.views import APIView
@@ -9,9 +10,11 @@ from rest_framework.authentication import TokenAuthentication
 from .models import UserSubscription
 from .models import AuthorSubscription
 from .models import UserWallet
+from .models import SaveWork
 from .serializers import UserSubscriptionSerializer
 from .serializers import UserWalletSerializer
 from .serializers import SubscribedAuthorSerializer
+from .serializers import SaveWorkSerializer
 from django.utils import timezone
 from django.db import transaction
 from datetime import timedelta
@@ -163,3 +166,66 @@ class AuthorSubscribeAPIView(APIView):
         suscription.delete()
             
         return Response({"detail": f"Te has desuscrito con éxito al autor {author.username}"})
+    
+    
+class SaveWorkAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):        
+        consumer = request.user
+        
+        saved_works = SaveWork.objects.filter(consumer=consumer).select_related('work', 'work__author')
+        
+        serializer = SaveWorkSerializer(saved_works, many=True)
+        return Response(serializer.data, status=200)
+
+    def post(self, request):
+        work_id = request.data.get('work_id')
+        consumer = request.user
+        
+        try:
+            work = Work.objects.get(id=work_id)
+        except Work.DoesNotExist:
+            return Response({"detail": "No existe esta obra"}, status=404)
+
+        is_saved = SaveWork.objects.filter(
+            consumer=consumer, 
+            work=work
+        ).exists()
+
+        if is_saved:
+            return Response(
+                {"detail": "Ya has guardado esta obra."}, 
+                status=400
+            )
+            
+        SaveWork.objects.create(
+                consumer=consumer,
+                work=work
+            )
+            
+        return Response({"detail": f"Te has guardado con éxito la obra {work.title}"})
+    
+    def delete(self, request):
+        work_id = request.data.get('work_id')
+        consumer = request.user
+        
+        try:
+            work = Work.objects.get(id=work_id)
+        except Work.DoesNotExist:
+            return Response({"detail": "No existe esta obra"}, status=404)
+
+        suscription = SaveWork.objects.filter(
+            consumer=consumer, 
+            work=work
+        ).first()
+
+        if not suscription:
+            return Response(
+                {"detail": "No tienes guardada esta obra."}, 
+                status=400
+            )
+            
+        suscription.delete()
+            
+        return Response({"detail": f"Has eliminado de guardados correctamente la obra {work.title}"})
