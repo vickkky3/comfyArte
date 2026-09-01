@@ -139,6 +139,10 @@
           <div class="filter-field">
             <span class="filter-label" style="visibility: hidden;">Buscar</span>
             <button @click="handleSearchClick" class="btn-search-submit">Buscar</button>
+            <button v-if="hasActiveFilters" @click="clearFilters" class="btn-clear-filters"
+              title="Limpiar todos los filtros">
+              <i class="fa-solid fa-rotate-left"></i> Limpiar
+            </button>
           </div>
         </div>
 
@@ -380,10 +384,29 @@ const authorsList = ref([]);
 const authorSearchQuery = ref("");
 
 const handleSearchClick = () => {
-  appliedSearch.value = searchQuery.value;
   appliedTypes.value = [...selectedTypes.value];
   appliedPlans.value = [...selectedPlans.value];
 
+  isTypeOpen.value = false;
+  isPlanOpen.value = false;
+};
+
+const hasActiveFilters = computed(() => {
+  return (
+    searchQuery.value.trim().length > 0 ||
+    selectedTypes.value.length > 0 ||
+    selectedPlans.value.length > 0 ||
+    appliedTypes.value.length > 0 ||
+    appliedPlans.value.length > 0
+  );
+});
+
+const clearFilters = () => {
+  searchQuery.value = "";
+  selectedTypes.value = [];
+  selectedPlans.value = [];
+  appliedTypes.value = [];
+  appliedPlans.value = [];
   isTypeOpen.value = false;
   isPlanOpen.value = false;
 };
@@ -430,7 +453,8 @@ const isInteresting = (type) => {
 
 const sortedWorks = computed(() => {
   const obrasFiltradas = works.value.filter(work => {
-    const cumpleNombre = !appliedSearch.value || work.title.toLowerCase().includes(appliedSearch.value.toLowerCase());
+    const query = searchQuery.value.trim().toLowerCase();
+    const cumpleNombre = !query || work.title?.toLowerCase().includes(query);
 
     const tipoLimpio = normalizarTipo(work.work_type);
     const cumpleTipo = appliedTypes.value.length === 0 || appliedTypes.value.includes(tipoLimpio);
@@ -452,15 +476,12 @@ const sortedWorks = computed(() => {
     const aInteresting = userInterestsArray.value.includes(tipoA);
     const bInteresting = userInterestsArray.value.includes(tipoB);
 
-    if (aInteresting && !bInteresting) {
-      return -1;
-    }
-    if (!aInteresting && bInteresting) {
-      return 1;
-    }
+    if (aInteresting && !bInteresting) return -1;
+    if (!aInteresting && bInteresting) return 1;
     return a.title.localeCompare(b.title);
   });
 });
+
 
 const fetchPlans = async () => {
   try {
@@ -1324,7 +1345,7 @@ tr:hover {
 }
 
 .table-works {
-  max-height: 450px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 5px;
   scrollbar-width: thin;
@@ -1473,5 +1494,41 @@ tr:hover {
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+.filter-buttons-group {
+  flex: 0 0 auto;
+}
+
+.actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  color: #777;
+  border: 1px solid #ddd;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88em;
+  height: 40px;
+  width: 100%;                
+  display: flex;
+  align-items: center;          
+  justify-content: center;     
+  gap: 8px;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-color: var(--rosa-fuerte);
 }
 </style>
