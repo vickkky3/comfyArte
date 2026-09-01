@@ -1,8 +1,76 @@
 <template>
   <nav class="navbar">
-    <span><strong>Gestión de Obras</strong> | Registro de {{ workTypeName }}</span>
-    <router-link to="/dashboard" class="btn-back-nav">Volver al Panel</router-link>
-  </nav>
+      <div class="navbar-left">
+        <img src="/logo.png" class="logo-img" alt="Logo comforART" />
+        <span class="nav-title">
+          <span class="text-comfor">Comfy</span><span class="text-art">ARTE</span>
+        </span>
+        <span class="nav-separator">|</span>
+        <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
+      </div>
+      <div class="navbar-right">
+        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+
+        <div class="notifications-wrapper">
+          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+
+          <div v-if="isNotificationsOpen" class="notifications-dropdown">
+
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+            </div>
+
+            <div class="notif-body">
+              <div v-if="notifications.length > 0">
+                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-icon-circle">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
+
+                  <div class="notif-content">
+                    <div class="notif-title-row">
+                      <span class="notif-title">Nueva obra disponible</span>
+                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                    </div>
+                    <p class="notif-text">
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
+                        notif.work_title }}"</em>.
+                    </p>
+                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="notif-empty">
+                <p>No tienes notificaciones por ahora.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+      </div>
+    </nav>
+
+  <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
 
   <div class="form-container">
     <h1>Registrar {{ workTypeName }}</h1>
@@ -251,6 +319,16 @@ const selectedPlan = ref("");
 
 const loadingPlans = ref(true);
 
+const information = ref({
+    show: false,
+    message: "",
+    type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+    information.value = { show: true, message, type };
+};
+
 const fetchPlans = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -279,8 +357,8 @@ const handleResumeChange = (event) => {
 };
 
 const handleSubmit = async () => {
-  if (!selectedFile.value) {
-    error.value = "Por favor, selecciona un archivo.";
+   if (!selectedFile.value) {
+    triggerInformation("Por favor, selecciona el archivo principal de la obra.", "error");
     return;
   }
 
@@ -314,7 +392,7 @@ const handleSubmit = async () => {
   } else if (workType === 'software') {
     formData.append("programming_language", programming_language.value);
     formData.append("repository_url", repository_url.value);
-    formData.append("documentation_url", repository_url.value);
+    formData.append("documentation_url", documentation_url.value);
   } else if (workType === 'paint' || workType === 'sculpture') {
     formData.append("height", height.value);
     formData.append("weight", weight.value);
@@ -328,11 +406,17 @@ const handleSubmit = async () => {
       }
     });
 
-    router.push("/dashboard");
+    triggerInformation("¡Obra registrada y protegida con éxito!", "success");
+
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1200);
   } catch (err) {
     console.error("Error detectado en la subida:", error);
+
     if (err.response) {
       console.log("Datos del error recibidos de Django:", err.response.data);
+      let errorMsg = "Error inesperado al procesar la subida.";
 
       if (err.response.data && err.response.data.error) {
         error.value = err.response.data.error;
@@ -355,6 +439,10 @@ const handleSubmit = async () => {
     } else {
       error.value = err.message || "Error inesperado al procesar la subida.";
     }
+
+    error.value = errorMsg;
+    triggerInformation(errorMsg, "error");
+    
   } finally {
     loading.value = false;
   }

@@ -58,6 +58,23 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="container">
       <div class="main-mode-bar">
         <div class="toggle-pill-container">
@@ -239,7 +256,7 @@
 
             <div class="author-card-actions">
               <button @click="openAuthorModal(authorItem)" class="btn-table" style="width: 100%;">
-                Ver Perfil y Suscribirse
+                Ver Perfil
               </button>
             </div>
 
@@ -328,9 +345,15 @@
               </div>
 
               <div class="modal-footer">
-                <button @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
-                  <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
-                </button>
+                <button v-if="isConsumer" type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
+                      :title="isSuscribed(selectedAuthor.id) ? 'Quitar de guardados' : 'Guardar obra'">
+                      <div v-if="isSuscribed(selectedAuthor.id)">
+                        <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
+                      </div>
+                      <div v-else="isSuscribed(selectedAuthor.id)">
+                        <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
+                      </div>
+                    </button>
               </div>
 
             </div>
@@ -430,6 +453,16 @@ const normalizarTipo = (type) => {
   }
 };
 
+const information = ref({
+  show: false,
+  message: "",
+  type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+  information.value = { show: true, message, type };
+};
+
 const userInterestsArray = computed(() => {
   if (user.value.interests) {
     return user.value.interests.split(',');
@@ -513,6 +546,7 @@ const fetchAuthors = async () => {
 const filteredAuthors = computed(() => {
   if (!authorSearchQuery.value) return authorsList.value;
   const query = authorSearchQuery.value.toLowerCase();
+
   return authorsList.value.filter(a =>
     a.username?.toLowerCase().includes(query) ||
     a.first_name?.toLowerCase().includes(query)
@@ -543,20 +577,58 @@ const closeAuthorModal = () => {
   authorWorks.value = [];
 };
 
-const subscribeToAuthor = async (authorId) => {
+const fetchSubscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    await axios.post(
-      `http://localhost:8000/api/subscriptions/authors/subscribe/`,
-      { author_id: authorId },
-      { headers: { Authorization: `Token ${token}` } }
-    );
+    const response = await axios.get("http://localhost:8000/api/subscriptions/authors/subscribe/", {
+      headers: { Authorization: `Token ${token}` }
+    });
 
-    alert("¡Te has suscrito con éxito a este autor!");
+    suscribedAuthorsIds.value = new Set(
+      response.data.map(item => item.author_id || item.author?.id || item.id)
+    );
+  } catch (error) {
+    console.error("Error al cargar suscripciones:", error);
+  }
+};
+
+const suscribedAuthorsIds = ref(new Set());
+const isSuscribed = (authorId) => {
+  return suscribedAuthorsIds.value.has(authorId);
+};
+
+const subscribeToAuthor = async (authorId) => {
+
+  const token = authStore.token || localStorage.getItem("token");
+
+  const config = {
+    headers: { Authorization: `Token ${token}` },
+    data: { author_id: authorId }
+  };
+
+  try {
+    if (isSuscribed(authorId)) {
+
+      await axios.delete(`http://localhost:8000/api/subscriptions/authors/subscribe/`, config);
+      suscribedAuthorsIds.value.delete(authorId);
+
+      triggerInformation("¡Has eliminado con éxito tu suscripción a este autor!", "success");
+
+    } else {
+
+      await axios.post(`http://localhost:8000/api/subscriptions/authors/subscribe/`, { author_id: authorId }, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      suscribedAuthorsIds.value.add(authorId);
+
+      triggerInformation("¡Te has suscrito con éxito a este autor!", "success");
+    }
+
     closeAuthorModal();
+
   } catch (error) {
     console.error("Error al suscribirse:", error);
-    alert("No se pudo completar la suscripción.");
+    triggerInformation("¡Se ha producido con la suscripción a este autor!", "error");
   }
 };
 
@@ -593,7 +665,7 @@ const saveWork = async (workId) => {
       await axios.delete(`http://localhost:8000/api/subscriptions/works/subscribe/`, config);
       savedWorkIds.value.delete(workId);
 
-      alert("¡Has eliminado de guardados con éxito esta obra!");
+      triggerInformation("¡Has eliminado de guardados con éxito esta obra!", "success");
 
     } else {
 
@@ -602,9 +674,11 @@ const saveWork = async (workId) => {
       });
       savedWorkIds.value.add(workId);
 
-      alert("¡Te has guardado con éxito esta obra!");
+      triggerInformation("¡Te has guardado con éxito esta obra!", "success");
     }
+
   } catch (error) {
+    triggerInformation("¡Se ha producido un error al intentar modificar las obras guardadas!", "error");
     console.error("Error al actualizar guardados:", error);
   }
 };
@@ -685,10 +759,12 @@ const deleteWork = async (id) => {
 
     works.value = works.value.filter(work => work.id !== id);
 
-    alert("Obra eliminada correctamente.");
+    triggerInformation("Obra eliminada correctamente.", "success");
 
   } catch (err) {
+    triggerInformation("¡Se ha producido un error al intentar eliminar la obra!", "error");
     console.error("Error al eliminar la obra:", err);
+
   } finally {
     loading.value = false;
   }
@@ -733,6 +809,7 @@ onMounted(() => {
   getUserPoints();
   fetchAuthors();
   fetchSavedWorks();
+  fetchSubscribedAuthors();
 });
 </script>
 
@@ -1516,10 +1593,10 @@ tr:hover {
   cursor: pointer;
   font-size: 0.88em;
   height: 40px;
-  width: 100%;                
+  width: 100%;
   display: flex;
-  align-items: center;          
-  justify-content: center;     
+  align-items: center;
+  justify-content: center;
   gap: 8px;
   box-sizing: border-box;
   text-align: center;

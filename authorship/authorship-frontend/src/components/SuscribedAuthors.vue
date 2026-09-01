@@ -58,6 +58,23 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="container">
 
       <div>
@@ -222,33 +239,34 @@ const userPoints = ref(0);
 const subscribedAuthors = ref([]);
 const authorSearchQuery = ref("");
 
+const information = ref({
+    show: false,
+    message: "",
+    type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+    information.value = { show: true, message, type };
+};
+
 const getUserData = async () => {
   try {
+    const token = authStore.token || localStorage.getItem("token");
     const response = await axios.get("http://localhost:8000/api/users/me/", {
       headers: {
-        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
+        Authorization: `Token ${token}`,
       },
     });
 
     user.value = response.data;
-
     user.value.es_autor = user.value.role === 'author';
     user.value.es_consumidor = user.value.role === 'consumer';
 
-    if (user.value.es_consumidor) {
-      const worksResponse = await axios.get("http://localhost:8000/api/works/", {
-        headers: {
-          Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
-        },
-      });
-
-      works.value = worksResponse.data;
-    }
-
   } catch (err) {
-    console.error("Error en la petición:", err);
-    error.value = "Sesión inválida";
+    console.error("Error al obtener datos del usuario:", err);
+    triggerInformation("Sesión inválida o expirada", "error");
     router.push("/login");
+
   } finally {
     loading.value = false;
   }
@@ -322,24 +340,6 @@ const closeAuthorModal = () => {
   authorWorks.value = [];
 };
 
-const subscribeToAuthor = async (authorId) => {
-  try {
-    const token = authStore.token || localStorage.getItem("token");
-
-    await axios.post(
-      `http://localhost:8000/api/subscriptions/authors/subscribe/`,
-      { author_id: authorId },
-      { headers: { Authorization: `Token ${token}` } }
-    );
-
-    alert("¡Te has suscrito con éxito a este autor!");
-    closeAuthorModal();
-  } catch (error) {
-    console.error("Error al suscribirse:", error);
-    alert("No se pudo completar la suscripción.");
-  }
-};
-
 const cancelSuscriptionToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
@@ -356,7 +356,7 @@ const cancelSuscriptionToAuthor = async (authorId) => {
       }
     );
 
-    alert("¡Has cancelado tu suscripción a este autor!");
+    triggerInformation("¡Has cancelado tu suscripción a este autor!", "success");
     closeAuthorModal();
 
     subscribedAuthors.value = subscribedAuthors.value.filter(
@@ -364,7 +364,13 @@ const cancelSuscriptionToAuthor = async (authorId) => {
     );
   } catch (error) {
     console.error("Error al cancelar suscripción:", error);
-    alert("No se pudo completar la cancelación de suscripción.");
+
+    if (error.response && error.response.data && error.response.data.detail) {
+      triggerInformation(error.response.data.detail, "error");
+      
+    } else {
+      triggerInformation("No se pudo cancelar la suscripción. Por favor, inténtalo de nuevo.", "error");
+    }
   }
 };
 

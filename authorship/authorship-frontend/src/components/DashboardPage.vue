@@ -62,11 +62,29 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="container">
       <div class="dashboard-layout">
 
         <aside class="sidebar">
           <div class="profile-card">
+
             <div class="profile-header">
               <div class="avatar-circle">
                 {{ user.first_name?.charAt(0) || user.username?.charAt(0) }}
@@ -76,8 +94,8 @@
                 <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
                 <p class="username-text">@{{ user.username }}</p>
                 <span class="role-badge">
-                  <template v-if="user.role === 'author'">Autor</template>
-                  <template v-else>Consumidor</template>
+                  <template v-if="user.role === 'author'">AUTOR</template>
+                  <template v-else>CONSUMIDOR</template>
                 </span>
               </template>
 
@@ -88,24 +106,23 @@
 
                   <label class="label-mini">Nombre</label>
                   <input v-model="editForm.first_name" class="edit-input" placeholder="Nombre">
+
                   <label class="label-mini">Apellidos</label>
                   <input v-model="editForm.last_name" class="edit-input" placeholder="Apellido">
                 </div>
               </template>
             </div>
 
-            <hr class="linea-granate">
-
-            <div class="profile-body">
+            <div class="profile-section">
               <div v-if="!isEditing">
                 <div v-if="user.es_autor && user.biography" class="info-group">
-                  <label>Biografía Profesional:</label>
-                  <p>{{ user.biography }}</p>
+                  <label class="section-subtitle">Biografía Profesional</label>
+                  <p class="bio-text">{{ user.biography }}</p>
                 </div>
 
-                <div v-if="user.es_consumidor" class="info-group">
-                  <label class="label-mini">Intereses</label>
-                  <div class="interests-pills-container">
+                <div v-if="user.es_consumidor" class="interests-container">
+                  <label class="section-subtitle">Mis intereses</label>
+                  <div class="interests-pills-row">
                     <template v-if="userInterestsArray.length > 0">
                       <span v-for="interest in userInterestsArray" :key="interest" class="badge-interes">
                         {{ getInterestLabel(interest) }}
@@ -117,14 +134,13 @@
               </div>
 
               <div v-else>
-                <div v-if="user.es_autor && user.biography" class="info-group">
+                <div v-if="user.es_autor" class="info-group">
                   <label class="label-mini">Biografía</label>
                   <textarea v-model="editForm.biography" class="edit-textarea"></textarea>
                 </div>
 
                 <div v-else-if="user.es_consumidor" class="info-group">
                   <label class="label-mini">Mis Intereses</label>
-
                   <div class="interests-grid">
                     <div v-for="work in availableWorkTypes" :key="work.id" class="checkbox-item">
                       <label class="checkbox-wrapper">
@@ -133,18 +149,37 @@
                       </label>
                     </div>
                   </div>
+                  <small class="info-help">Selecciona lo que quieres descubrir.</small>
                 </div>
-
-                <small class="info-help">Selecciona lo que quieres descubrir.</small>
               </div>
             </div>
 
-            <hr class="linea-granate">
+            <nav v-if="!isEditing" class="sidebar-nav-list">
+              <router-link to="/works" class="nav-item-link" active-class="active">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Catálogo de Obras/Autores</span>
+              </router-link>
 
-            <div class="info-group">
-              <label>Correo Electrónico:</label>
-              <p v-if="!isEditing">{{ user.email }}</p>
-              <input v-else v-model="editForm.email" class="edit-input">
+              <router-link to="/subscription/works/subscribe" class="nav-item-link" active-class="active">
+                <i class="fa-solid fa-heart icon-primary"></i>
+                <span>Obras Guardadas</span>
+              </router-link>
+
+              <router-link to="/subscriptions" class="nav-item-link" active-class="active">
+                <i class="fa-solid fa-users icon-primary"></i>
+                <span>Mis Autores</span>
+              </router-link>
+            </nav>
+
+            <hr class="nav-divider" />
+
+            <div class="email-info-section">
+              <i class="fa-regular fa-envelope email-icon"></i>
+              <div class="email-text-box">
+                <span class="email-label">Correo electrónico:</span>
+                <p v-if="!isEditing" class="email-val">{{ user.email }}</p>
+                <input v-else v-model="editForm.email" class="edit-input-sm">
+              </div>
             </div>
 
             <div class="profile-actions">
@@ -157,6 +192,7 @@
                 <button @click="isEditing = false" class="btn-cancel-small">Cancelar</button>
               </div>
             </div>
+
           </div>
         </aside>
 
@@ -244,6 +280,7 @@
               &rarr;
             </router-link>
           </div>
+
           <div v-if="user.es_consumidor" class="secondary-cards-grid">
 
             <div class="card-section">
@@ -255,45 +292,39 @@
                 <router-link to="/subscription/authors/subscribe" class="link-see-all">Ver todos &rarr;</router-link>
               </div>
 
-              <div v-if="subscribedAuthors.length > 0" class="authors-grid">
+              <div v-if="subscribedAuthors && subscribedAuthors.length > 0" class="authors-grid">
                 <div v-for="authorItem in subscribedAuthors.slice(0, 3)" :key="authorItem.id" class="author-item">
-                  <div class="author-main-info">
-                    <div class="avatar-circle">
-                      {{ authorItem.name?.charAt(0) || authorItem.username?.charAt(0) }}
-                    </div>
-
-                    <span class="author-name">
-                      {{ authorItem.first_name }} {{ authorItem.last_name }}
-                    </span>
-
-                    <span class="author-username">
-                      @{{ authorItem.username }}
-                    </span>
+                  <div class="avatar-circle-sm">
+                    {{ authorItem.first_name?.charAt(0) || authorItem.username?.charAt(0) || 'A' }}
                   </div>
+                  <span class="author-name">
+                    {{ authorItem.first_name }} {{ authorItem.last_name }}
+                  </span>
+                  <span class="author-username">
+                    @{{ authorItem.username }}
+                  </span>
                 </div>
-
               </div>
+
+              <p v-else class="info-text-empty">Aún no sigues a ningún autor.</p>
             </div>
 
             <div class="card-section">
               <div class="card-header-flex">
                 <div class="card-title-group">
                   <i class="fa-solid fa-heart icon-primary"></i>
-                  <h3>Obras guardadas</h3>
+                  <h3>Obras Guardadas</h3>
                 </div>
                 <router-link to="/subscription/works/subscribe" class="link-see-all">Ver todas &rarr;</router-link>
               </div>
 
               <div v-if="savedWorks && savedWorks.length > 0" class="saved-works-list">
-                <div v-for="work in savedWorks" :key="work.id" class="saved-work-item">
-
+                <div v-for="work in savedWorks.slice(0, 3)" :key="work.id" class="saved-work-item">
                   <div class="saved-work-left">
                     <i :class="getWorkIcon(work.work_type)" class="saved-work-icon"></i>
                     <span class="saved-work-title" :title="work.title">{{ work.title }}</span>
                   </div>
-
                   <span class="label-tipo-sm">{{ getWorkTypeName(work.work_type) }}</span>
-
                 </div>
               </div>
 
@@ -368,6 +399,16 @@ const workIconMap = {
 const getWorkTypeName = (type) => workTypeNames[type] || 'Obra';
 const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 
+const information = ref({
+  show: false,
+  message: "",
+  type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+  information.value = { show: true, message, type };
+};
+
 const userInterestsArray = computed(() => {
   if (user.value.interests) {
     if (typeof user.value.interests === 'string') {
@@ -437,7 +478,7 @@ const getUserData = async () => {
 
   } catch (err) {
     console.error("Error en la petición:", err);
-    error.value = "Sesión inválida";
+    triggerInformation("Sesión inválida o expirada", "error");
     router.push("/login");
   } finally {
     loading.value = false;
@@ -503,7 +544,7 @@ const modifyProfile = async () => {
     const payload = { ...editForm.value };
 
     if (!payload.username || !payload.first_name || !payload.last_name) {
-      alert("Nombre, Apellidos y Usuario son obligatorios.");
+      triggerInformation("Nombre, Apellidos y Usuario son campos obligatorios.", "error");
       loading.value = false;
       return;
     }
@@ -524,11 +565,11 @@ const modifyProfile = async () => {
 
     isEditing.value = false;
 
-    alert("Perfil actualizado correctamente");
+    triggerInformation("Perfil actualizado correctamente.", "success");
 
   } catch (err) {
     console.error(err);
-    alert("Error al actualizar el perfil");
+    triggerInformation("Error al actualizar el perfil.", "error");
 
   } finally {
     loading.value = false;
@@ -607,6 +648,25 @@ onMounted(() => {
   gap: 40px;
 }
 
+.main-content {
+  flex: 1;
+}
+
+.header-panel {
+  margin-bottom: 40px;
+}
+
+.header-panel h1 {
+  font-size: 2.2em;
+  color: var(--granate-principal);
+  margin-bottom: 10px;
+}
+
+.header-panel p {
+  color: #777;
+  font-size: 1.1em;
+}
+
 .content-header {
   display: flex;
   align-items: center;
@@ -640,43 +700,133 @@ onMounted(() => {
   color: #666;
 }
 
+.section-label {
+  display: block;
+  font-weight: bold;
+  color: var(--granate-principal);
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.linea-granate {
+  border: none;
+  height: 2px;
+  background-color: var(--granate-principal);
+  margin: 20px 0;
+  opacity: 0.8;
+  border-radius: 2px;
+}
+
+.sidebar {
+  width: 320px;
+  flex-shrink: 0;
+}
+
 .profile-card {
-  background: white;
-  border-radius: 15px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  border-top: 5px solid var(--granate-principal);
+  margin-bottom: 20px;
 }
 
 .avatar-circle {
-  width: 70px;
-  height: 70px;
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
+  background-color: #fde8ed;
+  color: var(--granate-principal);
+  font-weight: 800;
+  font-size: 1.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8em;
-  font-weight: bold;
-  margin: 0 auto 15px;
-  border: 2px solid var(--granate-principal);
+  margin-bottom: 14px;
 }
 
-.profile-card h2 {
+.profile-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--granate-principal);
-  font-size: 1.4em;
-  margin-bottom: 5px;
-  word-break: keep-all;
+  line-height: 1.2;
+}
+
+.username-text {
+  margin: 4px 0 10px 0;
+  color: #444;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .role-badge {
+  display: inline-block;
+  background-color: #fff0f3;
   color: var(--rosa-fuerte);
-  font-weight: bold;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
-  font-size: 0.8em;
+}
+
+.profile-section {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.section-subtitle {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.interests-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.badge-interes {
+  background-color: #fff0f3;
+  color: var(--granate-principal);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.bio-text {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   margin-bottom: 20px;
+  width: 100%;
+  padding-left: 10px;
 }
 
 .info-section {
@@ -701,30 +851,227 @@ onMounted(() => {
   margin-bottom: 15px;
 }
 
-.main-content {
-  flex: 1;
+.interests-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
-.header-panel {
-  margin-bottom: 40px;
+.interests-pills-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  width: 100%;
 }
 
-.header-panel h1 {
-  font-size: 2.2em;
+.interest-pill {
+  background-color: var(--rosa-claro);
   color: var(--granate-principal);
-  margin-bottom: 10px;
-}
-
-.header-panel p {
-  color: #777;
-  font-size: 1.1em;
-}
-
-.section-label {
-  display: block;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.85em;
   font-weight: bold;
+  border: 1px solid var(--rosa-fuerte);
+  text-align: center;
+  display: block;
+  width: 100%;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+
+.label-mini,
+.info-help {
+  text-align: left;
+  width: 100%;
+  margin-left: 0;
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.nav-item-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  color: #333333;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.nav-item-link i {
+  font-size: 1.15rem;
+  width: 20px;
+  text-align: center;
+  color: #444444;
+}
+
+.nav-item-link:hover {
+  background-color: #faf0f2;
   color: var(--granate-principal);
-  margin-bottom: 20px;
+}
+
+.nav-item-link:hover i {
+  color: var(--granate-principal);
+}
+
+.nav-item-link.router-link-active,
+.nav-item-link.active {
+  background-color: #fff0f3;
+  color: var(--granate-principal);
+  font-weight: 700;
+}
+
+.nav-item-link.router-link-active i,
+.nav-item-link.active i {
+  color: var(--granate-principal);
+}
+
+.static-item {
+  color: #444;
+  cursor: default;
+}
+
+.static-item:hover {
+  background: transparent;
+  color: #444;
+}
+
+.static-item:hover i {
+  color: #444;
+}
+
+.nav-divider {
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  margin: 14px 0;
+  width: 100%;
+}
+
+.email-info-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 8px;
+  margin-bottom: 22px;
+}
+
+.email-icon {
+  font-size: 1.15rem;
+  color: #444;
+  margin-top: 2px;
+}
+
+.email-text-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.email-label {
+  font-size: 0.78rem;
+  color: #777;
+}
+
+.email-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0;
+  word-break: break-all;
+}
+
+.profile-actions {
+  width: 100%;
+}
+
+.btn-outline-edit {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid var(--rosa-fuerte);
+  color: var(--granate-principal);
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-edit:hover {
+  background: var(--rosa-fuerte);
+  color: #ffffff;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.btn-save-small {
+  flex: 1;
+  background: var(--granate-principal);
+  color: white;
+  border: none;
+  padding: 9px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-cancel-small {
+  flex: 1;
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 9px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.edit-input,
+.edit-input-sm {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.edit-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: none;
+  font-family: inherit;
+  font-size: 0.9em;
 }
 
 .grid-acciones {
@@ -763,12 +1110,20 @@ onMounted(() => {
   font-size: 1.2em;
 }
 
+.router-card {
+  background: var(--rosa-claro);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
 .footer-card {
   background: white;
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  margin-top: 30px;
+  max-height: 600px;
 }
 
 .footer-card h3 {
@@ -787,11 +1142,11 @@ onMounted(() => {
   background-color: var(--granate-principal);
   color: white;
   padding: 14px;
-  border: none;
   border-radius: 8px;
   font-weight: bold;
   text-align: center;
   text-decoration: none;
+  margin-top: 20px;
   transition: 0.3s;
   font-size: 1.1em;
 }
@@ -799,135 +1154,6 @@ onMounted(() => {
 .btn-primary-save:hover {
   background-color: var(--rosa-fuerte);
   transform: translateY(-2px);
-}
-
-.linea-granate {
-  border: none;
-  height: 2px;
-  background-color: var(--granate-principal);
-  margin: 20px 0;
-  opacity: 0.8;
-  border-radius: 2px;
-}
-
-.edit-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-family: inherit;
-}
-
-.edit-textarea {
-  width: 100%;
-  height: 80px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  resize: none;
-  font-family: inherit;
-  font-size: 0.9em;
-}
-
-.btn-outline-edit {
-  width: 100%;
-  background: white;
-  border: 1px solid var(--rosa-fuerte);
-  color: var(--granate-principal);
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 15px;
-}
-
-.edit-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.btn-save-small {
-  flex: 1;
-  background: var(--granate-principal);
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-cancel-small {
-  flex: 1;
-  background: #eee;
-  color: #333;
-  border: none;
-  padding: 8px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.info-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 20px;
-  width: 100%;
-  padding-left: 10px;
-}
-
-.label-mini,
-.info-help {
-  text-align: left;
-  width: 100%;
-  margin-left: 0;
-}
-
-.interests-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
-.interests-pills-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-  width: 100%;
-}
-
-.interest-pill {
-  background-color: var(--rosa-claro);
-  color: var(--granate-principal);
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 0.85em;
-  font-weight: bold;
-  border: 1px solid var(--rosa-fuerte);
-  text-align: center;
-  display: block;
-  width: 100%;
-}
-
-.badge-interes {
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.75em;
-  font-weight: bold;
-}
-
-.checkbox-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  justify-content: flex-start;
 }
 
 .recommended-container {
@@ -944,7 +1170,6 @@ onMounted(() => {
   margin-bottom: 15px;
   border-bottom: 2px solid var(--rosa-claro);
   padding-bottom: 5px;
-
   display: flex;
   align-items: center;
   gap: 10px;
@@ -953,11 +1178,9 @@ onMounted(() => {
 .recommended-title i {
   width: 40px;
   height: 40px;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   color: #eff30a;
   font-size: 18px;
 }
@@ -1014,35 +1237,23 @@ onMounted(() => {
   font-size: 0.9em;
 }
 
-.section-label {
-  font-weight: bold;
-  color: var(--granate-principal);
-  font-size: 1.2em;
-}
-
-.btn-primary-save {
-  display: block;
-  width: 100%;
-  background-color: var(--granate-principal);
-  color: white;
-  padding: 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  text-align: center;
-  text-decoration: none;
-  margin-top: 20px;
-}
-
-.btn-primary-save:hover {
-  background-color: var(--rosa-fuerte);
-}
-
 .secondary-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 25px;
   margin-top: 25px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.card-section {
+  background: white;
+  padding: 24px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
@@ -1058,29 +1269,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  white-space: nowrap; 
+  white-space: nowrap;
 }
 
 .card-title-group h3 {
   font-size: 1.1em;
   font-weight: bold;
-  color: var(--granate-principal, #700020);
+  color: var(--granate-principal);
   margin: 0;
 }
 
 .link-see-all {
-  color: var(--granate-principal, #700020);
+  color: var(--granate-principal);
   font-size: 0.85em;
   font-weight: 600;
   text-decoration: none;
-  white-space: nowrap; 
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
 .authors-grid {
   display: flex;
+  justify-content: space-around;
+  align-items: center;
   gap: 15px;
-  overflow-x: auto;
+  padding: 10px 0;
 }
 
 .author-item {
@@ -1088,30 +1301,34 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  flex: 1;
 }
 
 .avatar-circle-sm {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: #fde8ed;
-  color: #700020;
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 1.1em;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .author-name {
   font-size: 0.85em;
-  font-weight: bold;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+  word-break: break-word;
 }
 
 .author-username {
   font-size: 0.75em;
-  color: #888;
+  color: #777;
 }
 
 .saved-works-list {
@@ -1142,7 +1359,7 @@ onMounted(() => {
 .saved-work-icon {
   color: var(--granate-principal);
   font-size: 1em;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .saved-work-title {
@@ -1151,7 +1368,7 @@ onMounted(() => {
   color: #222;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis;
 }
 
 .label-tipo-sm {
@@ -1224,48 +1441,5 @@ onMounted(() => {
 .table-scroll-wrapper::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
-}
-
-.authors-grid {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 15px;
-  padding: 10px 0;
-}
-
-.author-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex: 1;
-}
-
-.avatar-circle-sm {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--rosa-claro, #fde8ed);
-  color: var(--granate-principal, #700020);
-  font-weight: bold;
-  font-size: 1.1em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.author-name {
-  font-size: 0.85em;
-  font-weight: 700;
-  color: #111;
-  margin-bottom: 2px;
-  word-break: break-word;
-}
-
-.author-username {
-  font-size: 0.75em;
-  color: #777;
 }
 </style>

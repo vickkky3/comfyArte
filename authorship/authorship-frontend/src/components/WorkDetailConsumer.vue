@@ -58,6 +58,23 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="page-layout-grid">
 
       <div class="left-column-content">
@@ -364,6 +381,16 @@ const workIcons = {
   sculpture: 'fa-solid fa-hammer'
 };
 
+const information = ref({
+    show: false,
+    message: "",
+    type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+    information.value = { show: true, message, type };
+};
+
 const workIcon = computed(() => {
   if (!work.value || !work.value.work_type) return 'fa-solid fa-file-image';
   return workIcons[work.value.work_type] || 'fa-solid fa-file-image';
@@ -562,17 +589,20 @@ const saveWork = async (workId) => {
       savedWorkIds.value.delete(workId);
 
       savedWorks.value = savedWorks.value.filter(item => (item.work_id || item.id) !== workId);
-      alert("¡Obra eliminada de tus favoritos!");
+      triggerInformation("¡Obra eliminada de tus favoritos!", "success");
     } else {
 
       await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
         headers: { Authorization: `Token ${token}` }
       });
       savedWorkIds.value.add(workId);
+
+      triggerInformation("¡Obra guardada en favoritos!", "success");
       alert("¡Obra guardada en favoritos!");
     }
+
   } catch (error) {
-    console.error("Error al actualizar guardados:", error);
+    triggerInformation("¡Se ha producido un error al intentar modificar las obras guardadas!", "error");
   }
 };
 
@@ -581,8 +611,10 @@ const handleLogout = async () => {
     await axios.post("http://localhost:8000/api/users/", {}, {
       headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
     });
+
   } catch (err) {
     console.error("Error al cerrar sesión:", err);
+    
   } finally {
     authStore.setToken(null);
     localStorage.removeItem("token");

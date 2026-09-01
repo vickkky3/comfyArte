@@ -58,6 +58,23 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="container">
 
       <div>
@@ -140,6 +157,16 @@ const savedWorks = ref([]);
 const workSearchQuery = ref("");
 const savedWorkIds = ref(new Set());
 
+const information = ref({
+    show: false,
+    message: "",
+    type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+    information.value = { show: true, message, type };
+};
+
 const workTypeNames = {
   libro: 'Libro', book: 'Libro',
   music: 'Música', video: 'Video',
@@ -174,6 +201,7 @@ const getUserData = async () => {
 
   } catch (err) {
     console.error("Error en la petición:", err);
+    triggerInformation("Sesión inválida o expirada", "error");
     router.push("/login");
   }
 };
@@ -191,6 +219,7 @@ const getSavedWorks = async () => {
     savedWorks.value = response.data;
     savedWorkIds.value = new Set(response.data.map(item => item.work_id || item.id));
     console.log("Obras guardadas cargadas");
+
   } catch (err) {
     console.error("Error en la petición:", err);
   }
@@ -199,6 +228,7 @@ const getSavedWorks = async () => {
 const filteredWorks = computed(() => {
   if (!workSearchQuery.value) return savedWorks.value;
   const query = workSearchQuery.value.toLowerCase();
+
   return savedWorks.value.filter(w =>
     w.title?.toLowerCase().includes(query)
   );
@@ -206,7 +236,9 @@ const filteredWorks = computed(() => {
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
+
   const date = new Date(dateString);
+
   return date.toLocaleDateString("es-ES");
 };
 
@@ -222,6 +254,7 @@ const getUserPoints = async () => {
 
     userPoints.value = response.data.points;
     console.log("Puntos del usuario cargados:", userPoints.value);
+
   } catch (err) {
     console.error("Error en la petición:", err);
   }
@@ -238,6 +271,7 @@ const unreadCount = computed(() => {
 
 const toggleNotifications = () => {
   isNotificationsOpen.value = !isNotificationsOpen.value;
+
   if (isNotificationsOpen.value) {
     fetchNotifications();
   }
@@ -249,6 +283,7 @@ const fetchNotifications = async () => {
     const response = await axios.get("http://localhost:8000/api/users/notifications/", {
       headers: { Authorization: `Token ${token}` }
     });
+
     notifications.value = response.data;
   } catch (error) {
     console.error("Error al cargar notificaciones:", error);
@@ -273,16 +308,21 @@ const saveWork = async (workId) => {
       savedWorkIds.value.delete(workId);
 
       savedWorks.value = savedWorks.value.filter(item => (item.work_id || item.id) !== workId);
-      alert("¡Obra eliminada de tus favoritos!");
+
+      triggerInformation("¡Obra eliminada de tus favoritos!", "success");
     } else {
 
       await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
         headers: { Authorization: `Token ${token}` }
       });
+
       savedWorkIds.value.add(workId);
-      alert("¡Obra guardada en favoritos!");
+
+      triggerInformation("¡Obra guardada en favoritos!", "success");
     }
+
   } catch (error) {
+    triggerInformation("No se pudo eliminar la obra de favoritos. Por favor, inténtalo de nuevo.", "error");
     console.error("Error al actualizar guardados:", error);
   }
 };
