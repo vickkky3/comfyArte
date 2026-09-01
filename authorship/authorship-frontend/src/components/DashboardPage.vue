@@ -17,6 +17,47 @@
       </div>
       <div class="navbar-right">
         <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+
+        <div class="notifications-wrapper">
+          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+
+          <div v-if="isNotificationsOpen" class="notifications-dropdown">
+
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+            </div>
+
+            <div class="notif-body">
+              <div v-if="notifications.length > 0">
+                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-icon-circle">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
+
+                  <div class="notif-content">
+                    <div class="notif-title-row">
+                      <span class="notif-title">Nueva obra disponible</span>
+                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                    </div>
+                    <p class="notif-text">
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
+                        notif.work_title }}"</em>.
+                    </p>
+                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="notif-empty">
+                <p>No tienes notificaciones por ahora.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
@@ -209,9 +250,9 @@
               <div class="card-header-flex">
                 <div class="card-title-group">
                   <i class="fa-solid fa-users icon-primary"></i>
-                  <h3>Autores a los que estás suscrito</h3>
+                  <h3>Mis autores</h3>
                 </div>
-                <router-link to="/authors" class="link-see-all">Ver todos &rarr;</router-link>
+                <router-link to="/subscription/authors/subscribe" class="link-see-all">Ver todos &rarr;</router-link>
               </div>
 
               <div v-if="subscribedAuthors.length > 0" class="authors-grid">
@@ -470,6 +511,41 @@ const modifyProfile = async () => {
     loading.value = false;
   }
 
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
+};
+
+const isNotificationsOpen = ref(false);
+
+const notifications = ref([
+]);
+
+const unreadCount = computed(() => {
+  return notifications.value.filter(n => !n.is_read).length;
+});
+
+const toggleNotifications = () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  if (isNotificationsOpen.value) {
+    fetchNotifications();
+  }
+};
+
+const fetchNotifications = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+      headers: { Authorization: `Token ${token}` }
+    });
+    notifications.value = response.data;
+  } catch (error) {
+    console.error("Error al cargar notificaciones:", error);
+  }
 };
 
 const handleLogout = async () => {
@@ -1077,19 +1153,22 @@ onMounted(() => {
   max-height: 220px;
   overflow-y: auto;
   padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
 }
 
 .table-scroll-wrapper::-webkit-scrollbar {
   width: 6px;
 }
 
-.table-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: var(--rosa-fuerte);
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
   border-radius: 4px;
 }
 
-.table-scroll-wrapper::-webkit-scrollbar-track {
-  background: var(--rosa-claro);
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--granate-principal);
+  border-radius: 4px;
 }
 
 .authors-grid {

@@ -8,6 +8,7 @@ import WorkCreate from "../components/WorkCreate.vue";
 import WorkDetailAuthor from "../components/WorkDetailAuthor.vue";
 import WorkDetailConsumer from "../components/WorkDetailConsumer.vue";
 import SubscriptionPlans from "../components/SubscriptionPlans.vue";
+import SuscribedAuthors from "../components/SuscribedAuthors.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -24,6 +25,7 @@ export const router = createRouter({
     { path: "/works/:id", component: WorkDetailConsumer },
     { path: "/worksAuthor/:id", component: WorkDetailAuthor },
     { path: "/subscription/plans", component: SubscriptionPlans },
+    { path: "/subscription/authors/subscribe/", component: SuscribedAuthors },
   ],
 });
 

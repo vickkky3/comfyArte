@@ -59,146 +59,15 @@
     </nav>
 
     <div class="container">
-      <div class="main-mode-bar">
-        <div class="toggle-pill-container">
-          <button type="button" class="pill-btn" :class="{ active: searchMode === 'works' }"
-            @click="searchMode = 'works'">
-            <i class="fa-solid fa-book-open"></i> Obras
-          </button>
-          <button type="button" class="pill-btn" :class="{ active: searchMode === 'authors' }"
-            @click="searchMode = 'authors'">
-            <i class="fa-solid fa-users"></i> Autores
-          </button>
-        </div>
-      </div>
 
-      <div v-if="searchMode === 'works'">
+      <div>
 
-        <div v-if="isAuthor">
-          <h1>Mis Obras Registradas</h1>
-        </div>
-
-        <div v-else-if="isConsumer">
-          <h1>Catálogo de Obras Disponibles</h1>
-        </div>
-
-        <div class="filters-container">
-
-          <div class="filter-field">
-            <label class="filter-label">Filtrar por título:</label>
-            <input v-model="searchQuery" type="text" placeholder="Escribe un título..." class="filter-input" />
-          </div>
-
-          <div class="filter-field dropdown-relative">
-            <label class="filter-label">Filtrar por tipo:</label>
-            <button type="button" @click="isTypeOpen = !isTypeOpen" class="filter-dropdown-btn">
-              <span v-if="selectedTypes.length > 0">
-                {{ selectedTypes.length }} seleccionados
-              </span>
-              <span v-else>Todos los tipos</span>
-            </button>
-
-            <div v-if="isTypeOpen" class="floating-dropdown-panel">
-              <label class="checkbox-label"><input type="checkbox" value="libro" v-model="selectedTypes" />
-                Libros</label>
-              <label class="checkbox-label"><input type="checkbox" value="music" v-model="selectedTypes" />
-                Música</label>
-              <label class="checkbox-label"><input type="checkbox" value="video" v-model="selectedTypes" />
-                Vídeos</label>
-              <label class="checkbox-label"><input type="checkbox" value="software" v-model="selectedTypes" />
-                Software</label>
-              <label class="checkbox-label"><input type="checkbox" value="paint" v-model="selectedTypes" />
-                Pintura</label>
-              <label class="checkbox-label"><input type="checkbox" value="sculpture" v-model="selectedTypes" />
-                Escultura</label>
-            </div>
-          </div>
-
-          <div class="filter-field dropdown-relative">
-            <label class="filter-label">Filtrar por plan:</label>
-            <button type="button" @click="isPlanOpen = !isPlanOpen" class="filter-dropdown-btn">
-              <span v-if="selectedPlans.length > 0">
-                {{ selectedPlans.length }} seleccionados
-              </span>
-              <span v-else>
-                Todos los planes
-              </span>
-            </button>
-
-            <div v-if="isPlanOpen" class="floating-dropdown-panel">
-              <label class="checkbox-label">
-                <input type="checkbox" value="gratis" v-model="selectedPlans" /> Sin plan / Gratuito
-              </label>
-              <label v-for="plan in subscriptionTypes" :key="plan.id" class="checkbox-label">
-                <input type="checkbox" :value="String(plan.id)" v-model="selectedPlans" />
-                {{ plan.name }}
-              </label>
-            </div>
-          </div>
-
-          <div class="filter-field">
-            <span class="filter-label" style="visibility: hidden;">Buscar</span>
-            <button @click="handleSearchClick" class="btn-search-submit">Buscar</button>
+        <div class="content-header">
+          <i class="fas fa-book"></i>
+          <div class="header-text">
+            <h1>Mis autores</h1>
           </div>
         </div>
-
-        <div v-if="sortedWorks.length > 0" class="table-works">
-        <table>
-          <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>Título de la Obra</th>
-              <th v-if="isConsumer">Recomendación</th>
-              <th v-else>Fecha</th>
-              <th style="text-align: center;">Detalles</th>
-              <th v-if="isAuthor">Eliminar Obra</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="work in sortedWorks" :key="work.id">
-              <td>
-                <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
-              </td>
-              <td>
-                <span class="work-title">{{ work.title }}</span>
-              </td>
-
-              <td v-if="isAuthor">
-                <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
-              </td>
-              <td v-else>
-                <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
-                <span v-else class="badge-neutral">-</span>
-              </td>
-
-              <td style="text-align: center;">
-                <router-link v-if="isAuthor" :to="`/worksAuthor/${work.id}`" class="btn-table">
-                  <span>Ver Detalles</span>
-                </router-link>
-                <router-link v-else :to="`/works/${work.id}`" class="btn-table">
-                  <span>Consultar</span>
-                </router-link>
-              </td>
-
-              <td v-if="isAuthor" style="text-align: center;">
-                <button @click="deleteWork(work.id)" class="btn-delete">Eliminar</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        </div>
-
-        <div v-else class="empty-msg">
-          <p v-if="isAuthor">Aún no has registrado ninguna obra en la plataforma.</p>
-          <p v-else>No hay obras disponibles que coincidan con tus criterios.</p>
-          <router-link v-if="isAuthor" to="/dashboard" class="btn-table" style="margin-top: 15px;">
-            Ir al panel para registrar una obra
-          </router-link>
-        </div>
-      </div>
-
-      <div v-else-if="searchMode === 'authors'">
-        <h1>Directorio de Autores</h1>
 
         <div class="filters-container">
           <div class="filter-field" style="flex: 1;">
@@ -229,7 +98,7 @@
 
             <div class="author-card-actions">
               <button @click="openAuthorModal(authorItem)" class="btn-table" style="width: 100%;">
-                Ver Perfil y Suscribirse
+                Ver Perfil
               </button>
             </div>
 
@@ -318,8 +187,8 @@
               </div>
 
               <div class="modal-footer">
-                <button @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
-                  <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
+                <button @click="cancelSuscriptionToAuthor(selectedAuthor.id)" class="btn-subscribe">
+                  <i class="fa-solid fa-bell"></i> Anular suscripción a este Autor
                 </button>
               </div>
 
@@ -342,157 +211,94 @@ import axios from "axios";
 import { useAuthStore } from "../stores/auth";
 
 const authStore = useAuthStore();
-const route = useRoute();
 const router = useRouter();
 
-const works = ref([]);
 const authorWorks = ref([]);
 const loading = ref(true);
 const user = ref({ interests: "" });
 
-const isAuthor = computed(() => user.value.role === 'author');
-const isConsumer = computed(() => user.value.role === 'consumer');
-
-const isTypeOpen = ref(false);
-const isPlanOpen = ref(false);
-
-const subscriptionTypes = ref([]);
-const selectedPlans = ref([]);
-const loadingPlans = ref(true);
-
-const searchQuery = ref("");
-const selectedTypes = ref([]);
-
-const appliedSearch = ref("");
-const appliedTypes = ref([]);
-const appliedPlans = ref([]);
 const userPoints = ref(0);
 
-const searchMode = ref("works");
-
-const authorsList = ref([]);
+const subscribedAuthors = ref([]);
 const authorSearchQuery = ref("");
 
-const handleSearchClick = () => {
-  appliedSearch.value = searchQuery.value;
-  appliedTypes.value = [...selectedTypes.value];
-  appliedPlans.value = [...selectedPlans.value];
-
-  isTypeOpen.value = false;
-  isPlanOpen.value = false;
-};
-
-const normalizarTipo = (type) => {
-  switch (type) {
-    case 'book':
-      return 'libro';
-    case 'music':
-      return 'music';
-    case 'video':
-      return 'video';
-    case 'software':
-      return 'software';
-    case 'paint':
-      return 'paint';
-    case 'sculpture':
-      return 'sculpture';
-    default:
-      return type;
-  }
-};
-
-const userInterestsArray = computed(() => {
-  if (user.value.interests) {
-    return user.value.interests.split(',');
-  } else {
-    return [];
-  }
-});
-
-const isInteresting = (type) => {
-  let typeNormalizado = type;
-  if (type === 'book') {
-    typeNormalizado = 'libro';
-  }
-
-  if (userInterestsArray.value.includes(typeNormalizado)) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const sortedWorks = computed(() => {
-  const obrasFiltradas = works.value.filter(work => {
-    const cumpleNombre = !appliedSearch.value || work.title.toLowerCase().includes(appliedSearch.value.toLowerCase());
-
-    const tipoLimpio = normalizarTipo(work.work_type);
-    const cumpleTipo = appliedTypes.value.length === 0 || appliedTypes.value.includes(tipoLimpio);
-
-    let planIdDeObra = "gratis";
-    if (work.plan_required) {
-      planIdDeObra = String(work.plan_required.id);
-    }
-
-    const cumplePlan = appliedPlans.value.length === 0 || appliedPlans.value.includes(planIdDeObra);
-
-    return cumpleNombre && cumpleTipo && cumplePlan;
-  });
-
-  return obrasFiltradas.sort((a, b) => {
-    const tipoA = normalizarTipo(a.work_type);
-    const tipoB = normalizarTipo(b.work_type);
-
-    const aInteresting = userInterestsArray.value.includes(tipoA);
-    const bInteresting = userInterestsArray.value.includes(tipoB);
-
-    if (aInteresting && !bInteresting) {
-      return -1;
-    }
-    if (!aInteresting && bInteresting) {
-      return 1;
-    }
-    return a.title.localeCompare(b.title);
-  });
-});
-
-const fetchPlans = async () => {
+const getUserData = async () => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/subscriptions/plans/", {
-      headers: { Authorization: `Token ${token}` }
+    const response = await axios.get("http://localhost:8000/api/users/me/", {
+      headers: {
+        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
+      },
     });
 
-    subscriptionTypes.value = response.data;
-  } catch (error) {
-    console.error("Error al cargar planes:", error);
+    user.value = response.data;
+
+    user.value.es_autor = user.value.role === 'author';
+    user.value.es_consumidor = user.value.role === 'consumer';
+
+    if (user.value.es_consumidor) {
+      const worksResponse = await axios.get("http://localhost:8000/api/works/", {
+        headers: {
+          Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
+        },
+      });
+
+      works.value = worksResponse.data;
+    }
+
+  } catch (err) {
+    console.error("Error en la petición:", err);
+    error.value = "Sesión inválida";
+    router.push("/login");
   } finally {
-    loadingPlans.value = false;
+    loading.value = false;
   }
 };
 
-const fetchAuthors = async () => {
+const getSuscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/authors/", {
-      headers: { Authorization: `Token ${token}` }
+
+    const response = await axios.get("http://localhost:8000/api/subscriptions/authors/subscribe/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
     });
-    authorsList.value = response.data;
-  } catch (error) {
-    console.error("Error al obtener autores:", error);
+
+    subscribedAuthors.value = response.data;
+    console.log("Suscripciones del usuario cargadas");
+  } catch (err) {
+    console.error("Error en la petición:", err);
   }
 };
 
 const filteredAuthors = computed(() => {
-  if (!authorSearchQuery.value) return authorsList.value;
+  if (!authorSearchQuery.value) return subscribedAuthors.value;
   const query = authorSearchQuery.value.toLowerCase();
-  return authorsList.value.filter(a =>
+  return subscribedAuthors.value.filter(a =>
     a.username?.toLowerCase().includes(query) ||
     a.first_name?.toLowerCase().includes(query)
   );
 });
 
 const selectedAuthor = ref(null);
+
+const getWorkTypeName = (type) => {
+  const types = {
+    book: 'Libro',
+    music: 'Música',
+    video: 'Video',
+    software: 'Software',
+    paint: 'Pintura',
+    sculpture: 'Escultura'
+  };
+  return types[type] || 'Obra';
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("es-ES");
+};
 
 const openAuthorModal = async (author) => {
   selectedAuthor.value = author;
@@ -519,12 +325,12 @@ const closeAuthorModal = () => {
 const subscribeToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    +
-      await axios.post(
-        `http://localhost:8000/api/subscriptions/authors/subscribe/`,
-        { author_id: authorId },
-        { headers: { Authorization: `Token ${token}` } }
-      );
+
+    await axios.post(
+      `http://localhost:8000/api/subscriptions/authors/subscribe/`,
+      { author_id: authorId },
+      { headers: { Authorization: `Token ${token}` } }
+    );
 
     alert("¡Te has suscrito con éxito a este autor!");
     closeAuthorModal();
@@ -534,49 +340,32 @@ const subscribeToAuthor = async (authorId) => {
   }
 };
 
-const fetchWorks = async () => {
+const cancelSuscriptionToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const userResponse = await axios.get("http://localhost:8000/api/users/me/", {
-      headers: { Authorization: `Token ${token}` }
-    });
-    user.value = userResponse.data;
 
-    const response = await axios.get("http://localhost:8000/api/works/", {
-      headers: {
-        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`
+    await axios.delete(
+      "http://localhost:8000/api/subscriptions/authors/subscribe/",
+      {
+        headers: {
+          Authorization: `Token ${token}`
+        },
+        data: {
+          author_id: authorId
+        }
       }
-    });
-    works.value = response.data;
+    );
 
+    alert("¡Has cancelado tu suscripción a este autor!");
+    closeAuthorModal();
+
+    subscribedAuthors.value = subscribedAuthors.value.filter(
+      author => author.id !== authorId
+    );
   } catch (error) {
-    console.error("Error al obtener las obras:", error);
-
-    if (error.response?.status === 401) {
-      router.push("/login");
-    }
-
-  } finally {
-    loading.value = false;
+    console.error("Error al cancelar suscripción:", error);
+    alert("No se pudo completar la cancelación de suscripción.");
   }
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("es-ES");
-};
-
-const getWorkTypeName = (type) => {
-  const types = {
-    book: 'Libro',
-    music: 'Música',
-    video: 'Video',
-    software: 'Software',
-    paint: 'Pintura',
-    sculpture: 'Escultura'
-  };
-  return types[type] || 'Obra';
 };
 
 const getUserPoints = async () => {
@@ -593,29 +382,6 @@ const getUserPoints = async () => {
     console.log("Puntos del usuario cargados:", userPoints.value);
   } catch (err) {
     console.error("Error en la petición:", err);
-  }
-};
-
-
-const deleteWork = async (id) => {
-  if (!confirm("¿Estás seguro de que deseas eliminar esta obra de forma permanente?")) {
-    return;
-  }
-
-  try {
-    const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.delete(`http://localhost:8000/api/works/${id}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-
-    works.value = works.value.filter(work => work.id !== id);
-
-    alert("Obra eliminada correctamente.");
-
-  } catch (err) {
-    console.error("Error al eliminar la obra:", err);
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -652,15 +418,27 @@ const handleLogout = () => {
   router.push("/login");
 };
 
-onMounted(() => {
-  fetchPlans();
-  fetchWorks();
-  getUserPoints();
-  fetchAuthors();
+onMounted(async () => {
+  loading.value = true;
+
+  await Promise.all([
+    getUserData(),
+    getUserPoints(),
+    getSuscribedAuthors()
+  ]);
+
+  loading.value = false;
 });
 </script>
 
 <style scoped>
+.loading {
+  text-align: center;
+  margin-top: 100px;
+  color: var(--granate-principal);
+  font-weight: bold;
+}
+
 .navbar {
   background: var(--granate-principal);
   color: white;
@@ -681,150 +459,34 @@ onMounted(() => {
   margin: auto;
 }
 
-.container h1 {
-  color: var(--granate-principal);
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-thead {
-  border-bottom: 2px solid var(--granate-principal);
-}
-
-th {
-  text-align: left;
-  padding: 12px;
-  color: var(--granate-principal);
-  font-size: 0.9em;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-td {
-  padding: 15px 12px;
-  border-bottom: 1px solid var(--rosa-claro);
-  vertical-align: middle;
-}
-
-tr:hover {
-  background-color: #fffafc;
-}
-
-.label-tipo {
-  color: var(--rosa-fuerte);
-  font-weight: bold;
-  font-size: 0.85em;
-  text-transform: uppercase;
-}
-
-.work-title {
-  color: black;
-  font-weight: bold;
-  font-size: 1.05em;
-  display: block;
-}
-
-.btn-table {
-  display: inline-block;
-  background: var(--rosa-claro);
-  color: black;
-  padding: 8px 15px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: bold;
-  text-decoration: none;
-  font-size: 0.85em;
-  transition: 0.3s;
-  border: 1px solid transparent;
-}
-
-.btn-delete {
-  display: inline-block;
-  background: var(--granate-principal);
-  color: white;
-  padding: 8px 15px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: bold;
-  text-decoration: none;
-  font-size: 0.85em;
-  transition: 0.3s;
-  border: 1px solid transparent;
-}
-
-.btn-delete:hover {
-  background: var(--rosa-fuerte);
-  color: white;
-}
-
-.btn-table:hover {
-  background: var(--rosa-fuerte);
-  color: white;
-}
-
-.empty-msg {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
-}
-
-.btn-back-link {
-  display: block;
-  width: 100%;
-  background-color: var(--granate-principal);
-  color: white;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  text-align: center;
-  text-decoration: none;
-  transition: 0.3s;
-  font-size: 1.1em;
-}
-
-.btn-back-link:hover {
-  background-color: var(--rosa-fuerte);
-  transform: translateY(-2px);
-}
-
-.loading {
-  text-align: center;
-  margin-top: 100px;
-  color: var(--granate-principal);
-  font-weight: bold;
-}
-
-.badge-interes {
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.75em;
-  font-weight: bold;
-}
-
-.badge-neutral {
-  color: #ccc;
-  font-size: 0.8em;
-}
-
-.er {
+.content-header {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 25px;
-  background-color: #fffafc;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid var(--rosa-claro);
 }
+
+.content-header i {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 0;
+  border: 2px solid var(--rosa-claro);
+}
+
+.header-text h1 {
+  margin: 0 0 5px 0;
+  color: #000;
+}
+
 
 .filter-input {
   flex: 2;
@@ -866,10 +528,6 @@ tr:hover {
   flex: 1;
 }
 
-.dropdown-relative {
-  position: relative;
-}
-
 .filter-label {
   font-size: 0.8em;
   font-weight: bold;
@@ -890,123 +548,26 @@ tr:hover {
   outline: none;
 }
 
-.filter-dropdown-btn {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9em;
-  font-family: inherit;
-  background-color: white;
-  text-align: left;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
+.authors-grid {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
 }
 
-.arrow-icon {
-  font-size: 0.7em;
-  color: #888;
+.authors-grid::-webkit-scrollbar {
+  width: 8px;
 }
 
-
-.floating-dropdown-panel {
-  position: absolute;
-  top: 66px;
-  left: 0;
-  width: 100%;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 100;
-  box-sizing: border-box;
+.authors-grid::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+  border-radius: 4px;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9em;
-  cursor: pointer;
-  color: #333;
-  user-select: none;
-}
-
-.checkbox-label input {
-  accent-color: var(--granate-principal);
-}
-
-.btn-search-submit {
+.authors-grid::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
-  color: white;
-  border: none;
-  padding: 0 25px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 0.9em;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-search-submit:hover {
-  background: var(--rosa-fuerte);
-}
-
-.main-mode-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.toggle-pill-container {
-  display: inline-flex;
-  background-color: #f2f2f5;
-  border: 1px solid #e5e5ea;
-  border-radius: 30px;
-  padding: 4px;
-  gap: 2px;
-  box-sizing: border-box;
-}
-
-.pill-btn {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: #666;
-  font-weight: 600;
-  font-size: 0.88em;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.25s ease-in-out;
-  padding: 8px 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: inherit;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-.pill-btn:hover {
-  color: var(--granate-principal);
-}
-
-.pill-btn.active {
-  background-color: #ffffff;
-  color: var(--granate-principal);
-  font-weight: 800;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
 }
 
 .avatar-circle {
@@ -1096,6 +657,32 @@ tr:hover {
 
 .author-card-actions {
   margin-top: 15px;
+}
+
+.btn-table {
+  display: inline-block;
+  background: var(--rosa-claro);
+  color: black;
+  padding: 8px 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 0.85em;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+
+.btn-table:hover {
+  background: var(--rosa-fuerte);
+  color: white;
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
 }
 
 .modal-overlay {
@@ -1247,7 +834,7 @@ tr:hover {
 }
 
 .table-container {
-  max-height: 350px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 5px;
   scrollbar-width: thin;
@@ -1264,28 +851,6 @@ tr:hover {
 }
 
 .table-container::-webkit-scrollbar-thumb {
-  background: var(--granate-principal);
-  border-radius: 4px;
-}
-
-.table-works {
-  max-height: 450px;
-  overflow-y: auto;
-  padding-right: 5px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--granate-principal) var(--rosa-claro);
-}
-
-.table-works::-webkit-scrollbar {
-  width: 6px;
-}
-
-.table-works::-webkit-scrollbar-track {
-  background: var(--rosa-claro);
-  border-radius: 4px;
-}
-
-.table-works::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
 }
@@ -1373,25 +938,23 @@ tr:hover {
   transform: translateY(-1px);
 }
 
-.authors-grid {
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 5px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--granate-principal) var(--rosa-claro);
+.btn-back-link {
+  display: block;
+  width: 100%;
+  background-color: var(--granate-principal);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  transition: 0.3s;
+  font-size: 1.1em;
 }
 
-.authors-grid::-webkit-scrollbar {
-  width: 8px;
-}
-
-.authors-grid::-webkit-scrollbar-track {
-  background: var(--rosa-claro);
-  border-radius: 4px;
-}
-
-.authors-grid::-webkit-scrollbar-thumb {
-  background: var(--granate-principal);
-  border-radius: 4px;
+.btn-back-link:hover {
+  background-color: var(--rosa-fuerte);
+  transform: translateY(-2px);
 }
 </style>

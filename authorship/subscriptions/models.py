@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from users.models import User
 
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=200)
@@ -19,7 +20,7 @@ class SubscriptionPlan(models.Model):
     
 class UserSubscription(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+        User, 
         on_delete=models.CASCADE,
         related_name='subscription'
     )
@@ -37,7 +38,7 @@ class UserSubscription(models.Model):
     
 class UserWallet(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+        User, 
         on_delete=models.CASCADE,
         related_name='wallet'
     )
@@ -47,14 +48,14 @@ class UserWallet(models.Model):
         return f"Cartera de {self.user.username} — Saldo: {self.points} puntos"
     
 class AuthorSubscription(models.Model):
-    consumer = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+    consumer = models.ForeignKey(
+        User, 
         on_delete=models.CASCADE,
         related_name='author_subscriptions'
     )
     
-    author = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+    author = models.ForeignKey(
+        User, 
         on_delete=models.CASCADE,
         related_name='subscribers'
     )
@@ -66,3 +67,24 @@ class AuthorSubscription(models.Model):
 
     def __str__(self):
         return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.name}"
+    
+class SavedWork(models.Model):
+    consumer = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE,
+        related_name='saved_works'
+    )
+    
+    work = models.ForeignKey(
+        'works.Work',
+        on_delete=models.CASCADE,
+        related_name='saved_by_users'
+    )
+
+    start_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('consumer', 'work')
+
+    def __str__(self):
+        return f"El consumidor {self.consumer.username} ha guardado la obra  {self.work.title}"

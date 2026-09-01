@@ -94,39 +94,6 @@ class SubscribeAPIView(APIView):
         
         except Exception as e:
             return Response({"error": "Hubo un error al procesar el pago de la suscripción."}, status=500)
-        
-class AuthorSubscribeAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        author_id = request.data.get('author_id')
-        consumer = request.user
-        
-        try:
-            author = User.objects.get(id=author_id, role="author")
-        except User.DoesNotExist:
-            return Response({"detail": "No existe este autor"}, status=404)
-        
-        if consumer.id == author.id:
-            return Response({"detail": "No puedes suscribirte a ti mismo."}, status=400)
-
-        is_subscrited = AuthorSubscription.objects.filter(
-            consumer=consumer, 
-            author=author
-        ).exists()
-
-        if is_subscrited:
-            return Response(
-                {"detail": "Ya estás suscrito a este autor."}, 
-                status=400
-            )
-            
-        AuthorSubscription.objects.create(
-                consumer=consumer,
-                author=author
-            )
-            
-        return Response({"detail": f"Te has suscrito con éxito al autor {author.username}"})
     
 class AuthorSubscribeAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -169,3 +136,30 @@ class AuthorSubscribeAPIView(APIView):
             )
             
         return Response({"detail": f"Te has suscrito con éxito al autor {author.username}"})
+    
+    def delete(self, request):
+        author_id = request.data.get('author_id')
+        consumer = request.user
+        
+        try:
+            author = User.objects.get(id=author_id, role="author")
+        except User.DoesNotExist:
+            return Response({"detail": "No existe este autor"}, status=404)
+        
+        if consumer.id == author.id:
+            return Response({"detail": "No puedes desuscribirte a ti mismo."}, status=400)
+
+        suscription = AuthorSubscription.objects.filter(
+            consumer=consumer, 
+            author=author
+        ).first()
+
+        if not suscription:
+            return Response(
+                {"detail": "No estás suscrito a este autor."}, 
+                status=400
+            )
+            
+        suscription.delete()
+            
+        return Response({"detail": f"Te has desuscrito con éxito al autor {author.username}"})
