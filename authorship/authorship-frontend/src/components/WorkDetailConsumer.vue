@@ -852,7 +852,7 @@ watch(
     if (newId && newId !== oldId) {
       closeAuthorModal();       
       fetchWorkDetails();        
-      fetchMySubscription();   a
+      fetchMySubscription();   
       window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
   }
