@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -38,11 +39,16 @@ class RegisterAPIView(APIView):
 class UserDataAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        serializer = UserSerializer(request.user)
+    def get(self, request, pk=None):
+        if pk is not None:
+            user_obj = get_object_or_404(User, pk=pk)
+        else:
+            user_obj = request.user
+            
+        serializer = UserSerializer(user_obj)
         data = serializer.data
-        data['es_autor'] = request.user.groups.filter(name="Author").exists()
-        data['es_consumidor'] = request.user.groups.filter(name="Consumer").exists()
+        data['es_autor'] = user_obj.groups.filter(name="Author").exists()
+        data['es_consumidor'] = user_obj.groups.filter(name="Consumer").exists()
         return Response(data)
     
     def patch(self, request):

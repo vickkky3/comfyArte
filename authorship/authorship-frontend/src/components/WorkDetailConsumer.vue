@@ -81,8 +81,9 @@
 
         <div class="container-card" v-if="work">
           <div class="back-link2">
-            <i class="fa-solid fa-circle-arrow-left"></i>
-            <router-link :to="{ path: '/works' }">Volver</router-link>
+            <button @click="goBack" type="button" class="btn-back">
+              <i class="fa-solid fa-circle-arrow-left"></i> Volver
+            </button>
           </div>
 
           <div class="main-content-layout">
@@ -112,8 +113,116 @@
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-circle-user"></i>Autor/a</span>
                   <span class="value">{{ work.author_username || 'Desconocido' }}</span>
-                  
+                  <button @click="openAuthorModal()" type="button" class="btn-author-profile">
+                    <i class="fa-solid fa-address-card"></i>
+                    <span>Ver Perfil</span>
+                  </button>
                 </div>
+
+                <Teleport to="body">
+                  <div v-if="selectedAuthor" class="modal-overlay" @click.self="closeAuthorModal">
+                    <div class="modal-card">
+
+                      <button class="modal-close-btn" @click="closeAuthorModal">&times;</button>
+
+                      <div class="modal-header">
+                        <div class="avatar-ring">
+                          <div class="avatar-circle-large">
+                            {{ selectedAuthor.first_name?.charAt(0) || selectedAuthor.username?.charAt(0) }}
+                          </div>
+                        </div>
+                        <h2>
+                          <template v-if="selectedAuthor.first_name">
+                            {{ selectedAuthor.first_name }} {{ selectedAuthor.last_name || '' }}
+                          </template>
+                          <template v-else>
+                            {{ selectedAuthor.username }}
+                          </template>
+                        </h2>
+                        <span class="author-handle">@{{ selectedAuthor.username }}</span>
+                      </div>
+
+                      <div class="modal-body">
+
+                        <div class="info-section">
+                          <div class="section-icon">
+                            <i class="fa-regular fa-user"></i>
+                          </div>
+                          <div class="section-content">
+                            <div class="section-header-row">
+                              <span class="section-title">BIOGRAFÍA / PERFIL</span>
+                            </div>
+                            <p class="section-text">
+                              {{ selectedAuthor.biography || 'Este autor aún no ha añadido una biografía pública.' }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div class="info-section">
+                          <div class="section-icon">
+                            <i class="fa-regular fa-newspaper"></i>
+                          </div>
+                          <div class="section-content">
+                            <div class="section-header-row">
+                              <span class="section-title">OBRAS</span>
+                            </div>
+
+                            <div v-if="authorWorks.length > 0" class="table-container">
+                              <table class="modal-works-table">
+                                <thead>
+                                  <tr>
+                                    <th class="col-type">TIPO</th>
+                                    <th class="col-title">TÍTULO DE LA OBRA</th>
+                                    <th class="col-date">FECHA</th>
+                                    <th class="col-action">DETALLES</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr v-for="w in authorWorks" :key="w.id">
+                                    <td class="col-type">
+                                      <span class="pill-type">{{ getWorkTypeName(w.work_type) }}</span>
+                                    </td>
+                                    <td class="col-title">
+                                      <span class="work-title-cell">{{ w.title }}</span>
+                                    </td>
+                                    <td class="col-date work-date-cell">
+                                      {{ simpleFormatDate(w.created_at) }}
+                                    </td>
+                                    <td class="col-action">
+                                      <router-link :to="`/works/${w.id}`" class="btn-table-consult"
+                                        @click="closeAuthorModal">
+                                        Consultar
+                                      </router-link>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <p v-else class="empty-works-text">
+                              Este autor aún no tiene obras publicadas.
+                            </p>
+
+                          </div>
+                        </div>
+
+                      </div>
+
+                      <div class="modal-footer">
+                        <button type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
+                          :title="isSuscribed(selectedAuthor.id) ? 'Quitar de guardados' : 'Guardar obra'">
+                          <div v-if="isSuscribed(selectedAuthor.id)">
+                            <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
+                          </div>
+                          <div v-else>
+                            <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
+                          </div>
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                </Teleport>
 
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-calendar-days"></i>Fecha de registro</span>
@@ -236,7 +345,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -246,7 +355,7 @@
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -328,7 +437,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
@@ -338,6 +447,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const loading = ref(true);
 const works = ref([]);
+const authorWorks = ref([]);
 
 const savedWorks = ref([]);
 const savedWorkIds = ref(new Set());
@@ -501,6 +611,12 @@ const fetchSubscriptionPlan = async () => {
   }
 };
 
+const simpleFormatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("es-ES");
+};
+
 const formatDate = (dateString) => {
   if (!dateString) return '';
   return new Date(dateString).toLocaleDateString('es-ES', {
@@ -606,6 +722,114 @@ const saveWork = async (workId) => {
   }
 };
 
+const getWorkTypeName = (type) => {
+  const types = {
+    book: 'Libro',
+    music: 'Música',
+    video: 'Video',
+    software: 'Software',
+    paint: 'Pintura',
+    sculpture: 'Escultura'
+  };
+  return types[type] || 'Obra';
+};
+
+
+const selectedAuthor = ref(null);
+
+const openAuthorModal = async () => {
+  if (!work.value) return;
+
+  let authorId = null;
+  if (typeof work.value.author === "object" && work.value.author !== null) {
+    authorId = work.value.author.id;
+  } else {
+    authorId = work.value.author;
+  }
+
+  if (!authorId) return;
+
+  selectedAuthor.value = {
+    id: authorId,
+    username: work.value.author_username || "Autor",
+    first_name: "",
+    last_name: "",
+    biography: ""
+  };
+  authorWorks.value = [];
+
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    const responseWorks = await axios.get(`http://localhost:8000/api/works/authors/${authorId}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+    authorWorks.value = responseWorks.data;
+
+    const responseUser = await axios.get(`http://localhost:8000/api/users/${authorId}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    selectedAuthor.value = responseUser.data;
+
+  } catch (error) {
+    console.error("Error al cargar los detalles del autor:", error);
+  }
+};
+
+const closeAuthorModal = () => {
+  selectedAuthor.value = null;
+  authorWorks.value = [];
+};
+
+const suscribedAuthorsIds = ref(new Set());
+const isSuscribed = (authorId) => {
+  return suscribedAuthorsIds.value.has(authorId);
+};
+
+const subscribeToAuthor = async (authorId) => {
+
+  const token = authStore.token || localStorage.getItem("token");
+
+  const config = {
+    headers: { Authorization: `Token ${token}` },
+    data: { author_id: authorId }
+  };
+
+  try {
+    if (isSuscribed(authorId)) {
+
+      await axios.delete(`http://localhost:8000/api/subscriptions/authors/subscribe/`, config);
+      suscribedAuthorsIds.value.delete(authorId);
+
+      triggerInformation("¡Has eliminado con éxito tu suscripción a este autor!", "success");
+
+    } else {
+
+      await axios.post(`http://localhost:8000/api/subscriptions/authors/subscribe/`, { author_id: authorId }, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      suscribedAuthorsIds.value.add(authorId);
+
+      triggerInformation("¡Te has suscrito con éxito a este autor!", "success");
+    }
+
+    closeAuthorModal();
+
+  } catch (error) {
+    console.error("Error al suscribirse:", error);
+    triggerInformation("¡Se ha producido con la suscripción a este autor!", "error");
+  }
+};
+
+const goBack = () => {
+  if (window.history.state?.back) {
+    router.back();
+  } else {
+    router.push('/works');
+  }
+};
+
 const handleLogout = async () => {
   try {
     await axios.post("http://localhost:8000/api/users/", {}, {
@@ -621,6 +845,18 @@ const handleLogout = async () => {
     router.push("/login");
   }
 };
+
+watch(
+  () => route.params.id,
+  (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      closeAuthorModal();       
+      fetchWorkDetails();        
+      fetchMySubscription();   a
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    }
+  }
+);
 
 onMounted(async () => {
   loading.value = true;
@@ -1108,5 +1344,65 @@ onMounted(async () => {
 .btn-save-detail.is-saved {
   background-color: var(--rosa-claro, #fff0f3);
   color: var(--granate-principal, #700020);
+}
+
+.btn-author-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 6px 14px;
+  background-color: var(--rosa-claro, #fff0f3);
+  color: var(--granate-principal, #700020);
+  border: 1px solid var(--rosa-fuerte, #db7093);
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  width: fit-content;
+}
+
+.btn-author-profile i {
+  font-size: 0.85rem;
+  color: var(--granate-principal, #700020);
+  transition: transform 0.2s ease;
+}
+
+.btn-author-profile:hover {
+  background-color: var(--granate-principal, #700020);
+  border-color: var(--granate-principal, #700020);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(112, 0, 32, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn-author-profile:hover i {
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.btn-author-profile:active {
+  transform: translateY(0);
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--granate-principal);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-back:hover {
+  text-decoration: underline;
 }
 </style>

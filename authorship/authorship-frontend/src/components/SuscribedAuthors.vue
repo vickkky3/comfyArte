@@ -178,22 +178,33 @@
                       <table class="modal-works-table">
                         <thead>
                           <tr>
-                            <th>TIPO</th>
-                            <th>TÍTULO DE LA OBRA</th>
-                            <th style="text-align: right;">FECHA</th>
+                            <th class="col-type">TIPO</th>
+                            <th class="col-title">TÍTULO DE LA OBRA</th>
+                            <th class="col-date">FECHA</th>
+                            <th class="col-action">DETALLES</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr v-for="work in authorWorks" :key="work.id">
-                            <td>
-                              <span class="pill-type">{{ getWorkTypeName(work.work_type) }}</span>
+                          <tr v-for="w in authorWorks" :key="w.id">
+                            <td class="col-type">
+                              <span class="pill-type">{{ getWorkTypeName(w.work_type) }}</span>
                             </td>
-                            <td class="work-title-cell">{{ work.title }}</td>
-                            <td class="work-date-cell">{{ formatDate(work.created_at) }}</td>
+                            <td class="col-title">
+                              <span class="work-title-cell">{{ w.title }}</span>
+                            </td>
+                            <td class="col-date work-date-cell">
+                              {{ simpleFormatDate(w.created_at) }}
+                            </td>
+                            <td class="col-action">
+                              <router-link :to="`/works/${w.id}`" class="btn-table-consult" @click="closeAuthorModal">
+                                Consultar
+                              </router-link>
+                            </td>
                           </tr>
                         </tbody>
                       </table>
                     </div>
+
                     <p v-else class="empty-works-text">
                       Este autor aún no tiene obras publicadas.
                     </p>
@@ -240,13 +251,13 @@ const subscribedAuthors = ref([]);
 const authorSearchQuery = ref("");
 
 const information = ref({
-    show: false,
-    message: "",
-    type: "error"
+  show: false,
+  message: "",
+  type: "error"
 });
 
 const triggerInformation = (message, type = 'error') => {
-    information.value = { show: true, message, type };
+  information.value = { show: true, message, type };
 };
 
 const getUserData = async () => {
@@ -312,10 +323,17 @@ const getWorkTypeName = (type) => {
   return types[type] || 'Obra';
 };
 
-const formatDate = (dateString) => {
+const simpleFormatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
   return date.toLocaleDateString("es-ES");
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
 };
 
 const openAuthorModal = async (author) => {
@@ -367,7 +385,7 @@ const cancelSuscriptionToAuthor = async (authorId) => {
 
     if (error.response && error.response.data && error.response.data.detail) {
       triggerInformation(error.response.data.detail, "error");
-      
+
     } else {
       triggerInformation("No se pudo cancelar la suscripción. Por favor, inténtalo de nuevo.", "error");
     }
@@ -689,259 +707,6 @@ onMounted(async () => {
   padding: 40px;
   color: #666;
   font-style: italic;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-  backdrop-filter: blur(4px);
-}
-
-.modal-card {
-  background: white;
-  border-radius: 20px;
-  padding: 30px 25px 25px 25px;
-  width: 90%;
-  max-width: 560px;
-  position: relative;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  box-sizing: border-box;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 5px;
-  width: 100%;
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: transparent;
-  border: none;
-  font-size: 1.5em;
-  color: #888;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.modal-close-btn:hover {
-  color: var(--granate-principal);
-}
-
-.modal-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.avatar-ring {
-  background: #fff0f3;
-  padding: 6px;
-  border-radius: 50%;
-  margin-bottom: 10px;
-}
-
-.avatar-circle-large {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--granate-principal);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.5em;
-  text-transform: uppercase;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5em;
-  color: #222;
-  font-weight: 700;
-}
-
-.author-handle {
-  font-size: 0.85em;
-  color: var(--rosa-fuerte);
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-top: 3px;
-}
-
-.info-section {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.section-icon {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  border-radius: 50%;
-  background-color: #fde8ef;
-  color: var(--granate-principal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1em;
-  flex-shrink: 0;
-}
-
-.section-content {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-}
-
-.section-title {
-  font-size: 0.9f2em;
-  font-weight: 800;
-  color: var(--granate-principal);
-  letter-spacing: 0.5px;
-  margin: 0;
-  line-height: 1;
-}
-
-.section-header-row {
-  display: flex;
-  align-items: center;
-  height: 36px;
-}
-
-.section-text {
-  font-size: 0.9em;
-  color: #555;
-  margin: 0;
-}
-
-.table-container {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 5px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--granate-principal) var(--rosa-claro);
-}
-
-.table-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: var(--rosa-claro);
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: var(--granate-principal);
-  border-radius: 4px;
-}
-
-.modal-works-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: auto;
-}
-
-.modal-works-table th,
-.modal-works-table td {
-  box-sizing: border-box;
-}
-
-.modal-works-table thead tr {
-  background-color: #fcf0f3;
-}
-
-.modal-works-table th:first-child {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
-}
-
-.modal-works-table th:last-child {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.modal-works-table tr:last-child td {
-  border-bottom: none;
-}
-
-.pill-type {
-  display: inline-block;
-  background-color: #fde8ef;
-  color: var(--rosa-fuerte);
-  font-size: 0.7em;
-  font-weight: 800;
-  padding: 4px 12px;
-  border-radius: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.work-title-cell {
-  font-weight: 700;
-  color: #222;
-}
-
-.work-date-cell {
-  text-align: right;
-  color: #666;
-  font-size: 0.85em;
-}
-
-.empty-works-text {
-  font-size: 0.85em;
-  color: #888;
-  font-style: italic;
-  margin-top: 8px;
-}
-
-.btn-subscribe {
-  width: 100%;
-  background: var(--granate-principal);
-  color: white;
-  border: none;
-  padding: 14px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
-}
-
-.btn-subscribe:hover {
-  background: #a00028;
-  transform: translateY(-1px);
 }
 
 .btn-back-link {
