@@ -266,120 +266,122 @@
         </div>
 
         <div class="container-card" v-if="hasTechnicalData">
-          <div class="technical-sheet">
-            <h3 class="technical-title">Detalles adicionales</h3>
+          <div class="table-scroll-wrapper" v-if="hasTechnicalData">
+            <div class="technical-sheet">
+              <h3 class="technical-title">Detalles adicionales</h3>
 
-            <div class="divider-icon2">
-              <span class="line"></span>
+              <div class="divider-icon2">
+                <span class="line"></span>
+              </div>
+
+              <template v-if="work.work_type === 'book'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-file-lines"></i></div>
+                  <span class="tech-label">Páginas</span>
+                  <span class="tech-value">{{ work.pages || '-' }}</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-barcode"></i></div>
+                  <span class="tech-label">ISBN</span>
+                  <span class="tech-value">{{ work.isbn || '-' }}</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
+                  <span class="tech-label">Género</span>
+                  <span class="tech-value">{{ work.genre || '-' }}</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-language"></i></div>
+                  <span class="tech-label">Idioma</span>
+                  <span class="tech-value">{{ work.language || '-' }}</span>
+                </div>
+              </template>
+
+              <template v-else-if="work.work_type === 'music'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-clock"></i></div>
+                  <span class="tech-label">Duración</span>
+                  <span class="tech-value">{{ work.duration }} minutos</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
+                  <span class="tech-label">Género</span>
+                  <span class="tech-value">{{ work.genre }}</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-compact-disc"></i></div>
+                  <span class="tech-label">Álbum</span>
+                  <span class="tech-value">{{ work.album }}</span>
+                </div>
+              </template>
+
+              <template v-else-if="work.work_type === 'video'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-clock"></i></div>
+                  <span class="tech-label">Duración</span>
+                  <span class="tech-value">{{ work.duration }} minutos</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
+                  <span class="tech-label">Género</span>
+                  <span class="tech-value">{{ work.genre }}</span>
+                </div>
+              </template>
+
+              <template v-else-if="work.work_type === 'software'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-code"></i></div>
+                  <span class="tech-label">Lenguaje</span>
+                  <span class="tech-value">{{ work.programming_language || '-' }}</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-folder-open"></i></div>
+                  <span class="tech-label">Repositorio de código</span>
+                  <span class="tech-value">
+                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
+                    }}</a>
+                    <span v-else>-</span>
+                  </span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-book"></i></div>
+                  <span class="tech-label">Repositorio de documentación</span>
+                  <span class="tech-value">
+                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
+                    }}</a>
+                    <span v-else>-</span>
+                  </span>
+                </div>
+              </template>
+
+              <template v-else-if="work.work_type === 'paint' || work.work_type === 'sculpture'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-arrows-up-down"></i></div>
+                  <span class="tech-label">Altura</span>
+                  <span class="tech-value">{{ work.height }} cm</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-weight-hanging"></i></div>
+                  <span class="tech-label">Peso</span>
+                  <span class="tech-value">{{ work.weight }} kg</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-palette"></i></div>
+                  <span class="tech-label">Material / Técnica</span>
+                  <span class="tech-value">{{ work.type_detail || '-' }}</span>
+                </div>
+              </template>
             </div>
-
-            <template v-if="work.work_type === 'book'">
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-file-lines"></i></div>
-                <span class="tech-label">Páginas</span>
-                <span class="tech-value">{{ work.pages || '-' }}</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-barcode"></i></div>
-                <span class="tech-label">ISBN</span>
-                <span class="tech-value">{{ work.isbn || '-' }}</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
-                <span class="tech-label">Género</span>
-                <span class="tech-value">{{ work.genre || '-' }}</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-language"></i></div>
-                <span class="tech-label">Idioma</span>
-                <span class="tech-value">{{ work.language || '-' }}</span>
-              </div>
-            </template>
-
-            <template v-else-if="work.work_type === 'music'">
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-clock"></i></div>
-                <span class="tech-label">Duración</span>
-                <span class="tech-value">{{ work.duration }} minutos</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
-                <span class="tech-label">Género</span>
-                <span class="tech-value">{{ work.genre }}</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-compact-disc"></i></div>
-                <span class="tech-label">Álbum</span>
-                <span class="tech-value">{{ work.album }}</span>
-              </div>
-            </template>
-
-            <template v-else-if="work.work_type === 'video'">
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-clock"></i></div>
-                <span class="tech-label">Duración</span>
-                <span class="tech-value">{{ work.duration }} minutos</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
-                <span class="tech-label">Género</span>
-                <span class="tech-value">{{ work.genre }}</span>
-              </div>
-            </template>
-
-            <template v-else-if="work.work_type === 'software'">
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-code"></i></div>
-                <span class="tech-label">Lenguaje</span>
-                <span class="tech-value">{{ work.programming_language || '-' }}</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-folder-open"></i></div>
-                <span class="tech-label">Repositorio de código</span>
-                <span class="tech-value">
-                  <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
-                  <span v-else>-</span>
-                </span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-book"></i></div>
-                <span class="tech-label">Repositorio de documentación</span>
-                <span class="tech-value">
-                  <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                    }}</a>
-                  <span v-else>-</span>
-                </span>
-              </div>
-            </template>
-
-            <template v-else-if="work.work_type === 'paint' || work.work_type === 'sculpture'">
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-arrows-up-down"></i></div>
-                <span class="tech-label">Altura</span>
-                <span class="tech-value">{{ work.height }} cm</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-weight-hanging"></i></div>
-                <span class="tech-label">Peso</span>
-                <span class="tech-value">{{ work.weight }} kg</span>
-              </div>
-              <div class="divider-icon2"><span class="line"></span></div>
-              <div class="technical-row">
-                <div class="icon-circle"><i class="fa-solid fa-palette"></i></div>
-                <span class="tech-label">Material / Técnica</span>
-                <span class="tech-value">{{ work.type_detail || '-' }}</span>
-              </div>
-            </template>
           </div>
         </div>
       </div>
@@ -850,10 +852,10 @@ watch(
   () => route.params.id,
   (newId, oldId) => {
     if (newId && newId !== oldId) {
-      closeAuthorModal();       
-      fetchWorkDetails();        
-      fetchMySubscription();   
-      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+      closeAuthorModal();
+      fetchWorkDetails();
+      fetchMySubscription();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 );
@@ -1404,5 +1406,27 @@ onMounted(async () => {
 
 .btn-back:hover {
   text-decoration: underline;
+}
+
+.table-scroll-wrapper {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
+}
+
+.table-scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+  border-radius: 4px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--granate-principal);
+  border-radius: 4px;
 }
 </style>
