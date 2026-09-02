@@ -165,7 +165,7 @@
                 <span>Obras Guardadas</span>
               </router-link>
 
-              <router-link to="/subscriptions" class="nav-item-link" active-class="active">
+              <router-link to="/subscription/authors/subscribe" class="nav-item-link" active-class="active">
                 <i class="fa-solid fa-users icon-primary"></i>
                 <span>Mis Autores</span>
               </router-link>
@@ -223,14 +223,14 @@
 
           <div class="footer-card">
             <label class="section-label">
-              <template v-if="user.es_author">Tu catálogo de obras</template>
+              <template v-if="user.es_autor">Tu catálogo de obras</template>
             </label>
 
             <div class="content-header">
               <i class="fas fa-book"></i>
               <div class="header-text">
                 <h1>Catálogo de Obras</h1>
-                <p v-if="user.es_author">
+                <p v-if="user.es_autor">
                   Accede a la lista completa de tus obras registradas y descarga sus certificados.
                 </p>
                 <p v-else>
@@ -270,7 +270,7 @@
               </div>
 
               <p v-else class="no-recommendations-msg">
-                No hay obras disponibles que coincidan con tus intereses seleccionados.
+                Aún no tenemos recomendaciones personalizadas para ti.
               </p>
             </div>
 
@@ -361,17 +361,16 @@ const user = ref({
   es_consumidor: false
 });
 
-const works = ref([]);
 const subscribedAuthors = ref([]);
 const savedWorks = ref([]);
-const error = ref("");
+const recommendedWorks = ref([]);
 const loading = ref(true);
 const isEditing = ref(false);
 const editForm = ref({});
 const userPoints = ref(0);
 
 const availableWorkTypes = [
-  { id: 'libro', label: 'LIBRO' },
+  { id: 'book', label: 'LIBRO' },
   { id: 'music', label: 'MÚSICA' },
   { id: 'video', label: 'VIDEO' },
   { id: 'software', label: 'SOFTWARE' },
@@ -380,7 +379,7 @@ const availableWorkTypes = [
 ];
 
 const workTypeNames = {
-  libro: 'Libro', book: 'Libro',
+  book: 'Libro',
   music: 'Música', video: 'Video',
   software: 'Software', paint: 'Pintura',
   sculpture: 'Escultura'
@@ -388,7 +387,6 @@ const workTypeNames = {
 
 const workIconMap = {
   book: 'fa-solid fa-book-open',
-  libro: 'fa-solid fa-book-open',
   music: 'fa-solid fa-music',
   video: 'fa-solid fa-video',
   software: 'fa-solid fa-code',
@@ -420,17 +418,22 @@ const userInterestsArray = computed(() => {
   return [];
 });
 
-const recommendedWorks = computed(() => {
-  if (!user.value.es_consumidor) return [];
-  return works.value.filter(work => {
-    let typeNormalizado = work.work_type;
-    if (typeNormalizado === 'book') {
-      typeNormalizado = 'libro';
-    }
+const getRecommendedWorks = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
 
-    return userInterestsArray.value.includes(typeNormalizado);
-  });
-});
+    const response = await axios.get("http://localhost:8000/api/works/recommended/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    recommendedWorks.value = response.data;
+    console.log("Obras recomendadas del usuario cargadas");
+  } catch (err) {
+    console.error("Error al cargar recomendaciones:", err);
+  }
+};
 
 const getInterestLabel = (id) => {
   const found = availableWorkTypes.find(type => type.id === id);
@@ -465,16 +468,6 @@ const getUserData = async () => {
 
     user.value.es_autor = user.value.role === 'author';
     user.value.es_consumidor = user.value.role === 'consumer';
-
-    if (user.value.es_consumidor) {
-      const worksResponse = await axios.get("http://localhost:8000/api/works/", {
-        headers: {
-          Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
-        },
-      });
-
-      works.value = worksResponse.data;
-    }
 
   } catch (err) {
     console.error("Error en la petición:", err);
@@ -565,6 +558,8 @@ const modifyProfile = async () => {
 
     isEditing.value = false;
 
+    await getRecommendedWorks();
+    
     triggerInformation("Perfil actualizado correctamente.", "success");
 
   } catch (err) {
@@ -633,7 +628,8 @@ onMounted(() => {
   getUserData();
   getUserPoints();
   getSuscribedAuthors();
-  getSavedWorks()
+  getSavedWorks();
+  getRecommendedWorks();
 });
 </script>
 

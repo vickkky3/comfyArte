@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import WorkListCreateAPIView, ServeWorkFileAPIView, WorkDetailAPIView, ServeWorkResumeAPIView, ListWorksByAuthorAPIView
+from .views import WorkListCreateAPIView, ServeWorkFileAPIView, WorkDetailAPIView, ServeWorkResumeAPIView, ListWorksByAuthorAPIView, RecommendedWorksAPIView
 
 
 app_name = 'works'
@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/', WorkDetailAPIView.as_view(), name='work_details'),
     path('<int:pk>/serve-resume/', ServeWorkResumeAPIView.as_view(), name='serve-work-resume'),
     path('authors/<int:author_id>/', ListWorksByAuthorAPIView.as_view(), name='author_work_list'),
+    path('recommended/', RecommendedWorksAPIView.as_view(), name='recommended_works'),
 ]

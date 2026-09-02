@@ -112,6 +112,7 @@
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-circle-user"></i>Autor/a</span>
                   <span class="value">{{ work.author_username || 'Desconocido' }}</span>
+                  
                 </div>
 
                 <div class="info-block">
@@ -235,7 +236,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -245,7 +246,7 @@
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -382,13 +383,13 @@ const workIcons = {
 };
 
 const information = ref({
-    show: false,
-    message: "",
-    type: "error"
+  show: false,
+  message: "",
+  type: "error"
 });
 
 const triggerInformation = (message, type = 'error') => {
-    information.value = { show: true, message, type };
+  information.value = { show: true, message, type };
 };
 
 const workIcon = computed(() => {
@@ -598,7 +599,6 @@ const saveWork = async (workId) => {
       savedWorkIds.value.add(workId);
 
       triggerInformation("¡Obra guardada en favoritos!", "success");
-      alert("¡Obra guardada en favoritos!");
     }
 
   } catch (error) {
@@ -614,7 +614,7 @@ const handleLogout = async () => {
 
   } catch (err) {
     console.error("Error al cerrar sesión:", err);
-    
+
   } finally {
     authStore.setToken(null);
     localStorage.removeItem("token");

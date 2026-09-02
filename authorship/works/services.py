@@ -5,6 +5,7 @@ import base64
 
 from pypdf import PdfReader
 from django.conf import settings
+from subscriptions.models import AuthorSubscription
 
 max_chars = 5000
 
@@ -141,5 +142,31 @@ def process_audio_for_ai(file_bytes, filename):
         return 'text', transcript.text[:max_chars]
     
     except Exception:
-        return 'none', None
+        return 'none', None      
+
+def get_recommended_authors_for_user(user):
+    try:
+        my_author_ids = AuthorSubscription.objects.filter(
+            consumer=user
+        ).values_list('author_id', flat=True)
+
+        if not my_author_ids:
+            return []
+
+        similar_consumer_ids = AuthorSubscription.objects.filter(
+            author_id__in=my_author_ids
+        ).exclude(consumer=user).values_list('consumer_id', flat=True)
+
+        recommended_subscriptions = AuthorSubscription.objects.filter(
+            consumer_id__in=similar_consumer_ids
+        ).exclude(
+            author_id__in=my_author_ids
+        ).select_related('author')
+
+        recommended_authors = list({sub.author for sub in recommended_subscriptions})
+        return recommended_authors
+
+    except Exception as e:
+        print(f"Error en recomendación: {e}")
+        return []
         

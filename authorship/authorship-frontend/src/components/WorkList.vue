@@ -1527,7 +1527,7 @@ tr:hover {
 }
 
 .authors-grid {
-  max-height: 500px;
+  max-height: 450px;
   overflow-y: auto;
   padding-right: 5px;
   scrollbar-width: thin;

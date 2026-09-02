@@ -12,7 +12,7 @@ from .serializers import WorkSerializer
 from .models import Work, Book, Music, Video, Software, Paint, Sculpture
 from rest_framework.parsers import MultiPartParser, FormParser
 import base64
-from .services import validate_work_content, process_file_for_ai
+from .services import validate_work_content, process_file_for_ai, get_recommended_authors_for_user
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
@@ -367,3 +367,25 @@ class ServeWorkResumeAPIView(APIView):
         response = HttpResponse(work.resume_file, content_type=work.resume_type)
         response['Content-Disposition'] = f'inline; filename="preview_{work.resume_name}"'
         return response
+    
+class RecommendedWorksAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        consumer = request.user
+        
+        recommended_authors = get_recommended_authors_for_user(consumer)
+        
+        if not recommended_authors:
+            interests = consumer.interests or ""
+            interests_list = [i.strip() for i in interests.split(',') if i.strip()]
+            
+            recommended_works = Work.objects.filter(work_type__in=interests_list)
+            
+        else:
+            recommended_works = Work.objects.filter(author__in=recommended_authors)
+                    
+        recommended_works = recommended_works.distinct().order_by('-created_at')[:20]
+        
+        serializer = WorkSerializer(recommended_works, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
