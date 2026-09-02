@@ -1,5 +1,11 @@
 <template>
-  <div v-if="loading" class="loading">Cargando detalles de la obra...</div>
+  <div v-if="loading" class="loading-screen">
+    <div class="spinner-wrapper">
+      <div class="brand-spinner"></div>
+      <div class="spinner-inner-dot"></div>
+    </div>
+    <p class="loading-label">Cargando detalles de la obra...</p>
+  </div>
 
   <div v-else-if="obra">
     <nav class="navbar">

@@ -1,9 +1,11 @@
 <template>
   <div v-if="loading" class="loading-screen">
-    <div class="spinner"></div>
-    <p>Cargando panel...</p>
+    <div class="spinner-wrapper">
+      <div class="brand-spinner"></div>
+      <div class="spinner-inner-dot"></div>
+    </div>
+    <p class="loading-label">Cargando detalles de la obra...</p>
   </div>
-
 
   <div v-else class="dashboard-wrapper">
     <nav class="navbar">
@@ -559,7 +561,7 @@ const modifyProfile = async () => {
     isEditing.value = false;
 
     await getRecommendedWorks();
-    
+
     triggerInformation("Perfil actualizado correctamente.", "success");
 
   } catch (err) {

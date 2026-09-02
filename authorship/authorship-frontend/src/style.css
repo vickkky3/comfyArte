@@ -866,3 +866,61 @@ body {
     background: #a00028;
     transform: translateY(-1px);
   }
+
+  .loading-screen {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .spinner-wrapper {
+    position: relative;
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .brand-spinner {
+    width: 100%;
+    height: 100%;
+    border: 4px solid var(--rosa-claro);
+    border-top-color: var(--granate-principal);
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+  }
+  
+  .spinner-inner-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--rosa-fuerte);
+    border-radius: 50%;
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+  
+  .loading-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--granate-principal);
+    letter-spacing: 0.4px;
+    animation: pulse-text 1.4s ease-in-out infinite alternate;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(0.8); opacity: 0.6; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+  
+  @keyframes pulse-text {
+    from { opacity: 0.55; }
+    to { opacity: 1; }
+  }

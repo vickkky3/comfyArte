@@ -1,5 +1,11 @@
 <template>
-  <div v-if="loading" class="loading">Cargando tus obras...</div>
+  <div v-if="loading" class="loading-screen">
+    <div class="spinner-wrapper">
+      <div class="brand-spinner"></div>
+      <div class="spinner-inner-dot"></div>
+    </div>
+    <p class="loading-label">Cargando detalles de la obra...</p>
+  </div>
 
   <div v-else>
     <nav class="navbar">
@@ -938,7 +944,7 @@ onMounted(async () => {
 .giant-icon-square {
   width: 160px;
   height: 230px;
-  background-color: var(--rosa-claro, #FFF0F3);
+  background-color: var(--rosa-claro);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -1215,9 +1221,9 @@ onMounted(async () => {
 }
 
 .sidebar-help-text {
-  font-size: 0.82rem !important;
+  font-size: 0.82rem;
   color: #666;
-  margin: 6px 0 12px 0 !important;
+  margin: 6px 0 12px 0;
   line-height: 1.4;
 }
 
@@ -1264,13 +1270,13 @@ onMounted(async () => {
 }
 
 .btn-subscribe-now {
-  background: #edf2f7 !important;
-  color: var(--granate-principal) !important;
-  border: 1px solid rgba(139, 0, 41, 0.2) !important;
+  background: #edf2f7;
+  color: var(--granate-principal);
+  border: 1px solid rgba(139, 0, 41, 0.2);
 }
 
 .btn-subscribe-now:hover {
-  background: var(--rosa-claro) !important;
+  background: var(--rosa-claro);
 }
 
 .header-title-actions {
@@ -1299,9 +1305,9 @@ onMounted(async () => {
 }
 
 .circle-pink {
-  background: var(--rosa-claro, #fff0f3);
-  color: var(--granate-principal, #700020);
-  border: 1px solid var(--rosa-fuerte, #db7093);
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border: 1px solid var(--rosa-fuerte);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.72em;
@@ -1321,8 +1327,8 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   background-color: white;
-  border: 1.5px solid var(--granate-principal, #700020);
-  color: var(--granate-principal, #700020);
+  border: 1.5px solid var(--granate-principal);
+  color: var(--granate-principal);
   padding: 7px 16px;
   border-radius: 20px;
   font-weight: 700;
@@ -1334,18 +1340,18 @@ onMounted(async () => {
 
 .btn-save-detail i {
   font-size: 1.05em;
-  color: var(--granate-principal, #700020);
+  color: var(--granate-principal);
 }
 
 .btn-save-detail:hover {
-  background-color: var(--rosa-claro, #fff0f3);
+  background-color: var(--rosa-claro);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(112, 0, 32, 0.1);
 }
 
 .btn-save-detail.is-saved {
-  background-color: var(--rosa-claro, #fff0f3);
-  color: var(--granate-principal, #700020);
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
 }
 
 .btn-author-profile {
@@ -1355,9 +1361,9 @@ onMounted(async () => {
   gap: 7px;
   margin-top: 8px;
   padding: 6px 14px;
-  background-color: var(--rosa-claro, #fff0f3);
-  color: var(--granate-principal, #700020);
-  border: 1px solid var(--rosa-fuerte, #db7093);
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  border: 1px solid var(--rosa-fuerte);
   border-radius: 16px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1369,13 +1375,13 @@ onMounted(async () => {
 
 .btn-author-profile i {
   font-size: 0.85rem;
-  color: var(--granate-principal, #700020);
+  color: var(--granate-principal);
   transition: transform 0.2s ease;
 }
 
 .btn-author-profile:hover {
-  background-color: var(--granate-principal, #700020);
-  border-color: var(--granate-principal, #700020);
+  background-color: var(--granate-principal);
+  border-color: var(--granate-principal);
   color: #ffffff;
   box-shadow: 0 3px 8px rgba(112, 0, 32, 0.18);
   transform: translateY(-1px);
