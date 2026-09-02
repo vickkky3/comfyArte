@@ -253,18 +253,52 @@
 
         </div>
 
-        <div class="license-container">
-        <h3>Información de la Licencia</h3>
+        <div class="license-container" v-if="work">
+          <h3>Información de la Licencia</h3>
 
-        <p class="license-name">
-          <strong>{{ work.license_label }}</strong>
-        </p>
+          <div v-if="licenseMeanings[work.license]" class="license-card-info">
+            <div class="license-card-header">
+              <span class="license-badge-name">{{ licenseMeanings[work.license].name }}</span>
+            </div>
 
-        <p class="license-description">
-          <strong>¿Qué significa?</strong>
-          {{ licenseMeanings[work.license] || 'Información no disponible' }}
-        </p>
-      </div>
+            <p class="license-summary">
+              {{ licenseMeanings[work.license].summary }}
+            </p>
+
+            <div v-if="work.license !== 'none'" class="license-rules-grid">
+              <span v-if="licenseMeanings[work.license].commercial" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Uso comercial
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                Sin fines comerciales
+              </span>
+
+              <span v-if="licenseMeanings[work.license].derivatives" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Permite adaptaciones
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                No permite adaptaciones
+              </span>
+
+              <span v-if="licenseMeanings[work.license].sameLicense" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Exige que cualquier adaptación se distribuya bajo la misma licencia
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                No exige que cualquier adaptación se distribuya bajo la misma licencia
+              </span>
+            </div>
+          </div>
+
+          <p v-else class="license-description">
+            Información no disponible
+          </p>
+        </div>
 
         <div class="crypto-security-box">
           <div class="crypto-header">
@@ -331,13 +365,53 @@ const workTypes = {
 };
 
 const licenseMeanings = {
-  'none': 'Esta obra no tiene licencia',
-  'by': 'Reconocimiento: Permite cualquier explotación de la obra, incluyendo finalidad comercial y creación de obras derivadas, siempre que se reconozca la autoría.',
-  'by-sa': 'Reconocimiento-CompartirIgual: Permite uso comercial y obras derivadas, pero la distribución de estas debe hacerse con una licencia igual a la original.',
-  'by-nd': 'Reconocimiento-SinObraDerivada: Permite el uso comercial de la obra pero no la generación de obras derivadas.',
-  'by-nc': 'Reconocimiento-NoComercial: Permite la generación de obras derivadas siempre que no se haga un uso comercial de las mismas.',
-  'by-nc-sa': 'Reconocimiento-NoComercial-CompartirIgual: No permite el uso comercial. Se permite crear obras derivadas siempre que se compartan con la misma licencia.',
-  'by-nc-nd': 'Reconocimiento-NoComercial-SinObraDerivada: Es la licencia más restrictiva. No permite uso comercial ni obras derivadas. Solo lectura y descarga.',
+  'none': {
+    name: 'Sin licencia específica',
+    summary: 'Aplica la reserva habitual de derechos de autor de tu obra.',
+    badges: ['Uso estándar'],
+  },
+  'by': {
+    name: 'CC BY · Atribución',
+    summary: 'Cualquiera puede usar, modificar o lucrarse con tu obra mencionándote.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: false,
+  },
+  'by-sa': {
+    name: 'CC BY-SA · Compartir Igual',
+    summary: 'Se permite el uso comercial y cambios, pero las obras derivadas deben tener esta misma licencia.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: true,
+  },
+  'by-nd': {
+    name: 'CC BY-ND · Sin Obras Derivadas',
+    summary: 'Se permite compartir y comercializar, pero la obra no puede ser alterada ni modificada.',
+    commercial: true,
+    derivatives: false,
+    sameLicense: false,
+  },
+  'by-nc': {
+    name: 'CC BY-NC · No Comercial',
+    summary: 'Permite crear obras derivadas pero nunca para beneficio económico.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: false,
+  },
+  'by-nc-sa': {
+    name: 'CC BY-NC-SA · No Comercial - Compartir Igual',
+    summary: 'Permite crear obras derivadas sin fines de lucro y con esta misma licencia.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: true,
+  },
+  'by-nc-nd': {
+    name: 'CC BY-NC-ND · Más Restrictiva',
+    summary: 'Solo permite ver/descargar la obra tal cual es, reconociendo autoría y sin fines comerciales.',
+    commercial: false,
+    derivatives: false,
+    sameLicense: false,
+  },
 };
 
 const workType = computed(() => {
@@ -984,25 +1058,74 @@ onMounted(async () => {
   background-color: #fdfdfd;
   border: 1px solid #e9ecef;
   border-left: 5px solid var(--granate-principal);
-  padding: 15px 20px;
-  margin-top: 20px 0;
-  border-radius: 8px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  box-sizing: border-box;
 }
 
-.license-name {
-  display: block;
-  font-size: 0.85em;
+.license-container h3 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--granate-principal);
-  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+}
+
+.license-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.license-badge-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--granate-principal);
+}
+
+.license-summary {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.45;
+}
+
+.license-rules-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rule-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.rule-allow {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rule-deny {
+  background-color: #fbe9e7;
+  color: #c62828;
+}
+
+.rule-warn {
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
 }
 
 .license-description {
-  font-size: 0.8em;         
-  line-height: 1.5;
-  color: #6c757d;           
+  font-size: 0.85rem;
+  color: #6c757d;
   margin: 0;
 }
 </style>

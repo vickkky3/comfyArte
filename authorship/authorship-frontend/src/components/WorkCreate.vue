@@ -1,76 +1,5 @@
 <template>
-  <nav class="navbar">
-      <div class="navbar-left">
-        <img src="/logo.png" class="logo-img" alt="Logo comforART" />
-        <span class="nav-title">
-          <span class="text-comfor">Comfy</span><span class="text-art">ARTE</span>
-        </span>
-        <span class="nav-separator">|</span>
-        <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
-      </div>
-      <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
 
-        <div class="notifications-wrapper">
-          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
-            <i class="fa-solid fa-bell"></i>
-          </button>
-
-          <div v-if="isNotificationsOpen" class="notifications-dropdown">
-
-            <div class="notif-header">
-              <h3>Notificaciones</h3>
-            </div>
-
-            <div class="notif-body">
-              <div v-if="notifications.length > 0">
-                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
-                  <div class="notif-icon-circle">
-                    <i class="fa-solid fa-book-open"></i>
-                  </div>
-
-                  <div class="notif-content">
-                    <div class="notif-title-row">
-                      <span class="notif-title">Nueva obra disponible</span>
-                      <span v-if="!notif.is_read" class="unread-dot"></span>
-                    </div>
-                    <p class="notif-text">
-                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
-                        notif.work_title }}"</em>.
-                    </p>
-                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div v-else class="notif-empty">
-                <p>No tienes notificaciones por ahora.</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
-      </div>
-    </nav>
-
-  <transition name="popup-fade">
-      <div v-if="information.show" :class="['popup-notification', information.type]">
-        <div class="popup-icon">
-          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
-          <i v-else class="fa-solid fa-circle-check"></i>
-        </div>
-        <div class="popup-body">
-          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
-          <span class="popup-title" v-else>¡Acción Exitosa!</span>
-          <p class="popup-message">{{ information.message }}</p>
-        </div>
-        <button @click="information.show = false" class="popup-close">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-    </transition>
 
   <div class="form-container">
     <h1>Registrar {{ workTypeName }}</h1>
@@ -210,17 +139,51 @@
         <label>Licencia Creative Commons</label>
         <select v-model="selectedLicense" class="license-select">
           <option v-for="lic in licenses" :key="lic.id" :value="lic.id">
-            {{ lic.icon }} {{ lic.name }}
+            {{ lic.name }}
           </option>
         </select>
 
-        <p v-if="selectedLicense" class="license-description">
-          <strong>¿Qué significa?</strong>
-          {{ licenseMeanings[selectedLicense] || 'Información no disponible' }}
-        </p>
+        <div v-if="licenseMeanings[selectedLicense]" class="license-card-info">
+          <div class="license-card-header">
+            <span class="license-badge-name">{{ licenseMeanings[selectedLicense].name }}</span>
+          </div>
+
+          <p class="license-summary">
+            {{ licenseMeanings[selectedLicense].summary }}
+          </p>
+
+          <div v-if="selectedLicense !== 'none'" class="license-rules-grid">
+            <span v-if="licenseMeanings[work.license].commercial" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Uso comercial
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                Sin fines comerciales
+              </span>
+
+              <span v-if="licenseMeanings[work.license].derivatives" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Permite adaptaciones
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                No permite adaptaciones
+              </span>
+
+              <span v-if="licenseMeanings[work.license].sameLicense" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i>
+                Exige que cualquier adaptación se distribuya bajo la misma licencia
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i>
+                No exige que cualquier adaptación se distribuya bajo la misma licencia
+              </span>
+          </div>
+        </div>
 
         <p class="license-info">
-          Tu obra será protegida bajo la licencia: <strong>{{ selectedLicenseName }}</strong>
+          Tu obra será protegida bajo: <strong>{{ selectedLicenseName }}</strong>
         </p>
       </div>
 
@@ -305,13 +268,53 @@ const selectedLicenseName = computed(() => {
 });
 
 const licenseMeanings = {
-  'none': 'Esta obra no tiene licencia',
-  'by': 'Reconocimiento: Permite cualquier explotación de la obra, incluyendo finalidad comercial y creación de obras derivadas, siempre que se reconozca la autoría.',
-  'by-sa': 'Reconocimiento-CompartirIgual: Permite uso comercial y obras derivadas, pero la distribución de estas debe hacerse con una licencia igual a la original.',
-  'by-nd': 'Reconocimiento-SinObraDerivada: Permite el uso comercial de la obra pero no la generación de obras derivadas.',
-  'by-nc': 'Reconocimiento-NoComercial: Permite la generación de obras derivadas siempre que no se haga un uso comercial de las mismas.',
-  'by-nc-sa': 'Reconocimiento-NoComercial-CompartirIgual: No permite el uso comercial. Se permite crear obras derivadas siempre que se compartan con la misma licencia.',
-  'by-nc-nd': 'Reconocimiento-NoComercial-SinObraDerivada: Es la licencia más restrictiva. No permite uso comercial ni obras derivadas. Solo lectura y descarga.',
+  'none': {
+    name: 'Sin licencia específica',
+    summary: 'Aplica la reserva habitual de derechos de autor de tu obra.',
+    badges: ['Uso estándar'],
+  },
+  'by': {
+    name: 'CC BY · Atribución',
+    summary: 'Cualquiera puede usar, modificar o lucrarse con tu obra mencionándote.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: false,
+  },
+  'by-sa': {
+    name: 'CC BY-SA · Compartir Igual',
+    summary: 'Se permite el uso comercial y cambios, pero las obras derivadas deben tener esta misma licencia.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: true,
+  },
+  'by-nd': {
+    name: 'CC BY-ND · Sin Obras Derivadas',
+    summary: 'Se permite compartir y comercializar, pero la obra no puede ser alterada ni modificada.',
+    commercial: true,
+    derivatives: false,
+    sameLicense: false,
+  },
+  'by-nc': {
+    name: 'CC BY-NC · No Comercial',
+    summary: 'Permite crear obras derivadas pero nunca para beneficio económico.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: false,
+  },
+  'by-nc-sa': {
+    name: 'CC BY-NC-SA · No Comercial - Compartir Igual',
+    summary: 'Permite crear obras derivadas sin fines de lucro y con esta misma licencia.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: true,
+  },
+  'by-nc-nd': {
+    name: 'CC BY-NC-ND · Más Restrictiva',
+    summary: 'Solo permite ver/descargar la obra tal cual es, reconociendo autoría y sin fines comerciales.',
+    commercial: false,
+    derivatives: false,
+    sameLicense: false,
+  },
 };
 
 const subscriptionTypes = ref([]);
@@ -320,13 +323,13 @@ const selectedPlan = ref("");
 const loadingPlans = ref(true);
 
 const information = ref({
-    show: false,
-    message: "",
-    type: "error"
+  show: false,
+  message: "",
+  type: "error"
 });
 
 const triggerInformation = (message, type = 'error') => {
-    information.value = { show: true, message, type };
+  information.value = { show: true, message, type };
 };
 
 const fetchPlans = async () => {
@@ -357,7 +360,7 @@ const handleResumeChange = (event) => {
 };
 
 const handleSubmit = async () => {
-   if (!selectedFile.value) {
+  if (!selectedFile.value) {
     triggerInformation("Por favor, selecciona el archivo principal de la obra.", "error");
     return;
   }
@@ -442,7 +445,7 @@ const handleSubmit = async () => {
 
     error.value = errorMsg;
     triggerInformation(errorMsg, "error");
-    
+
   } finally {
     loading.value = false;
   }
@@ -505,6 +508,9 @@ label {
 }
 
 input[type="text"],
+input[type="number"],
+input[type="url"],
+select,
 textarea {
   width: 100%;
   padding: 12px;
@@ -512,13 +518,28 @@ textarea {
   border-radius: 8px;
   box-sizing: border-box;
   font-family: inherit;
+  background-color: white;
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--rosa-fuerte);
   background: var(--rosa-claro);
+}
+
+.field-desc {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+.mini-loader {
+  font-size: 0.8em;
+  color: #888;
+  margin-top: 6px;
 }
 
 .file-upload-section {
@@ -532,6 +553,88 @@ textarea:focus {
   font-size: 0.8em;
   color: #888;
   margin-top: 10px;
+  margin-bottom: 18px;
+}
+
+.file-input-wrapper {
+  margin-bottom: 15px;
+}
+
+.license-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  font-family: inherit;
+  outline: none;
+}
+
+.license-select:focus {
+  border-color: var(--rosa-fuerte);
+}
+
+.license-card-info {
+  margin-top: 14px;
+  padding: 16px 20px;
+  background-color: #fafbfc;
+  border: 1px solid #f0e6e9;
+  border-left: 4px solid var(--granate-principal);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.license-badge-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--granate-principal);
+}
+
+.license-summary {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #555;
+  line-height: 1.45;
+}
+
+.license-rules-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rule-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.rule-allow {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rule-deny {
+  background-color: #fbe9e7;
+  color: #c62828;
+}
+
+.rule-warn {
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+}
+
+.license-info {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .btn-save {

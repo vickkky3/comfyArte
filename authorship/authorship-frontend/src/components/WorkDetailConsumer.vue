@@ -26,7 +26,6 @@
           </button>
 
           <div v-if="isNotificationsOpen" class="notifications-dropdown">
-
             <div class="notif-header">
               <h3>Notificaciones</h3>
             </div>
@@ -44,8 +43,7 @@
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
                     <p class="notif-text">
-                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
-                        notif.work_title }}"</em>.
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{ notif.work_title }}"</em>.
                     </p>
                     <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
                   </div>
@@ -56,7 +54,6 @@
                 <p>No tienes notificaciones por ahora.</p>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -82,9 +79,7 @@
     </transition>
 
     <div class="page-layout-grid">
-
       <div class="left-column-content">
-
         <div class="container-card" v-if="work">
           <div class="back-link2">
             <button @click="goBack" type="button" class="btn-back">
@@ -107,8 +102,7 @@
                 </div>
 
                 <div class="save-btn-wrapper">
-                  <button type="button" @click="saveWork(work.id)" class="btn-save-detail"
-                    :class="{ 'is-saved': isSaved(work.id) }">
+                  <button type="button" @click="saveWork(work.id)" class="btn-save-detail" :class="{ 'is-saved': isSaved(work.id) }">
                     <i :class="isSaved(work.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
                     <span>{{ isSaved(work.id) ? 'Guardada' : 'Guardar obra' }}</span>
                   </button>
@@ -128,7 +122,6 @@
                 <Teleport to="body">
                   <div v-if="selectedAuthor" class="modal-overlay" @click.self="closeAuthorModal">
                     <div class="modal-card">
-
                       <button class="modal-close-btn" @click="closeAuthorModal">&times;</button>
 
                       <div class="modal-header">
@@ -149,7 +142,6 @@
                       </div>
 
                       <div class="modal-body">
-
                         <div class="info-section">
                           <div class="section-icon">
                             <i class="fa-regular fa-user"></i>
@@ -189,16 +181,15 @@
                                       <span class="pill-type">{{ getWorkTypeName(w.work_type) }}</span>
                                     </td>
                                     <td class="col-title">
-                                      <span class="work-title-cell">{{ w.title }}</span>
+                                      <span class="work-title-cell" :title="w.title">{{ w.title }}</span>
                                     </td>
                                     <td class="col-date work-date-cell">
                                       {{ simpleFormatDate(w.created_at) }}
                                     </td>
                                     <td class="col-action">
-                                      <router-link :to="`/works/${w.id}`" class="btn-table-consult"
-                                        @click="closeAuthorModal">
+                                      <button type="button" class="btn-table-consult" @click="consultAuthorWork(w.id)">
                                         Consultar
-                                      </router-link>
+                                      </button>
                                     </td>
                                   </tr>
                                 </tbody>
@@ -208,15 +199,12 @@
                             <p v-else class="empty-works-text">
                               Este autor aún no tiene obras publicadas.
                             </p>
-
                           </div>
                         </div>
-
                       </div>
 
                       <div class="modal-footer">
-                        <button type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
-                          :title="isSuscribed(selectedAuthor.id) ? 'Quitar de guardados' : 'Guardar obra'">
+                        <button type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
                           <div v-if="isSuscribed(selectedAuthor.id)">
                             <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
                           </div>
@@ -225,7 +213,6 @@
                           </div>
                         </button>
                       </div>
-
                     </div>
                   </div>
                 </Teleport>
@@ -260,7 +247,7 @@
 
                 <div v-if="work.plan_required" class="value-box">
                   <span class="plan-name">{{ work.plan_required.name }}</span>
-                  <span class="circle-pink2 "> precio: {{ work.plan_required.points }} puntos</span>
+                  <span class="circle-pink2">precio: {{ work.plan_required.points }} puntos</span>
                 </div>
 
                 <div v-else class="free-box">
@@ -272,7 +259,7 @@
         </div>
 
         <div class="container-card" v-if="hasTechnicalData">
-          <div class="table-scroll-wrapper" v-if="hasTechnicalData">
+          <div class="table-scroll-wrapper">
             <div class="technical-sheet">
               <h3 class="technical-title">Detalles adicionales</h3>
 
@@ -351,8 +338,7 @@
                   <div class="icon-circle"><i class="fa-solid fa-folder-open"></i></div>
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
-                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -361,8 +347,7 @@
                   <div class="icon-circle"><i class="fa-solid fa-book"></i></div>
                   <span class="tech-label">Repositorio de documentación</span>
                   <span class="tech-value">
-                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                    }}</a>
+                    <a v-if="work.documentation_url" :href="work.documentation_url" target="_blank">{{ work.documentation_url }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -393,8 +378,8 @@
       </div>
 
       <div class="right-column-sidebar">
+        <!-- Bloque de Archivos -->
         <div class="container-card sidebar-card-info" v-if="work">
-
           <div v-if="work.file_name" class="file-box-section">
             <span class="label-sidebar-title">
               <i class="fa-solid fa-box-archive"></i> Obra Completa
@@ -402,10 +387,19 @@
 
             <div v-if="canSeeProtectedContent" class="unlocked-zone">
               <p class="sidebar-help-text">Tienes acceso total. Puedes descargar el archivo original firmado:</p>
-              <a :href="`http://localhost:8000/api/works/${work.id}/serve/`" class="btn-action btn-download"
-                target="_blank">
-                <i class="fa-solid fa-circle-down"></i> Descargar Original
-              </a>
+              <button
+                type="button"
+                class="btn-action btn-download"
+                @click="downloadOriginal"
+                :disabled="downloadingOriginal"
+              >
+                <span v-if="downloadingOriginal">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Descargando...
+                </span>
+                <span v-else>
+                  <i class="fa-solid fa-circle-down"></i> Descargar Original
+                </span>
+              </button>
               <span class="file-real-name-tag">{{ work.file_name }}</span>
             </div>
 
@@ -419,27 +413,65 @@
                 <span class="line"></span>
               </div>
 
-              <div v-if="work?.resume_name" class="file-box-section" style="margin-bottom: 25px;">
+              <div v-if="work.resume_name" class="file-box-section" style="margin-bottom: 25px;">
                 <span class="label-sidebar-title">
                   <i class="fa-solid fa-eye"></i> Muestra Gratuita
                 </span>
                 <p class="sidebar-help-text">Revisa un fragmento libre antes de adquirir la obra completa:</p>
 
                 <div class="media-preview-container">
-                  <a :href="`http://localhost:8000/api/works/${work?.id}/serve-resume/`" target="_blank"
-                    class="btn-sidebar-secondary">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir preview ({{ work?.resume_name }})
-                  </a>
-
+                  <button
+                    type="button"
+                    class="btn-sidebar-secondary"
+                    @click="openResumePreview"
+                    :disabled="loadingResume"
+                  >
+                    <span v-if="loadingResume">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Abriendo...
+                    </span>
+                    <span v-else>
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir preview ({{ work.resume_name }})
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
+        <div class="container-card license-container" v-if="work">
+          <h3>Uso permitido de la obra</h3>
+
+          <div v-if="currentLicenseInfo" class="license-card-info">
+            <span class="license-badge-name">{{ currentLicenseInfo.name }}</span>
+            <p class="license-summary">{{ currentLicenseInfo.summary }}</p>
+
+            <div v-if="work.license !== 'none'" class="license-rules-grid">
+              <span v-if="currentLicenseInfo.commercial" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i> Uso comercial permitido
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i> Solo uso personal (no comercial)
+              </span>
+
+              <span v-if="currentLicenseInfo.derivatives" class="rule-pill rule-allow">
+                <i class="fa-solid fa-check"></i> Puedes crear versiones derivadas
+              </span>
+              <span v-else class="rule-pill rule-deny">
+                <i class="fa-solid fa-xmark"></i> No alterar ni modificar
+              </span>
+
+              <span v-if="currentLicenseInfo.sameLicense" class="rule-pill rule-warn">
+                <i class="fa-solid fa-arrows-rotate"></i> Compartir versiones con misma licencia
+              </span>
+            </div>
           </div>
 
+          <p v-else class="license-description">
+            Información de licencia no disponible.
+          </p>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -477,6 +509,9 @@ const work = ref(null);
 const subscriptionTypes = ref([]);
 const activeSubscription = ref(null);
 
+const downloadingOriginal = ref(false);
+const loadingResume = ref(false);
+
 const workTypes = {
   book: 'LIBRO',
   music: 'MÚSICA',
@@ -485,6 +520,63 @@ const workTypes = {
   paint: 'PINTURA',
   sculpture: 'ESCULTURA'
 };
+
+const licenseMeanings = {
+  'none': {
+    name: 'Todos los derechos reservados',
+    summary: 'El autor se reserva todos los derechos. Solo se permite el acceso y consumo dentro de la plataforma.',
+    commercial: false,
+    derivatives: false,
+    sameLicense: false
+  },
+  'by': {
+    name: 'Creative Commons (CC BY)',
+    summary: 'Puedes disfrutar, compartir e incluso reutilizar esta obra citando a su autor/a original.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: false
+  },
+  'by-sa': {
+    name: 'Creative Commons (CC BY-SA)',
+    summary: 'Puedes compartir y adaptar la obra citando autoría, siempre que compartas tus creaciones bajo estos mismos términos.',
+    commercial: true,
+    derivatives: true,
+    sameLicense: true
+  },
+  'by-nd': {
+    name: 'Creative Commons (CC BY-ND)',
+    summary: 'Puedes compartir la obra citando al autor/a, pero debes mantenerla íntegra y sin modificaciones.',
+    commercial: true,
+    derivatives: false,
+    sameLicense: false
+  },
+  'by-nc': {
+    name: 'Creative Commons (CC BY-NC)',
+    summary: 'Puedes disfrutar y versionar esta obra libremente, siempre que sea sin fines de lucro comercial y citando autoría.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: false
+  },
+  'by-nc-sa': {
+    name: 'Creative Commons (CC BY-NC-SA)',
+    summary: 'Puedes disfrutar y versionar sin fines de lucro, citando autoría y compartiendo derivados con esta misma licencia.',
+    commercial: false,
+    derivatives: true,
+    sameLicense: true
+  },
+  'by-nc-nd': {
+    name: 'Creative Commons (CC BY-NC-ND)',
+    summary: 'Puedes descargarla y compartirla citando al autor/a, pero no puedes lucrarte con ella ni alterarla de ningún modo.',
+    commercial: false,
+    derivatives: false,
+    sameLicense: false
+  }
+};
+
+const currentLicenseInfo = computed(() => {
+  if (!work.value || !work.value.license) return null;
+  return licenseMeanings[work.value.license] || null;
+});
 
 const workType = computed(() => {
   if (!work.value || !work.value.work_type) return 'Obra';
@@ -521,8 +613,9 @@ const hasTechnicalData = computed(() => {
 
 const getUserData = async () => {
   try {
+    const token = authStore.token || localStorage.getItem("token");
     const response = await axios.get("http://localhost:8000/api/users/me/", {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
+      headers: { Authorization: `Token ${token}` },
     });
 
     user.value = response.data;
@@ -531,7 +624,7 @@ const getUserData = async () => {
 
     if (user.value.es_consumidor) {
       const worksResponse = await axios.get("http://localhost:8000/api/works/", {
-        headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
+        headers: { Authorization: `Token ${token}` },
       });
       works.value = worksResponse.data;
     }
@@ -556,8 +649,9 @@ const getUserPoints = async () => {
 const fetchWorkDetails = async () => {
   try {
     const id = route.params.id;
+    const token = authStore.token || localStorage.getItem('token');
     const response = await axios.get(`http://localhost:8000/api/works/${id}/`, {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem('token')}` }
+      headers: { Authorization: `Token ${token}` }
     });
     work.value = response.data;
   } catch (err) {
@@ -568,12 +662,11 @@ const fetchWorkDetails = async () => {
 
 const fetchMySubscription = async () => {
   try {
-    const id = route.params.id;
+    const token = authStore.token || localStorage.getItem('token');
     const response = await axios.get(`http://localhost:8000/api/subscriptions/me/`, {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem('token')}` }
+      headers: { Authorization: `Token ${token}` }
     });
     activeSubscription.value = response.data;
-
   } catch (err) {
     if (err.response && err.response.status === 404) {
       activeSubscription.value = null;
@@ -590,33 +683,100 @@ const isSaved = (workId) => {
 const fetchSavedWorks = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-
     const response = await axios.get("http://localhost:8000/api/subscriptions/works/subscribe/", {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
+      headers: { Authorization: `Token ${token}` },
     });
 
     savedWorks.value = response.data;
     savedWorkIds.value = new Set(response.data.map(item => item.work_id || item.id));
-    console.log("Obras guardadas cargadas");
   } catch (err) {
-    console.error("Error en la petición:", err);
+    console.error("Error en las obras guardadas:", err);
   }
 };
 
 const fetchSubscriptionPlan = async () => {
   try {
+    const token = authStore.token || localStorage.getItem('token');
     const response = await axios.get(`http://localhost:8000/api/subscriptions/plans/`, {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem('token')}` }
+      headers: { Authorization: `Token ${token}` }
     });
     subscriptionTypes.value = response.data;
-
   } catch (err) {
-    console.error("Error al cargar los planes de suscripción:", err);
+    console.error("Error al cargar planes de suscripción:", err);
   } finally {
     loading.value = false;
   }
+};
+
+const downloadOriginal = async () => {
+  if (!work.value) return;
+  if (downloadingOriginal.value) return;
+
+  downloadingOriginal.value = true;
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(
+      `http://localhost:8000/api/works/${work.value.id}/serve/`,
+      {
+        headers: { Authorization: `Token ${token}` },
+        responseType: "blob",
+      }
+    );
+
+    const blob = new Blob([response.data]);
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+
+    let fileName = "obra_original";
+    if (work.value.file_name) {
+      fileName = work.value.file_name;
+    }
+
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error("Error al descargar archivo original:", err);
+    triggerInformation("No se ha podido descargar el archivo de la obra.", "error");
+  } finally {
+    downloadingOriginal.value = false;
+  }
+};
+
+const openResumePreview = async () => {
+  if (!work.value) return;
+  if (loadingResume.value) return;
+
+  loadingResume.value = true;
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(
+      `http://localhost:8000/api/works/${work.value.id}/serve-resume/`,
+      {
+        headers: { Authorization: `Token ${token}` },
+        responseType: "blob",
+      }
+    );
+
+    const contentType = response.headers["content-type"] || "application/pdf";
+    const blob = new Blob([response.data], { type: contentType });
+    const blobUrl = window.URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank");
+  } catch (err) {
+    console.error("Error al abrir muestra:", err);
+    triggerInformation("No se ha podido abrir la vista previa de la muestra.", "error");
+  } finally {
+    loadingResume.value = false;
+  }
+};
+
+const consultAuthorWork = (newWorkId) => {
+  closeAuthorModal();
+  router.push(`/works/${newWorkId}`);
 };
 
 const simpleFormatDate = (dateString) => {
@@ -632,23 +792,12 @@ const formatDate = (dateString) => {
   });
 };
 
-const isAuthor = computed(() => {
-  if (!authStore.user || !work.value) return false;
-
-  const userId = authStore.user.id || authStore.user.pk;
-  const authorId = work.value.author;
-
-  return Number(userId) === Number(authorId);
-});
-
 const canSeeProtectedContent = computed(() => {
   if (!work.value) return false;
-
   if (!authStore.user) return false;
 
   const isAdmin = authStore.user.role === 'admin';
   const isAuthor = Number(authStore.user.id) === Number(work.value.author);
-
   const isFreeWork = !work.value.plan_required;
 
   let isSubscribed = false;
@@ -659,8 +808,7 @@ const canSeeProtectedContent = computed(() => {
 
     if (planUserId === planRequiredId) {
       isSubscribed = true;
-    }
-    else if (activeSubscription.value.plan_points >= work.value.plan_required.points) {
+    } else if (activeSubscription.value.plan_points >= work.value.plan_required.points) {
       isSubscribed = true;
     }
   }
@@ -673,13 +821,7 @@ const handleSubscribe = () => {
 };
 
 const isNotificationsOpen = ref(false);
-
-const notifications = ref([
-]);
-
-const unreadCount = computed(() => {
-  return notifications.value.filter(n => !n.is_read).length;
-});
+const notifications = ref([]);
 
 const toggleNotifications = () => {
   isNotificationsOpen.value = !isNotificationsOpen.value;
@@ -709,22 +851,17 @@ const saveWork = async (workId) => {
 
   try {
     if (isSaved(workId)) {
-
       await axios.delete(`http://localhost:8000/api/subscriptions/works/subscribe/`, config);
       savedWorkIds.value.delete(workId);
-
       savedWorks.value = savedWorks.value.filter(item => (item.work_id || item.id) !== workId);
       triggerInformation("¡Obra eliminada de tus favoritos!", "success");
     } else {
-
       await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
         headers: { Authorization: `Token ${token}` }
       });
       savedWorkIds.value.add(workId);
-
       triggerInformation("¡Obra guardada en favoritos!", "success");
     }
-
   } catch (error) {
     triggerInformation("¡Se ha producido un error al intentar modificar las obras guardadas!", "error");
   }
@@ -741,7 +878,6 @@ const getWorkTypeName = (type) => {
   };
   return types[type] || 'Obra';
 };
-
 
 const selectedAuthor = ref(null);
 
@@ -779,7 +915,6 @@ const openAuthorModal = async () => {
     });
 
     selectedAuthor.value = responseUser.data;
-
   } catch (error) {
     console.error("Error al cargar los detalles del autor:", error);
   }
@@ -796,9 +931,7 @@ const isSuscribed = (authorId) => {
 };
 
 const subscribeToAuthor = async (authorId) => {
-
   const token = authStore.token || localStorage.getItem("token");
-
   const config = {
     headers: { Authorization: `Token ${token}` },
     data: { author_id: authorId }
@@ -806,27 +939,20 @@ const subscribeToAuthor = async (authorId) => {
 
   try {
     if (isSuscribed(authorId)) {
-
       await axios.delete(`http://localhost:8000/api/subscriptions/authors/subscribe/`, config);
       suscribedAuthorsIds.value.delete(authorId);
-
       triggerInformation("¡Has eliminado con éxito tu suscripción a este autor!", "success");
-
     } else {
-
       await axios.post(`http://localhost:8000/api/subscriptions/authors/subscribe/`, { author_id: authorId }, {
         headers: { Authorization: `Token ${token}` }
       });
       suscribedAuthorsIds.value.add(authorId);
-
       triggerInformation("¡Te has suscrito con éxito a este autor!", "success");
     }
-
     closeAuthorModal();
-
   } catch (error) {
     console.error("Error al suscribirse:", error);
-    triggerInformation("¡Se ha producido con la suscripción a este autor!", "error");
+    triggerInformation("¡Se ha producido un error con la suscripción a este autor!", "error");
   }
 };
 
@@ -843,10 +969,8 @@ const handleLogout = async () => {
     await axios.post("http://localhost:8000/api/users/", {}, {
       headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
     });
-
   } catch (err) {
     console.error("Error al cerrar sesión:", err);
-
   } finally {
     authStore.setToken(null);
     localStorage.removeItem("token");
@@ -856,11 +980,11 @@ const handleLogout = async () => {
 
 watch(
   () => route.params.id,
-  (newId, oldId) => {
+  async (newId, oldId) => {
     if (newId && newId !== oldId) {
       closeAuthorModal();
-      fetchWorkDetails();
-      fetchMySubscription();
+      await fetchWorkDetails();
+      await fetchMySubscription();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -868,31 +992,81 @@ watch(
 
 onMounted(async () => {
   loading.value = true;
-
   authStore.loadToken();
 
   if (authStore.token) {
     try {
       await authStore.fetchUserProfile();
     } catch (profileErr) {
-      console.error("Error al cargar perfil en el almacén global:", profileErr);
+      console.error("Error al cargar perfil:", profileErr);
     }
   } else {
-    console.warn("No hay token, el usuario debe iniciar sesión.");
     router.push("/login");
     return;
   }
 
-  getUserData(),
-    getUserPoints(),
-    fetchWorkDetails(),
-    fetchSubscriptionPlan(),
-    fetchMySubscription()
-  fetchSavedWorks()
+  getUserData();
+  getUserPoints();
+  fetchWorkDetails();
+  fetchSubscriptionPlan();
+  fetchMySubscription();
+  fetchSavedWorks();
 });
 </script>
 
 <style scoped>
+.loading-screen {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.spinner-wrapper {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-spinner {
+  width: 100%;
+  height: 100%;
+  border: 4px solid var(--rosa-claro, #fff0f3);
+  border-top-color: var(--granate-principal, #700020);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+.spinner-inner-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--rosa-fuerte, #db7093);
+  border-radius: 50%;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.loading-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--granate-principal, #700020);
+  letter-spacing: 0.4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(0.8); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
 .page-layout-grid {
   display: flex;
   align-items: flex-start;
@@ -962,323 +1136,6 @@ onMounted(async () => {
   flex: 1;
 }
 
-.circle-pink {
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.75em;
-  font-weight: bold;
-}
-
-.paralel {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 25px;
-}
-
-.paralel h1 {
-  margin: 0;
-  font-size: 2em;
-  color: #111;
-}
-
-.paralel-fields {
-  display: flex;
-  margin-top: 20px;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-.info-block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  padding: 0 20px;
-}
-
-.info-block .label {
-  font-size: 0.8em;
-  color: #888;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-}
-
-.info-block .label i {
-  color: var(--rosa-fuerte);
-  margin-right: 6px;
-  font-size: 1.1em;
-}
-
-.info-block .value {
-  font-size: 1.05em;
-  color: #333;
-  font-weight: 500;
-}
-
-.info-block2 {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-.info-block2 .label {
-  font-size: 0.8em;
-  color: var(--granate-principal);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-block2 p {
-  margin: 0 0 4px 0;
-  font-size: 0.95em;
-  color: #666;
-}
-
-.info-block2 .value {
-  font-size: 1.05em;
-  color: #333;
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.info-block:not(:last-child) {
-  border-right: 1px solid var(--rosa-fuerte);
-}
-
-.value-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.free-box {
-  margin-top: 4px;
-}
-
-.plan-name {
-  font-weight: 700;
-  color: #333;
-  font-size: 1.05em;
-}
-
-.circle-pink2 {
-  display: inline-block;
-  background: var(--rosa-claro);
-  color: #111;
-  padding: 4px 12px;
-  border-radius: 15px;
-  font-size: 1.05em;
-  font-weight: bold;
-  white-space: nowrap;
-  margin: 0;
-}
-
-.divider-icon2 {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin: 20px 0;
-}
-
-.divider-icon2 .line {
-  flex: 1;
-  height: 1.5px;
-  background-color: var(--rosa-fuerte);
-}
-
-.back-link2 {
-  display: block;
-  text-align: left;
-  margin-bottom: 20px;
-  font-size: 1.1em;
-  color: var(--granate-principal);
-}
-
-.back-link2 i {
-  margin-right: 8px;
-}
-
-.back-link2 a {
-  color: inherit;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.technical-sheet {
-  text-align: left;
-  width: 100%;
-}
-
-.technical-title {
-  color: var(--granate-principal);
-  font-size: 1.05em;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-.technical-row {
-  display: grid;
-  grid-template-columns: 38px 130px 1fr;
-  align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.technical-row:last-child {
-  border-bottom: none;
-}
-
-.icon-circle {
-  width: 24px;
-  height: 24px;
-  background-color: var(--rosa-claro);
-  border-radius: 50%;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  margin: 0 auto 0 0;
-}
-
-.icon-circle i {
-  color: var(--granate-principal);
-  font-size: 0.75rem;
-  line-height: 1;
-  display: inline-block;
-}
-
-.tech-label {
-  color: #555555;
-  font-size: 0.85rem;
-  font-weight: 600;
-  height: auto;
-  line-height: normal;
-}
-
-.tech-value {
-  color: #222222;
-  font-size: 0.85rem;
-  font-weight: 400;
-  height: auto;
-  line-height: normal;
-}
-
-.tech-value a {
-  color: var(--rosa-fuerte);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.tech-value a:hover {
-  text-decoration: underline;
-}
-
-.btn-action {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-  text-decoration: none;
-  margin-top: 15px;
-}
-
-.btn-download {
-  background: var(--rosa-fuerte);
-  color: #333;
-}
-
-.btn-download:hover {
-  background: var(--granate-principal);
-  color: white;
-}
-
-.label-sidebar-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--granate-principal);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.sidebar-help-text {
-  font-size: 0.82rem;
-  color: #666;
-  margin: 6px 0 12px 0;
-  line-height: 1.4;
-}
-
-.media-preview-container {
-  width: 100%;
-  margin-top: 5px;
-}
-
-.sidebar-player {
-  width: 100%;
-  height: 32px;
-  outline: none;
-}
-
-.btn-sidebar-secondary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  color: #4a5568;
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: bold;
-  transition: background 0.2s;
-  box-sizing: border-box;
-}
-
-.btn-sidebar-secondary:hover {
-  background-color: #edf2f7;
-}
-
-.file-real-name-tag {
-  display: block;
-  text-align: center;
-  font-size: 0.75rem;
-  color: #888;
-  margin-top: 6px;
-  word-break: break-all;
-}
-
-.btn-subscribe-now {
-  background: #edf2f7;
-  color: var(--granate-principal);
-  border: 1px solid rgba(139, 0, 41, 0.2);
-}
-
-.btn-subscribe-now:hover {
-  background: var(--rosa-claro);
-}
-
 .header-title-actions {
   display: flex;
   justify-content: space-between;
@@ -1346,12 +1203,46 @@ onMounted(async () => {
 .btn-save-detail:hover {
   background-color: var(--rosa-claro);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(112, 0, 32, 0.1);
 }
 
 .btn-save-detail.is-saved {
   background-color: var(--rosa-claro);
   color: var(--granate-principal);
+}
+
+.paralel-fields {
+  display: flex;
+  margin-top: 20px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  flex: 1;
+  padding: 0 20px;
+}
+
+.info-block .label {
+  font-size: 0.8em;
+  color: #888;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-block .value {
+  font-size: 1.05em;
+  color: #333;
+  font-weight: 500;
+  text-align: center;
 }
 
 .btn-author-profile {
@@ -1360,6 +1251,8 @@ onMounted(async () => {
   justify-content: center;
   gap: 7px;
   margin-top: 8px;
+  margin-left: auto;
+  margin-right: auto;
   padding: 6px 14px;
   background-color: var(--rosa-claro);
   color: var(--granate-principal);
@@ -1369,31 +1262,103 @@ onMounted(async () => {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  outline: none;
   width: fit-content;
 }
 
-.btn-author-profile i {
-  font-size: 0.85rem;
-  color: var(--granate-principal);
-  transition: transform 0.2s ease;
+.info-block:not(:last-child) {
+  border-right: 1px solid var(--rosa-fuerte);
+}
+
+.info-block .label i {
+  color: var(--rosa-fuerte);
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+.info-block .value {
+  font-size: 1.05em;
+  color: #333;
+  font-weight: 500;
 }
 
 .btn-author-profile:hover {
   background-color: var(--granate-principal);
   border-color: var(--granate-principal);
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(112, 0, 32, 0.18);
-  transform: translateY(-1px);
 }
 
-.btn-author-profile:hover i {
-  color: #ffffff;
-  transform: scale(1.08);
+.info-block2 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.btn-author-profile:active {
-  transform: translateY(0);
+.info-block2 .label {
+  font-size: 0.8em;
+  color: var(--granate-principal);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-block2 p {
+  margin: 0 0 4px 0;
+  font-size: 0.95em;
+  color: #666;
+}
+
+.info-block2 .value {
+  font-size: 1.05em;
+  color: #333;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.value-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.free-box {
+  margin-top: 4px;
+}
+
+.plan-name {
+  font-weight: 700;
+  color: #333;
+  font-size: 1.05em;
+}
+
+.circle-pink2 {
+  display: inline-block;
+  background: var(--rosa-claro);
+  color: #111;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 1.05em;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.divider-icon2 {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.divider-icon2 .line {
+  flex: 1;
+  height: 1.5px;
+  background-color: var(--rosa-fuerte);
+}
+
+.back-link2 {
+  display: block;
+  text-align: left;
+  margin-bottom: 20px;
 }
 
 .btn-back {
@@ -1410,12 +1375,8 @@ onMounted(async () => {
   gap: 8px;
 }
 
-.btn-back:hover {
-  text-decoration: underline;
-}
-
 .table-scroll-wrapper {
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
   padding-right: 5px;
   scrollbar-width: thin;
@@ -1434,5 +1395,390 @@ onMounted(async () => {
 .table-scroll-wrapper::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
+}
+
+.technical-sheet {
+  text-align: left;
+  width: 100%;
+}
+
+.technical-title {
+  color: var(--granate-principal);
+  font-size: 1.05em;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.technical-row {
+  display: grid;
+  grid-template-columns: 38px 130px 1fr;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.icon-circle {
+  width: 24px;
+  height: 24px;
+  background-color: var(--rosa-claro);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-circle i {
+  color: var(--granate-principal);
+  font-size: 0.75rem;
+}
+
+.tech-label {
+  color: #555555;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tech-value {
+  color: #222222;
+  font-size: 0.85rem;
+}
+
+.tech-value a {
+  color: var(--rosa-fuerte);
+  text-decoration: none;
+}
+
+.label-sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-help-text {
+  font-size: 0.82rem;
+  color: #666;
+  margin: 6px 0 12px 0;
+  line-height: 1.4;
+}
+
+.btn-action {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-download {
+  background: var(--rosa-fuerte);
+  color: #333;
+}
+
+.btn-download:hover {
+  background: var(--granate-principal);
+  color: white;
+}
+
+.btn-subscribe-now {
+  background: #edf2f7;
+  color: var(--granate-principal);
+  border: 1px solid rgba(139, 0, 41, 0.2);
+}
+
+.btn-sidebar-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-sidebar-secondary:hover {
+  background-color: #edf2f7;
+}
+
+.file-real-name-tag {
+  display: block;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 6px;
+  word-break: break-all;
+}
+
+/* Tarjeta informativa de Licencias */
+.license-container {
+  border-left: 5px solid var(--granate-principal);
+}
+
+.license-container h3 {
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.license-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.license-badge-name {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--granate-principal);
+}
+
+.license-summary {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.license-rules-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.rule-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.rule-allow {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rule-deny {
+  background-color: #fbe9e7;
+  color: #c62828;
+}
+
+.rule-warn {
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+}
+
+.license-description {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Modal de autor */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 45px;
+  width: 95%;
+  max-width: 880px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  box-sizing: border-box;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  color: #888;
+  cursor: pointer;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar-ring {
+  background: #fff0f3;
+  padding: 6px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.avatar-circle-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--granate-principal);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+.author-handle {
+  font-size: 0.85em;
+  color: var(--rosa-fuerte);
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.info-section {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background-color: #fde8ef;
+  color: var(--granate-principal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 0.92em;
+  font-weight: 800;
+  color: var(--granate-principal);
+}
+
+.section-text {
+  font-size: 0.9em;
+  color: #555;
+  margin: 4px 0 0 0;
+}
+
+.table-container {
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
+}
+
+.modal-works-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  table-layout: fixed;
+}
+
+.col-type { width: 18%; text-align: left; }
+.col-title { width: 44%; text-align: left; overflow: hidden; }
+.col-date { width: 18%; text-align: center; white-space: nowrap; }
+.col-action { width: 20%; text-align: center; }
+
+.pill-type {
+  display: inline-block;
+  background-color: #fde8ef;
+  color: var(--rosa-fuerte);
+  font-size: 0.7em;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 15px;
+}
+
+.work-title-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: #222;
+}
+
+.btn-table-consult {
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--rosa-fuerte);
+  cursor: pointer;
+}
+
+.btn-table-consult:hover {
+  background-color: var(--granate-principal);
+  border-color: var(--granate-principal);
+  color: white;
+}
+
+.btn-subscribe {
+  width: 100%;
+  background: var(--granate-principal);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-subscribe:hover {
+  background: #a00028;
 }
 </style>
