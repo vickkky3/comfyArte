@@ -206,9 +206,13 @@
                     <router-link v-else :to="`/works/${work.id}`" class="btn-table">
                       <span>Consultar</span>
                     </router-link>
-                    <button v-if="isConsumer" type="button" @click="saveWork(work.id)" class="btn-icon"
-                      :title="isSaved(work.id) ? 'Quitar de guardados' : 'Guardar obra'">
-                      <i :class="isSaved(work.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
+                    <button v-if="isSaved(work.id)" type="button" @click="saveWork(work.id)" class="btn-icon btn-saved"
+                      title="Quitar de guardados">
+                      <i class="fa-solid fa-bookmark"></i>
+                    </button>
+
+                    <button v-else type="button" @click="saveWork(work.id)" class="btn-icon" title="Guardar obra">
+                      <i class="fa-regular fa-bookmark"></i>
                     </button>
                   </div>
                 </td>

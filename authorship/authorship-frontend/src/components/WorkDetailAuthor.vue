@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading" class="loading-screen">
+  <div v-if="loading || !work" class="loading-screen">
     <div class="spinner-wrapper">
       <div class="brand-spinner"></div>
       <div class="spinner-inner-dot"></div>
@@ -23,6 +23,23 @@
       </div>
     </nav>
 
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
+
     <div class="page-layout-grid">
 
       <div class="left-column-content">
@@ -42,9 +59,19 @@
 
             <div class="info-side">
               <div class="paralel">
-                <h1>{{ work.title }}</h1>
-                <span class="circle-pink">{{ workType }}</span>
+                <div class="title-with-badge">
+                  <h1>{{ work.title }}</h1>
+                  <span class="circle-pink">{{ workType }}</span>
+                </div>
+
+                <div class="action-btn-wrapper">
+                  <button @click="deleteWork(work.id)" class="btn-delete" title="Eliminar obra">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Eliminar obra</span>
+                  </button>
+                </div>
               </div>
+
               <div class="paralel-fields">
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-circle-user"></i>Autor/a</span>
@@ -172,7 +199,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -182,7 +209,7 @@
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -428,6 +455,16 @@ const workIcons = {
   sculpture: 'fa-solid fa-hammer'
 };
 
+const information = ref({
+  show: false,
+  message: "",
+  type: "error"
+});
+
+const triggerInformation = (message, type = 'error') => {
+  information.value = { show: true, message, type };
+};
+
 const workIcon = computed(() => {
   if (!work.value || !work.value.work_type) return 'fa-solid fa-file-image';
   return workIcons[work.value.work_type] || 'fa-solid fa-file-image';
@@ -558,8 +595,27 @@ const canSeeProtectedContent = computed(() => {
   return isAdmin || isAuthor || isFreeWork || isSubscribed;
 });
 
-const handleSubscribe = () => {
-  router.push("/subscription/plans");
+const deleteWork = async (id) => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    await axios.delete(`http://localhost:8000/api/works/${id}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    works.value = works.value.filter(work => work.id !== id);
+
+    triggerInformation("Obra eliminada correctamente.", "success");
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1200);
+
+  } catch (err) {
+    triggerInformation("¡Se ha producido un error al intentar eliminar la obra!", "error");
+    console.error("Error al eliminar la obra:", err);
+
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleLogout = async () => {
@@ -683,16 +739,25 @@ onMounted(async () => {
 .paralel {
   display: flex;
   align-items: center;
-  gap: 30px;
+  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 25px;
+  width: 100%;
+}
+
+.title-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .paralel h1 {
   margin: 0;
   font-size: 2em;
   color: #111;
+  font-weight: 700;
 }
-
 .paralel-fields {
   display: flex;
   margin-top: 20px;
@@ -703,6 +768,8 @@ onMounted(async () => {
 .info-block {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 6px;
   flex: 1;
   padding: 0 20px;
@@ -1127,5 +1194,35 @@ onMounted(async () => {
   font-size: 0.85rem;
   color: #6c757d;
   margin: 0;
+}
+
+.save-btn-wrapper {
+  flex-shrink: 0;
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: white;
+  border: 1.5px solid var(--granate-principal);
+  color: var(--granate-principal);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.btn-delete i {
+  font-size: 1.05em;
+  color: var(--granate-principal);
+}
+
+.btn-delete:hover {
+  background-color: var(--rosa-claro);
+  transform: translateY(-1px);
 }
 </style>

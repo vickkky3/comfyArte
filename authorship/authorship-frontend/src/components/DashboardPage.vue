@@ -96,7 +96,7 @@
                 <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
                 <p class="username-text">@{{ user.username }}</p>
                 <span class="role-badge">
-                  <template v-if="user.role === 'author'">AUTOR</template>
+                  <template v-if="user.es_autor">AUTOR</template>
                   <template v-else>CONSUMIDOR</template>
                 </span>
               </template>
@@ -157,20 +157,58 @@
             </div>
 
             <nav v-if="!isEditing" class="sidebar-nav-list">
-              <router-link to="/works" class="nav-item-link" active-class="active">
-                <i class="fa-solid fa-book-open"></i>
-                <span>Catálogo de Obras/Autores</span>
-              </router-link>
+              <div v-if="user.es_autor">
+                <router-link :to="{ path: '/works/create', query: { type: 'book' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Registrar libro</span>
+                </router-link>
 
-              <router-link to="/subscription/works/subscribe" class="nav-item-link" active-class="active">
-                <i class="fa-solid fa-heart icon-primary"></i>
-                <span>Obras Guardadas</span>
-              </router-link>
+                <router-link :to="{ path: '/works/create', query: { type: 'music' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-music"></i>
+                  <span>Registrar música</span>
+                </router-link>
 
-              <router-link to="/subscription/authors/subscribe" class="nav-item-link" active-class="active">
-                <i class="fa-solid fa-users icon-primary"></i>
-                <span>Mis Autores</span>
-              </router-link>
+                <router-link :to="{ path: '/works/create', query: { type: 'video' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-video"></i>
+                  <span>Registrar video</span>
+                </router-link>
+
+                <router-link :to="{ path: '/works/create', query: { type: 'software' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-music"></i>
+                  <span>Registrar software</span>
+                </router-link>
+                <router-link :to="{ path: '/works/create', query: { type: 'paint' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-palette"></i>
+                  <span>Registrar pintura</span>
+                </router-link>
+
+                <router-link :to="{ path: '/works/create', query: { type: 'sculpture' } }" class="nav-item-link"
+                  active-class="active">
+                  <i class="fa-solid fa-hammer"></i>
+                  <span>Registrar escultura</span>
+                </router-link>
+              </div>
+              <div v-else>
+                <router-link to="/works" class="nav-item-link" active-class="active">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Catálogo de Obras/Autores</span>
+                </router-link>
+
+                <router-link to="/subscription/works/subscribe" class="nav-item-link" active-class="active">
+                  <i class="fa-solid fa-heart icon-primary"></i>
+                  <span>Obras Guardadas</span>
+                </router-link>
+
+                <router-link to="/subscription/authors/subscribe" class="nav-item-link" active-class="active">
+                  <i class="fa-solid fa-users icon-primary"></i>
+                  <span>Mis Autores</span>
+                </router-link>
+              </div>
             </nav>
 
             <hr class="nav-divider" />
@@ -199,46 +237,77 @@
         </aside>
 
         <main class="main-content">
-          <section v-if="user.es_autor" class="action-section">
-            <label class="section-label">Registrar nueva obra</label>
-            <div class="grid-acciones">
-              <router-link :to="{ path: '/works/create', query: { type: 'book' } }" class="card-accion">
-                <span>REGISTRAR LIBRO</span>
-              </router-link>
-              <router-link :to="{ path: '/works/create', query: { type: 'music' } }" class="card-accion">
-                <span>REGISTRAR MÚSICA</span>
-              </router-link>
-              <router-link :to="{ path: '/works/create', query: { type: 'video' } }" class="card-accion">
-                <span>REGISTRAR VÍDEO</span>
-              </router-link>
-              <router-link :to="{ path: '/works/create', query: { type: 'software' } }" class="card-accion">
-                <span>REGISTRAR SOFTWARE</span>
-              </router-link>
-              <router-link :to="{ path: '/works/create', query: { type: 'paint' } }" class="card-accion">
-                <span>REGISTRAR PINTURA</span>
-              </router-link>
-              <router-link :to="{ path: '/works/create', query: { type: 'sculpture' } }" class="card-accion">
-                <span>REGISTRAR ESCULTURA</span>
-              </router-link>
-            </div>
-          </section>
 
           <div class="footer-card">
-            <label class="section-label">
-              <template v-if="user.es_autor">Tu catálogo de obras</template>
-            </label>
-
             <div class="content-header">
               <i class="fas fa-book"></i>
-              <div class="header-text">
-                <h1>Catálogo de Obras</h1>
-                <p v-if="user.es_autor">
-                  Accede a la lista completa de tus obras registradas y descarga sus certificados.
+              <div v-if="user.es_autor" class="header-text">
+                <h1>Mis obras</h1>
+                <p>
+                  Aquí puedes ver y gestionar todas las obras que has publicado.
                 </p>
-                <p v-else>
+              </div>
+              <div v-else class="header-text">
+                <h1>Catálogo de Obras</h1>
+                <p>
                   Explora todas las creaciones disponibles y protegidas en la plataforma.
                 </p>
               </div>
+            </div>
+
+            <div v-if="user.es_autor" class="recommended-container">
+              <h3 class="recommended-title"> Mis obras publicadas </h3>
+
+              <div v-if="authorWorks.length > 0">
+                <table class="recommended-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Título de la Obra</th>
+                      <th style="text-align: center;">Detalles</th>
+                      <th style="text-align: center;">Eliminar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="work in paginatedWorksAuthor" :key="work.id">
+                      <td>
+                        <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                      </td>
+                      <td>
+                        <span class="work-title-sm">{{ work.title }}</span>
+                      </td>
+                      <td style="text-align: center;">
+                        <router-link :to="`/worksAuthor/${work.id}`" class="btn-table-sm">
+                          Consultar
+                        </router-link>
+                      </td>
+                      <td style="text-align: center;">
+                        <button @click="deleteWork(work.id)" class="btn-delete-plain" title="Eliminar obra">
+                          <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div v-if="totalPages > 1" class="pagination-bar">
+                  <button @click="prevPage" :disabled="currentPage === 1" class="btn-page">
+                    <i class="fa-solid fa-chevron-left"></i> Anterior
+                  </button>
+
+                  <span class="pagination-info">
+                    Página <strong>{{ currentPage }}</strong> de <strong>{{ totalPages }}</strong>
+                  </span>
+
+                  <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-page">
+                    Siguiente <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+
+              <p v-else class="no-recommendations-msg">
+                Aún no has publicado ninguna user.value.es_autorobra.
+              </p>
             </div>
 
             <div v-if="user.es_consumidor" class="recommended-container">
@@ -254,7 +323,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="work in recommendedWorks" :key="work.id">
+                    <tr v-for="work in paginatedWorksConsumer" :key="work.id">
                       <td>
                         <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
                       </td>
@@ -269,6 +338,20 @@
                     </tr>
                   </tbody>
                 </table>
+
+                <div v-if="totalPages > 1" class="pagination-bar">
+                  <button @click="prevPage" :disabled="currentPage === 1" class="btn-page">
+                    <i class="fa-solid fa-chevron-left"></i> Anterior
+                  </button>
+
+                  <span class="pagination-info">
+                    Página <strong>{{ currentPage }}</strong> de <strong>{{ totalPages }}</strong>
+                  </span>
+
+                  <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-page">
+                    Siguiente <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
               </div>
 
               <p v-else class="no-recommendations-msg">
@@ -276,11 +359,13 @@
               </p>
             </div>
 
+            <!--
             <router-link to="/works" class="btn-primary-save">
               <template v-if="user.es_consumidor">Explorar Catálogo</template>
               <template v-else>Ver Catálogo Completo</template>
               &rarr;
             </router-link>
+             -->
           </div>
 
           <div v-if="user.es_consumidor" class="secondary-cards-grid">
@@ -370,6 +455,10 @@ const loading = ref(true);
 const isEditing = ref(false);
 const editForm = ref({});
 const userPoints = ref(0);
+const authorWorks = ref([]);
+const authorWorksLength = ref(0);
+const numSubscriptors = ref(0);
+const savedCount = ref(0);
 
 const availableWorkTypes = [
   { id: 'book', label: 'LIBRO' },
@@ -460,9 +549,11 @@ const startEditing = () => {
 
 const getUserData = async () => {
   try {
+    const token = authStore.token || localStorage.getItem("token");
+
     const response = await axios.get("http://localhost:8000/api/users/me/", {
       headers: {
-        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
+        Authorization: `Token ${token}`,
       },
     });
 
@@ -470,6 +561,26 @@ const getUserData = async () => {
 
     user.value.es_autor = user.value.role === 'author';
     user.value.es_consumidor = user.value.role === 'consumer';
+
+    if (user.value.es_autor) {
+      const statsResponse = await axios.get("http://localhost:8000/api/subscriptions/authors/stats/", {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      numSubscriptors.value = statsResponse.data.subscribers_count || 0;
+      savedCount.value = statsResponse.data.saved_works_count || 0;
+
+      const worksResponse = await axios.get(`http://localhost:8000/api/works/authors/${user.value.id}/`, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      authorWorks.value = worksResponse.data;
+      authorWorksLength.value = authorWorks.value.length;
+    }
 
   } catch (err) {
     console.error("Error en la petición:", err);
@@ -479,6 +590,7 @@ const getUserData = async () => {
     loading.value = false;
   }
 };
+
 
 const getUserPoints = async () => {
   try {
@@ -609,6 +721,61 @@ const fetchNotifications = async () => {
   }
 };
 
+const currentPage = ref(1);
+const itemsPerPageAuthor = 7;
+const itemsPerPageConsumer = 3;
+
+const totalPages = computed(() => {
+  if (user.value.es_autor) {
+    return Math.ceil(authorWorks.value.length / itemsPerPageAuthor) || 1;
+  }
+
+  else {
+    return Math.ceil(recommendedWorks.value.length / itemsPerPageConsumer) || 1;
+  }
+});
+
+const paginatedWorksAuthor = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPageAuthor;
+  return authorWorks.value.slice(start, start + itemsPerPageAuthor);
+});
+
+const paginatedWorksConsumer = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPageConsumer;
+  return recommendedWorks.value.slice(start, start + itemsPerPageConsumer);
+});
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+
+const deleteWork = async (id) => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    await axios.delete(`http://localhost:8000/api/works/${id}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    authorWorks.value = authorWorks.value.filter(work => work.id !== id);
+    authorWorksLength.value = authorWorks.value.length;
+
+    if (currentPage.value > totalPages.value) {
+      currentPage.value = Math.max(1, totalPages.value);
+    }
+
+    triggerInformation("Obra eliminada correctamente.", "success");
+  } catch (err) {
+    triggerInformation("¡Se ha producido un error al intentar eliminar la obra!", "error");
+    console.error("Error al eliminar la obra:", err);
+  } finally {
+    loading.value = false;
+  }
+};
+
 const handleLogout = async () => {
   try {
     await axios.post("http://localhost:8000/api/users/", {}, {
@@ -640,14 +807,21 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 40px auto;
-  padding: 0 20px;
+  padding: 0 30px;
   gap: 40px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .main-content {
   flex: 1;
+  width: 100%;
+  max-width: 1050px;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
 }
 
 .header-panel {
@@ -1118,10 +1292,12 @@ onMounted(() => {
 
 .footer-card {
   background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  max-height: 600px;
+  padding: 36px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  max-height: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .footer-card h3 {
@@ -1152,6 +1328,68 @@ onMounted(() => {
 .btn-primary-save:hover {
   background-color: var(--rosa-fuerte);
   transform: translateY(-2px);
+}
+
+.statistics-container {
+  display: flex;
+  gap: 20px;
+  margin: 25px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.statistics-info {
+  flex: 1;
+  background: white;
+  border: 1px solid rgba(219, 112, 147, 0.25);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease;
+}
+
+.statistics-info:hover {
+  transform: translateY(-2px);
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background-color: var(--rosa-claro);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-wrapper i {
+  font-size: 1.4rem;
+  color: var(--granate-principal);
+}
+
+.stat-data {
+  display: flex;
+  flex-direction: column;
+  color: black;
+}
+
+.stat-number {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--granate-principal);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #777;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 
 .recommended-container {
@@ -1238,6 +1476,14 @@ onMounted(() => {
 .secondary-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 25px;
+  margin-top: 25px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.secondary-cards-grid-author {
+  display: grid;
   gap: 25px;
   margin-top: 25px;
   width: 100%;
@@ -1439,5 +1685,70 @@ onMounted(() => {
 .table-scroll-wrapper::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
+}
+
+.btn-delete-plain {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #c93b5a;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-plain:hover {
+  background-color: #feecef;
+  color: #9e1b32;
+  transform: scale(1.1);
+}
+
+.pagination-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #f0e4e8;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.pagination-info strong {
+  color: var(--granate-principal);
+}
+
+.btn-page {
+  background: white;
+  border: 1px solid var(--rosa-claro);
+  color: var(--granate-principal);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: var(--rosa-claro);
+  border-color: var(--rosa-fuerte);
+}
+
+.btn-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

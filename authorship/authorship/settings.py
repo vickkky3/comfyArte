@@ -29,8 +29,6 @@ ENV_PATH = BASE_DIR.parent / '.env'
 load_dotenv(dotenv_path=ENV_PATH)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
-print(f"--- ESTADO OPENAI_API_KEY: {'CARGADA' if OPENAI_API_KEY else 'NO ENCONTRADA (VACÍA)'} ---")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

@@ -229,3 +229,17 @@ class SaveWorkAPIView(APIView):
         suscription.delete()
             
         return Response({"detail": f"Has eliminado de guardados correctamente la obra {work.title}"})
+    
+class AuthorStatsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        author = request.user
+        
+        total_saves = SaveWork.objects.filter(work__author=author).count()
+        total_subs = AuthorSubscription.objects.filter(author=author).count()
+
+        return Response({
+            "saved_works_count": total_saves,
+            "subscribers_count": total_subs,
+        })

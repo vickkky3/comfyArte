@@ -43,7 +43,8 @@
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
                     <p class="notif-text">
-                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
+                        notif.work_title }}"</em>.
                     </p>
                     <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
                   </div>
@@ -102,9 +103,16 @@
                 </div>
 
                 <div class="save-btn-wrapper">
-                  <button type="button" @click="saveWork(work.id)" class="btn-save-detail" :class="{ 'is-saved': isSaved(work.id) }">
-                    <i :class="isSaved(work.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
-                    <span>{{ isSaved(work.id) ? 'Guardada' : 'Guardar obra' }}</span>
+                  <button type="button" @click="saveWork(work.id)" class="btn-save-detail"
+                    :class="{ 'is-saved': isSaved(work.id) }">
+                    <template v-if="isSaved(work.id)">
+                      <i class="fa-solid fa-bookmark"></i>
+                      <span>Guardada</span>
+                    </template>
+                    <template v-else>
+                      <i class="fa-regular fa-bookmark"></i>
+                      <span>Guardar obra</span>
+                    </template>
                   </button>
                 </div>
               </div>
@@ -338,7 +346,8 @@
                   <div class="icon-circle"><i class="fa-solid fa-folder-open"></i></div>
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
-                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url }}</a>
+                    <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
+                      }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -347,7 +356,8 @@
                   <div class="icon-circle"><i class="fa-solid fa-book"></i></div>
                   <span class="tech-label">Repositorio de documentación</span>
                   <span class="tech-value">
-                    <a v-if="work.documentation_url" :href="work.documentation_url" target="_blank">{{ work.documentation_url }}</a>
+                    <a v-if="work.documentation_url" :href="work.documentation_url" target="_blank">{{
+                      work.documentation_url }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -378,7 +388,6 @@
       </div>
 
       <div class="right-column-sidebar">
-        <!-- Bloque de Archivos -->
         <div class="container-card sidebar-card-info" v-if="work">
           <div v-if="work.file_name" class="file-box-section">
             <span class="label-sidebar-title">
@@ -387,12 +396,8 @@
 
             <div v-if="canSeeProtectedContent" class="unlocked-zone">
               <p class="sidebar-help-text">Tienes acceso total. Puedes descargar el archivo original firmado:</p>
-              <button
-                type="button"
-                class="btn-action btn-download"
-                @click="downloadOriginal"
-                :disabled="downloadingOriginal"
-              >
+              <button type="button" class="btn-action btn-download" @click="downloadOriginal"
+                :disabled="downloadingOriginal">
                 <span v-if="downloadingOriginal">
                   <i class="fa-solid fa-spinner fa-spin"></i> Descargando...
                 </span>
@@ -420,12 +425,8 @@
                 <p class="sidebar-help-text">Revisa un fragmento libre antes de adquirir la obra completa:</p>
 
                 <div class="media-preview-container">
-                  <button
-                    type="button"
-                    class="btn-sidebar-secondary"
-                    @click="openResumePreview"
-                    :disabled="loadingResume"
-                  >
+                  <button type="button" class="btn-sidebar-secondary" @click="openResumePreview"
+                    :disabled="loadingResume">
                     <span v-if="loadingResume">
                       <i class="fa-solid fa-spinner fa-spin"></i> Abriendo...
                     </span>
@@ -1059,12 +1060,23 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { transform: scale(0.8); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 1; }
+
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
 }
 
 .page-layout-grid {
@@ -1597,7 +1609,6 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Modal de autor */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1726,10 +1737,27 @@ onMounted(async () => {
   table-layout: fixed;
 }
 
-.col-type { width: 18%; text-align: left; }
-.col-title { width: 44%; text-align: left; overflow: hidden; }
-.col-date { width: 18%; text-align: center; white-space: nowrap; }
-.col-action { width: 20%; text-align: center; }
+.col-type {
+  width: 18%;
+  text-align: left;
+}
+
+.col-title {
+  width: 44%;
+  text-align: left;
+  overflow: hidden;
+}
+
+.col-date {
+  width: 18%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.col-action {
+  width: 20%;
+  text-align: center;
+}
 
 .pill-type {
   display: inline-block;
