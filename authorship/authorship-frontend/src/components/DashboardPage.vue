@@ -359,13 +359,11 @@
               </p>
             </div>
 
-            <!--
-            <router-link to="/works" class="btn-primary-save">
-              <template v-if="user.es_consumidor">Explorar Catálogo</template>
-              <template v-else>Ver Catálogo Completo</template>
+            <router-link v-if="user.es_consumidor" to="/works" class="btn-primary-save">
+              Explorar Catálogo
               &rarr;
             </router-link>
-             -->
+
           </div>
 
           <div v-if="user.es_consumidor" class="secondary-cards-grid">

@@ -13,8 +13,13 @@ def validate_work_content(title, description, file_info, resume_info):
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
     
     prompt = f"""
-    Eres un auditor de contenidos para la plataforma de propiedad intelectual ComfyARTE.
-    Tu única función es actuar como filtro de seguridad contra contenido estrictamente indebido o ilegal.
+    Eres un auditor técnico de ciberseguridad y moderación de contenidos para la plataforma ComfyARTE.
+    Tu objetivo exclusivo es detectar amenazas de seguridad y contenido estrictamente ilícito o peligroso.
+
+    IMPORTANTE:
+    - NO eres un asesor legal ni un gestor de derechos de autor.
+    - NO evalúes marcas de agua, copyright, licencias comerciales ni procedencia de las obras.
+    - NUNCA uses la palabra "licencia" o "derechos de autor" en el motivo de rechazo.
 
     DATOS DE LA OBRA:
     - Título: {title}
@@ -28,23 +33,26 @@ def validate_work_content(title, description, file_info, resume_info):
 
     prompt += """
 
+    CRITERIOS DE EVALUACIÓN:
 
-    REGLAS DE EVALUACIÓN (CRITERIO DE RECHAZO ESTRICTO):
+    1. CAUSAS EXCLUSIVAS DE RECHAZO (is_valid: false):
+       - Malware o Ciberseguridad: exploits, scripts de ataque, troyanos, ransomware, credential harvesters o reverse shells.
+       - Contenido explícito: pornografía, abuso sexual o violencia gráfica extrema.
+       - Delitos graves y odio: instrucciones detalladas para cometer actos terroristas, tráfico de drogas, fabricación de explosivos/armas, amenazas directas o incitación expresa al odio contra colectivos protegidos.
+       - Spam técnico masivo o secuencias incoherentes de caracteres.
 
-    1. QUÉ DEBES RECHAZAR OBLIGATORIAMENTE (is_valid: false):
-       - Contenido explícito no permitido, pornografía o violencia gráfica.
-       - Discurso de odio, acoso, discriminación o incitación a la violencia.
-       - Promoción de actividades ilegales, estafas, malware o vulneraciones de seguridad.
-       - Spam evidente (secuencias aleatorias de caracteres sin sentido alguno).
+    2. DEBES ACEPTAR (is_valid: true):
+       - Imágenes con sellos de texto (incluso si dicen 'illegal', 'sample', 'copy', etc.), ilustraciones, logotipos y fotos de stock con marcas de agua.
+       - Obras literarias, artísticas o de ficción (menciones a crímenes o violencia dentro de una novela o relato de ficción son válidas salvo apología directa).
+       - Código fuente legítimo, herramientas de administración de sistemas, scripts educativos o de auditoría benigna.
+       - Obras sencillas, bocetos o contenido minimalista.
 
-    2. QUÉ DEBES ACEPTAR SIEMPRE (is_valid: true):
-       - Obras sencillas, cortas, principiantes, infantiles o de tema cotidiano.
-       - Textos breves, código fuente simple, composiciones básicas o imágenes minimalistas.
-       - NO evalúes la calidad artística, la complejidad técnica ni el valor comercial.
-       - Si la obra no incumple ninguna regla de contenido indebido, debes aprobarla.
-
-    Responde estrictamente en formato JSON:
-    {{"is_valid": true/false, "reason": "Si se aprueba, indica 'Obra apta para publicación'. Si se rechaza, explica el motivo exacto en español."}}
+    FORMATO DE RESPUESTA EXCLUSIVO (JSON):
+    Responde ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
+    {
+      "is_valid": true | false,
+      "reason": "Si es válida, escribe exactamente: 'Obra apta para publicación'. Si se rechaza, resume en una sola frase clara la categoría del contenido detectado (ej: 'Detección de código ejecutable malicioso', 'Contenido con incitación a actividades delictivas', 'Contenido sexual explícito no permitido')."
+    }
     """
     
     user_payload = [{"type": "text", "text": prompt}]

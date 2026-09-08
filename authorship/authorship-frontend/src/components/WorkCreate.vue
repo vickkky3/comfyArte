@@ -153,32 +153,32 @@
           </p>
 
           <div v-if="selectedLicense !== 'none'" class="license-rules-grid">
-            <span v-if="licenseMeanings[work.license].commercial" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i>
-                Uso comercial
-              </span>
-              <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i>
-                Sin fines comerciales
-              </span>
+            <span v-if="licenseMeanings[selectedLicense].commercial" class="rule-pill rule-allow">
+              <i class="fa-solid fa-check"></i>
+              Uso comercial
+            </span>
+            <span v-else class="rule-pill rule-deny">
+              <i class="fa-solid fa-xmark"></i>
+              Sin fines comerciales
+            </span>
 
-              <span v-if="licenseMeanings[work.license].derivatives" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i>
-                Permite adaptaciones
-              </span>
-              <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i>
-                No permite adaptaciones
-              </span>
+            <span v-if="licenseMeanings[selectedLicense].derivatives" class="rule-pill rule-allow">
+              <i class="fa-solid fa-check"></i>
+              Permite adaptaciones
+            </span>
+            <span v-else class="rule-pill rule-deny">
+              <i class="fa-solid fa-xmark"></i>
+              No permite adaptaciones
+            </span>
 
-              <span v-if="licenseMeanings[work.license].sameLicense" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i>
-                Exige que cualquier adaptación se distribuya bajo la misma licencia
-              </span>
-              <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i>
-                No exige que cualquier adaptación se distribuya bajo la misma licencia
-              </span>
+            <span v-if="licenseMeanings[selectedLicense].sameLicense" class="rule-pill rule-allow">
+              <i class="fa-solid fa-check"></i>
+              Exige que cualquier adaptación se distribuya bajo la misma licencia
+            </span>
+            <span v-else class="rule-pill rule-deny">
+              <i class="fa-solid fa-xmark"></i>
+              No exige que cualquier adaptación se distribuya bajo la misma licencia
+            </span>
           </div>
         </div>
 
@@ -414,33 +414,39 @@ const handleSubmit = async () => {
     setTimeout(() => {
       router.push("/dashboard");
     }, 1200);
+
   } catch (err) {
-    console.error("Error detectado en la subida:", error);
+    let errorMsg = "Error inesperado al procesar la subida.";
 
-    if (err.response) {
-      console.log("Datos del error recibidos de Django:", err.response.data);
-      let errorMsg = "Error inesperado al procesar la subida.";
+    if (err.response && err.response.data) {
+      const data = err.response.data;
 
-      if (err.response.data && err.response.data.error) {
-        error.value = err.response.data.error;
-      }
-      else if (err.response.data && err.response.data.detail) {
-        error.value = err.response.data.detail;
-      }
+      if (data.error) {
+        errorMsg = data.error;
 
-      else if (typeof err.response.data === 'string') {
-        error.value = err.response.data;
-      }
+      } else if (data.detail) {
+        errorMsg = data.detail;
 
-      else {
-        error.value = "Error de validación en los datos del formulario.";
+      } else if (typeof data === "string") {
+        errorMsg = data;
+
+      } else {
+        const firstKey = Object.keys(data)[0];
+        const fieldWithError = data[firstKey];
+
+        if (Array.isArray(fieldWithError)) {
+          errorMsg = fieldWithError[0];
+
+        } else {
+          errorMsg = fieldWithError;
+        }
       }
 
     } else if (err.request) {
-      error.value = "El servidor no responde. Asegúrate de que Django está corriendo.";
+      errorMsg = "El servidor no responde. Asegúrate de que Django está corriendo.";
 
-    } else {
-      error.value = err.message || "Error inesperado al procesar la subida.";
+    } else if (err.message) {
+      errorMsg = err.message;
     }
 
     error.value = errorMsg;
