@@ -1,198 +1,309 @@
 <template>
 
-
-  <div class="form-container">
-    <h1>Registrar {{ workTypeName }}</h1>
-    <p class="subtitle">Sube tu archivo para protegerlo</p>
-
-    <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="title">Título de la Obra</label>
-        <input type="text" id="title" v-model="title" placeholder="Ej: Mi gran novela" required>
+  <div class="dashboard-wrapper">
+    <nav class="navbar">
+      <div class="navbar-left">
+        <img src="/logo.png" class="logo-img" alt="Logo comforART" />
+        <span class="nav-title">
+          <span class="text-comfor">Comfy</span><span class="text-art">ARTE</span>
+        </span>
+        <span class="nav-separator">|</span>
+        <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
+      <div class="navbar-right">
+        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
 
-      <div class="form-group">
-        <label for="description">Descripción / Resumen</label>
-        <textarea id="description" v-model="description" rows="4"
-          placeholder="Describe brevemente tu creación..."></textarea>
-      </div>
+        <div class="notifications-wrapper">
+          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+          </button>
 
-      <div class="form-group">
-        <label>Plan de suscripción requerido</label>
-        <p class="field-desc">¿Qué plan debe tener el usuario para acceder a esta obra?</p>
-        <select v-model="selectedPlan" class="custom-select">
-          <option value="">Gratis (Público para todos)</option>
-          <option v-for="plan in subscriptionTypes" :key="plan.id" :value="plan.id">
-            {{ plan.name }} ({{ plan.points }} puntos)
-          </option>
-        </select>
+          <div v-if="isNotificationsOpen" class="notifications-dropdown">
 
-        <div v-if="loadingPlans" class="mini-loader">Cargando planes disponibles...</div>
-      </div>
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+            </div>
 
-      <div v-if="workType === 'book'">
-        <div class="form-group">
-          <label>Número de Páginas</label>
-          <input type="number" v-model="pages" required>
-        </div>
-        <div class="form-group">
-          <label>ISBN</label>
-          <input type="text" v-model="isbn" required>
-        </div>
-        <div class="form-group">
-          <label>Género</label>
-          <input type="text" v-model="genre" required>
-        </div>
-        <div class="form-group">
-          <label>Idioma</label>
-          <input type="text" v-model="language" required>
-        </div>
-      </div>
+            <div class="notif-body">
+              <div v-if="notifications.length > 0">
+                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-icon-circle">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
 
-      <div v-if="workType === 'music'">
-        <div class="form-group">
-          <label>Duración (minutos)</label>
-          <input type="number" step="0.01" v-model="duration" required>
-        </div>
-        <div class="form-group">
-          <label>Album</label>
-          <input type="text" v-model="album" required>
-        </div>
-        <div class="form-group">
-          <label>Género</label>
-          <input type="text" v-model="genre" required>
-        </div>
-      </div>
+                  <div class="notif-content">
+                    <div class="notif-title-row">
+                      <span class="notif-title">Nueva obra disponible</span>
+                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                    </div>
+                    <p class="notif-text">
+                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
+                        notif.work_title }}"</em>.
+                    </p>
+                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
 
-      <div v-if="workType === 'video'">
-        <div class="form-group">
-          <label>Duración (minutos)</label>
-          <input type="number" step="0.01" v-model="duration" required>
-        </div>
-        <div class="form-group">
-          <label>Género</label>
-          <input type="text" v-model="genre" required>
-        </div>
-      </div>
+              <div v-else class="notif-empty">
+                <p>No tienes notificaciones por ahora.</p>
+              </div>
+            </div>
 
-      <div v-if="workType === 'software'">
-        <div class="form-group">
-          <label>Lenguaje de Programación</label>
-          <input type="text" v-model="programming_language" required>
-        </div>
-        <div class="form-group">
-          <label>URL del Repositorio</label>
-          <input type="url" v-model="repository_url">
-        </div>
-        <div class="form-group">
-          <label>URL de la documentación</label>
-          <input type="url" v-model="documentation_url">
-        </div>
-      </div>
-
-      <div v-if="workType === 'paint' || workType === 'sculpture'">
-        <div class="form-group">
-          <label>Altura</label>
-          <input type="number" step="0.1" v-model="height" required>
-        </div>
-        <div class="form-group">
-          <label>Peso</label>
-          <input type="number" step="0.1" v-model="weight" required>
-        </div>
-        <div class="form-group">
-          <label>Material / Técnica</label>
-          <select v-model="type_detail" required>
-            <option v-if="workType === 'paint'" value="oil">Óleo</option>
-            <option v-if="workType === 'paint'" value="digital">Acrílico</option>
-            <option v-if="workType === 'paint'" value="oil">Acuarela</option>
-            <option v-if="workType === 'paint'" value="digital">Digital</option>
-            <option v-if="workType === 'sculpture'" value="marble">Mármol</option>
-            <option v-if="workType === 'sculpture'" value="bronze">Bronce</option>
-            <option v-if="workType === 'sculpture'" value="marble">Madera</option>
-            <option v-if="workType === 'sculpture'" value="bronze">Arcilla</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group file-upload-section">
-        <label for="file">Archivo de la Obra</label>
-        <div class="file-input-wrapper">
-          <input type="file" id="file" @change="handleFileChange"
-            accept=".pdf, .txt, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
-            required>
-          <p class="file-help">
-            <strong>Formatos permitidos:</strong> Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.
-          </p>
-        </div>
-        <label for="file">Resumen de la Obra</label>
-        <div class="file-input-wrapper">
-          <input type="file" id="file" @change="handleResumeChange"
-            accept=".pdf, .txt, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
-            required>
-          <p class="file-help">
-            <strong>Formatos permitidos:</strong> Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.
-          </p>
-        </div>
-      </div>
-
-      <div class="form-group license-selector">
-        <label>Licencia Creative Commons</label>
-        <select v-model="selectedLicense" class="license-select">
-          <option v-for="lic in licenses" :key="lic.id" :value="lic.id">
-            {{ lic.name }}
-          </option>
-        </select>
-
-        <div v-if="licenseMeanings[selectedLicense]" class="license-card-info">
-          <div class="license-card-header">
-            <span class="license-badge-name">{{ licenseMeanings[selectedLicense].name }}</span>
-          </div>
-
-          <p class="license-summary">
-            {{ licenseMeanings[selectedLicense].summary }}
-          </p>
-
-          <div v-if="selectedLicense !== 'none'" class="license-rules-grid">
-            <span v-if="licenseMeanings[selectedLicense].commercial" class="rule-pill rule-allow">
-              <i class="fa-solid fa-check"></i>
-              Uso comercial
-            </span>
-            <span v-else class="rule-pill rule-deny">
-              <i class="fa-solid fa-xmark"></i>
-              Sin fines comerciales
-            </span>
-
-            <span v-if="licenseMeanings[selectedLicense].derivatives" class="rule-pill rule-allow">
-              <i class="fa-solid fa-check"></i>
-              Permite adaptaciones
-            </span>
-            <span v-else class="rule-pill rule-deny">
-              <i class="fa-solid fa-xmark"></i>
-              No permite adaptaciones
-            </span>
-
-            <span v-if="licenseMeanings[selectedLicense].sameLicense" class="rule-pill rule-allow">
-              <i class="fa-solid fa-check"></i>
-              Exige que cualquier adaptación se distribuya bajo la misma licencia
-            </span>
-            <span v-else class="rule-pill rule-deny">
-              <i class="fa-solid fa-xmark"></i>
-              No exige que cualquier adaptación se distribuya bajo la misma licencia
-            </span>
           </div>
         </div>
 
-        <p class="license-info">
-          Tu obra será protegida bajo: <strong>{{ selectedLicenseName }}</strong>
-        </p>
+        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
+    </nav>
 
-      <div v-if="error" class="error-msg">{{ error }}</div>
+    <transition name="popup-fade">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
+        <div class="popup-icon">
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="popup-body">
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <p class="popup-message">{{ information.message }}</p>
+        </div>
+        <button @click="information.show = false" class="popup-close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </transition>
 
-      <button type="submit" class="btn-save">Guardar y proteger obra</button>
+    <div class="form-container">
+      <h1>Registrar {{ workTypeName }}</h1>
+      <p class="subtitle">Sube tu archivo para protegerlo</p>
 
-      <router-link to="/dashboard" class="back-link">&larr; Cancelar y volver</router-link>
-    </form>
+      <div class="form-container">
+        <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
+          <div class="form-grid-top">
+            <div class="form-group">
+              <label for="title">Título de la Obra <span class="required">*</span></label>
+              <input type="text" id="title" v-model="title" placeholder="Ej: Mi gran novela" required>
+            </div>
+
+            <div class="form-group">
+              <label>
+                Plan de suscripción requerido <span class="required">*</span>
+                <i class="fa-regular fa-circle-question label-help-icon" title="Nivel de suscripción necesario"></i>
+              </label>
+              <span class="field-desc-mini">¿Qué plan debe tener el usuario para acceder a esta obra?</span>
+              <select v-model="selectedPlan" class="custom-select">
+                <option value="">Gratis (Público para todos)</option>
+                <option v-for="plan in subscriptionTypes" :key="plan.id" :value="plan.id">
+                  {{ plan.name }} ({{ plan.points }} puntos)
+                </option>
+              </select>
+              <div v-if="loadingPlans" class="mini-loader">Cargando planes disponibles...</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Descripción / Resumen <span class="required">*</span></label>
+            <textarea id="description" v-model="description" rows="3"
+              placeholder="Describe brevemente tu creación..."></textarea>
+          </div>
+
+          <div class="form-card specific-data-card">
+            <div class="card-section-header">
+              <i :class="workIcons[workType] || 'fa-solid fa-layer-group'"></i>
+              <h3>Datos específicos de {{ workTypeName.toLowerCase() }}</h3>
+            </div>
+
+            <div v-if="workType === 'book'" class="grid-4-cols">
+              <div class="form-group-compact">
+                <label>Número de páginas <span class="required">*</span></label>
+                <input type="number" v-model="pages" placeholder="Ej: 320" required>
+              </div>
+              <div class="form-group-compact">
+                <label>ISBN <span class="required">*</span></label>
+                <input type="text" v-model="isbn" placeholder="Ej: 978-84-123456-7-8" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Género <span class="required">*</span></label>
+                <input type="text" v-model="genre" placeholder="Ej: Novela, Ciencia ficción..." required>
+              </div>
+              <div class="form-group-compact">
+                <label>Idioma <span class="required">*</span></label>
+                <select v-model="language" required>
+                  <option value="" disabled selected>Selecciona un idioma</option>
+                  <option value="Español">Español</option>
+                  <option value="Inglés">Inglés</option>
+                  <option value="Francés">Francés</option>
+                  <option value="Alemán">Alemán</option>
+                  <option value="Italiano">Italiano</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-else-if="workType === 'music'" class="grid-3-cols">
+              <div class="form-group-compact">
+                <label>Duración (minutos) <span class="required">*</span></label>
+                <input type="number" step="0.01" v-model="duration" placeholder="Ej: 3.45" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Álbum <span class="required">*</span></label>
+                <input type="text" v-model="album" placeholder="Ej: Nombre del álbum" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Género <span class="required">*</span></label>
+                <select v-model="language" required>
+                  <option value="" disabled selected>Selecciona una geńero músical</option>
+                  <option value="Español">Español</option>
+                  <option value="Inglés">Inglés</option>
+                  <option value="Francés">Francés</option>
+                  <option value="Alemán">Alemán</option>
+                  <option value="Italiano">Italiano</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-else-if="workType === 'video'" class="grid-2-cols">
+              <div class="form-group-compact">
+                <label>Duración (minutos) <span class="required">*</span></label>
+                <input type="number" step="0.01" v-model="duration" placeholder="Ej: 12.50" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Categoría <span class="required">*</span></label>
+                <select v-model="language" required>
+                  <option value="" disabled selected>Selecciona una categoría</option>
+                  <option value="Español">Español</option>
+                  <option value="Inglés">Inglés</option>
+                  <option value="Francés">Francés</option>
+                  <option value="Alemán">Alemán</option>
+                  <option value="Italiano">Italiano</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-else-if="workType === 'software'" class="grid-3-cols">
+              <div class="form-group-compact">
+                <label>Lenguaje <span class="required">*</span></label>
+                <input type="text" v-model="programming_language" placeholder="Ej: Python, TypeScript..." required>
+              </div>
+              <div class="form-group-compact">
+                <label>URL del Repositorio</label>
+                <input type="url" v-model="repository_url" placeholder="https://github.com/...">
+              </div>
+              <div class="form-group-compact">
+                <label>URL de Documentación</label>
+                <input type="url" v-model="documentation_url" placeholder="https://docs....">
+              </div>
+            </div>
+
+            <div v-else-if="workType === 'paint' || workType === 'sculpture'" class="grid-3-cols">
+              <div class="form-group-compact">
+                <label>Altura (cm) <span class="required">*</span></label>
+                <input type="number" step="0.1" v-model="height" placeholder="Ej: 50" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Peso (kg) <span class="required">*</span></label>
+                <input type="number" step="0.1" v-model="weight" placeholder="Ej: 2.5" required>
+              </div>
+              <div class="form-group-compact">
+                <label>Material / Técnica <span class="required">*</span></label>
+                <select v-model="type_detail" required>
+                  <option value="" disabled selected>Selecciona técnica</option>
+                  <template v-if="workType === 'paint'">
+                    <option value="oil">Óleo</option>
+                    <option value="acrylic">Acrílico</option>
+                    <option value="watercolor">Acuarela</option>
+                    <option value="digital">Digital</option>
+                  </template>
+                  <template v-else>
+                    <option value="marble">Mármol</option>
+                    <option value="bronze">Bronce</option>
+                    <option value="wood">Madera</option>
+                    <option value="clay">Arcilla</option>
+                  </template>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card upload-card">
+            <div class="upload-header">
+              <i class="fa-regular fa-gem upload-icon"></i>
+              <label>Archivo de la Obra <span class="required">*</span></label>
+            </div>
+            <div class="upload-content-row">
+              <label class="custom-file-btn">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <span>{{ selectedFile ? selectedFile.name : 'Seleccionar archivo' }}</span>
+                <input type="file" @change="handleFileChange" class="hidden-file-input"
+                  accept=".pdf, .txt, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
+                  required>
+              </label>
+              <div class="format-hint">
+                <span class="hint-title">Formatos permitidos:</span>
+                <span class="hint-desc">Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card upload-card">
+            <div class="upload-header">
+              <i class="fa-regular fa-gem upload-icon"></i>
+              <label>Resumen de la Obra <span class="required">*</span></label>
+            </div>
+            <div class="upload-content-row">
+              <label class="custom-file-btn">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <span>{{ selectedResume ? selectedResume.name : 'Seleccionar archivo' }}</span>
+                <input type="file" @change="handleResumeChange" class="hidden-file-input"
+                  accept=".pdf, .txt, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip, .py, .js, .ts, .jsx, .tsx, .vue, .html, .css, .java, .c, .cpp, .cs, .php, .rb, .go, .rs, .swift, .kt, .sql, .sh, .ipynb, .json, .xml, .yaml, .yml"
+                  required>
+              </label>
+              <div class="format-hint">
+                <span class="hint-title">Formatos permitidos:</span>
+                <span class="hint-desc">Documentos, Imágenes, Audio, Vídeo, Código fuente y ZIP.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card license-card">
+            <div class="license-top-row">
+              <i class="fa-brands fa-creative-commons cc-icon"></i>
+              <label>Licencia Creative Commons <span class="required">*</span></label>
+            </div>
+
+            <select v-model="selectedLicense" class="custom-select">
+              <option v-for="lic in licenses" :key="lic.id" :value="lic.id">
+                {{ lic.name }}
+              </option>
+            </select>
+
+            <div v-if="licenseMeanings[selectedLicense]" class="license-preview-box">
+              <div class="preview-header">
+                <i class="fa-solid fa-circle-info"></i>
+                <strong>{{ licenseMeanings[selectedLicense].name }}</strong>
+              </div>
+              <p class="preview-text">{{ licenseMeanings[selectedLicense].summary }}</p>
+            </div>
+
+            <p class="license-footnote">
+              Tu obra será protegida bajo: <strong>{{ selectedLicenseName }}</strong>
+            </p>
+          </div>
+
+          <div v-if="error" class="error-msg">{{ error }}</div>
+
+          <button type="submit" class="btn-save" :disabled="loading">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>{{ loading ? 'Guardando y validando...' : 'Guardar y proteger obra' }}</span>
+          </button>
+
+          <router-link to="/dashboard" class="back-link">&larr; Cancelar y volver</router-link>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -317,6 +428,29 @@ const licenseMeanings = {
   },
 };
 
+const workIcons = {
+  book: 'fa-solid fa-book-open',
+  music: 'fa-solid fa-music',
+  video: 'fa-solid fa-video',
+  software: 'fa-solid fa-code',
+  paint: 'fa-solid fa-palette',
+  sculpture: 'fa-solid fa-hammer'
+};
+
+const user = ref({
+  id: null,
+  username: "",
+  email: "",
+  role: "",
+  biography: "",
+  interests: "",
+  first_name: "",
+  last_name: "",
+  es_autor: false,
+  es_consumidor: false
+});
+const userPoints = ref(0);
+
 const subscriptionTypes = ref([]);
 const selectedPlan = ref("");
 
@@ -330,6 +464,74 @@ const information = ref({
 
 const triggerInformation = (message, type = 'error') => {
   information.value = { show: true, message, type };
+};
+
+const getUserData = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/users/me/", {
+      headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
+    });
+
+    user.value = response.data;
+    user.value.es_autor = user.value.role === 'author';
+    user.value.es_consumidor = user.value.role === 'consumer';
+
+  } catch (err) {
+    console.error("Error en la petición de usuario:", err);
+    router.push("/login");
+  }
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
+};
+
+const isNotificationsOpen = ref(false);
+
+const notifications = ref([
+]);
+
+const unreadCount = computed(() => {
+  return notifications.value.filter(n => !n.is_read).length;
+});
+
+const toggleNotifications = () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  if (isNotificationsOpen.value) {
+    fetchNotifications();
+  }
+};
+
+const fetchNotifications = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+      headers: { Authorization: `Token ${token}` }
+    });
+    notifications.value = response.data;
+  } catch (error) {
+    console.error("Error al cargar notificaciones:", error);
+  }
+};
+
+const getUserPoints = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+
+    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    userPoints.value = response.data.points;
+    console.log("Puntos del usuario cargados:", userPoints.value);
+  } catch (err) {
+    console.error("Error en la petición:", err);
+  }
 };
 
 const fetchPlans = async () => {
@@ -456,20 +658,14 @@ const handleSubmit = async () => {
     loading.value = false;
   }
 };
+
+onMounted(() => {
+  getUserData();
+  getUserPoints();
+});
 </script>
 
 <style scoped>
-.navbar {
-  background: var(--granate-principal);
-  color: white;
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 0 0 15px 15px;
-  margin-bottom: 30px;
-}
-
 .btn-back-nav {
   color: white;
   text-decoration: none;
@@ -480,13 +676,14 @@ const handleSubmit = async () => {
 }
 
 .form-container {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  padding: 35px 45px;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   width: 100%;
-  max-width: 850px;
-  margin: 20px auto;
+  max-width: 960px;
+  margin: 30px auto;
+  box-sizing: border-box;
 }
 
 h1 {
@@ -502,15 +699,68 @@ h1 {
   font-size: 0.9em;
 }
 
+.form-grid-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+.grid-4-cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.grid-3-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
 .form-group {
-  margin-bottom: 35px;
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 label {
-  display: block;
-  font-weight: bold;
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--granate-principal);
-  margin-bottom: 12px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.required {
+  color: var(--rosa-fuerte);
+  font-weight: bold;
+}
+
+.label-help-icon {
+  font-size: 0.82rem;
+  color: #999;
+  cursor: pointer;
+}
+
+.field-desc-mini {
+  font-size: 0.76rem;
+  color: #888;
+  margin-bottom: 6px;
 }
 
 input[type="text"],
@@ -519,12 +769,15 @@ input[type="url"],
 select,
 textarea {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
+  padding: 10px 14px;
+  border: 1px solid #e5e5e5;
   border-radius: 8px;
   box-sizing: border-box;
   font-family: inherit;
-  background-color: white;
+  font-size: 0.88rem;
+  background-color: #ffffff;
+  color: #333;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input:focus,
@@ -532,7 +785,12 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--rosa-fuerte);
-  background: var(--rosa-claro);
+  box-shadow: 0 0 0 3px rgba(209, 107, 134, 0.12);
+  background-color: #ffffff;
+}
+
+textarea {
+  resize: vertical;
 }
 
 .field-desc {
@@ -543,27 +801,148 @@ textarea:focus {
 }
 
 .mini-loader {
-  font-size: 0.8em;
+  font-size: 0.75rem;
   color: #888;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-.file-upload-section {
-  background: #fafafa;
-  padding: 20px;
-  border-radius: 10px;
-  border: 2px dashed #ddd;
+.form-card {
+  background-color: #fff9fa;
+  border: 1px solid #f6e2e6;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 22px;
+  box-sizing: border-box;
 }
 
-.file-help {
-  font-size: 0.8em;
+.card-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: var(--granate-principal);
+}
+
+.card-section-header i {
+  font-size: 1.15rem;
+}
+
+.card-section-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+}
+
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upload-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-icon {
+  color: var(--granate-principal);
+  font-size: 0.9rem;
+}
+
+.upload-content-row {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.custom-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2c0ca;
+  color: var(--granate-principal);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-file-btn:hover {
+  background-color: #fdeef2;
+  border-color: var(--granate-principal);
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.format-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hint-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #666;
+}
+
+.hint-desc {
+  font-size: 0.74rem;
   color: #888;
-  margin-top: 10px;
-  margin-bottom: 18px;
 }
 
-.file-input-wrapper {
-  margin-bottom: 15px;
+.license-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cc-icon {
+  font-size: 1.1rem;
+  color: var(--granate-principal);
+}
+
+.license-preview-box {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border: 1px solid #f0d5dc;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--granate-principal);
+}
+
+.preview-text {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.license-footnote {
+  margin: 12px 0 0 0;
+  font-size: 0.8rem;
+  color: #777;
 }
 
 .license-select {
@@ -646,23 +1025,28 @@ textarea:focus {
 .btn-save {
   width: 100%;
   background: var(--granate-principal);
-  color: white;
-  padding: 14px;
+  color: #ffffff;
+  padding: 13px;
   border: none;
   border-radius: 8px;
-  font-weight: bold;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: 0.3s;
-  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 10px;
 }
 
-.btn-save:hover {
-  background: var(--rosa-fuerte);
+.btn-save:hover:not(:disabled) {
+  background-color: var(--rosa-fuerte);
   transform: translateY(-2px);
 }
 
 .btn-save:disabled {
-  background: #ccc;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
@@ -678,8 +1062,15 @@ textarea:focus {
 .back-link {
   display: block;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #666;
   text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--granate-principal);
+  text-decoration: underline;
 }
 </style>

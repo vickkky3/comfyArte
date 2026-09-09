@@ -484,12 +484,6 @@ const getUserData = async () => {
     user.value.es_autor = user.value.role === 'author';
     user.value.es_consumidor = user.value.role === 'consumer';
 
-    if (user.value.es_consumidor) {
-      const worksResponse = await axios.get("http://localhost:8000/api/works/", {
-        headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
-      });
-      works.value = worksResponse.data;
-    }
   } catch (err) {
     console.error("Error en la petición de usuario:", err);
     router.push("/login");
