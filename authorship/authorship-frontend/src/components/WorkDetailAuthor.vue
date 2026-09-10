@@ -106,8 +106,10 @@
 
         <div class="container-card" v-if="work">
           <div class="back-link2">
-            <i class="fa-solid fa-circle-arrow-left"></i>
-            <router-link :to="{ path: '/dashboard' }">Volver</router-link>
+            <router-link to="/dashboard" class="btn-back-top">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Volver</span>
+            </router-link>
           </div>
 
           <div class="main-content-layout">
@@ -259,7 +261,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -269,7 +271,7 @@
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -774,6 +776,7 @@ onMounted(async () => {
   color: #111;
   font-weight: 700;
 }
+
 .paralel-fields {
   display: flex;
   margin-top: 20px;

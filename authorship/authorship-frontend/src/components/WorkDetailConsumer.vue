@@ -104,8 +104,8 @@
       <div class="left-column-content">
         <div class="container-card" v-if="work">
           <div class="back-link2">
-            <button @click="goBack" type="button" class="btn-back">
-              <i class="fa-solid fa-circle-arrow-left"></i> Volver
+            <button @click="goBack" type="button" class="btn-back-top">
+              <i class="fa-solid fa-arrow-left"></i> Volver
             </button>
           </div>
 

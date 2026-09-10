@@ -283,6 +283,40 @@
             </div>
 
             <div v-if="user.es_autor" class="recommended-container">
+              <h3 class="recommended-title"> Estadísticas </h3>
+
+              <div v-if="user.es_autor" class="statistics-container">
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Obras publicadas</span>
+                    <span class="stat-number">{{ authorWorksLength }}</span>
+                  </div>
+                </div>
+
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-bookmark"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Obras en favoritos</span>
+                    <span class="stat-number">{{ savedCount }}</span>
+                  </div>
+                </div>
+
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-users"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Suscriptores</span>
+                    <span class="stat-number">{{ numSubscriptors }}</span>
+                  </div>
+                </div>
+              </div>
+
               <h3 class="recommended-title"> Mis obras publicadas </h3>
 
               <div v-if="authorWorks.length > 0">
@@ -749,7 +783,7 @@ const fetchNotifications = async () => {
 };
 
 const currentPage = ref(1);
-const itemsPerPageAuthor = 7;
+const itemsPerPageAuthor = 6;
 const itemsPerPageConsumer = 3;
 
 const totalPages = computed(() => {

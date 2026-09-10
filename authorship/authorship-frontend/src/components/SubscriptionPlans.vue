@@ -40,50 +40,53 @@
       </div>
     </transition>
 
-    <div class="page-content">
-      <div class="icon-subscription">
-        <i class="fa-solid fa-wallet"></i>
-      </div>
-      <h1 class="title-welcome">Encuentra el plan perfecto para ti</h1>
-      <div class="divider-icon">
-        <span class="line"></span>
-      </div>
-      <p class="subtitle-welcome">Elige la suscripción que mejor se adapte a tus necesidades y empieza a disfrutar de
-        todos sus beneficios</p>
+    <div class="plans-main-container">
+      <!-- Cabecera con botón volver a la izquierda y título centrado -->
+      <div class="plans-header-bar">
+        <button @click="goBack" type="button" class="btn-back-top">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Volver</span>
+        </button>
 
-      <div class="container">
-        <div class="plans-container">
-          <div v-for="item in plans" :key="item.id" class="plan-card">
-            <div class="plans-icon">
-              <i class="fa-solid fa-crown"></i>
-            </div>
-            <h3 class="plan-name">{{ item.name }}</h3>
-            <p class="plan-price">{{ item.points }} puntos<span>/mes</span></p>
-            <div class="money-equivalence">
-              <span>Equivale a {{ item.price }} € / mes</span>
-            </div>
-            <div class="plan-description">
-              {{ item.description }}
-            </div>
-
-            <ul class="features-list">
-              <li>
-                <i class="fa-solid fa-calendar-days"></i> Acceso:
-                <span class="number-highlight"> {{ item.duration_days }} días</span>
-              </li>
-            </ul>
-
-            <button @click="handleSubscribe(item.id)" class="btn-accion">
-              <i class="fa-solid fa-angle-right"></i>Seleccionar {{ item.name }}
-            </button>
+        <div class="header-center-info">
+          <div class="header-icon-box">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div class="header-titles">
+            <h1 class="title-welcome">Encuentra el plan perfecto para ti</h1>
+            <p class="subtitle-welcome">
+              Elige la suscripción que mejor se adapte a tus necesidades y empieza a disfrutar de todos sus beneficios.
+            </p>
           </div>
         </div>
       </div>
 
-      <button @click="goBack" type="button" class="btn-back">
-        <i class="fa-solid fa-circle-arrow-left"></i> Volver
-      </button>
+      <div class="plans-container">
+        <div v-for="item in plans" :key="item.id" class="plan-card">
+          <div class="plans-icon">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+          <h3 class="plan-name">{{ item.name }}</h3>
+          <p class="plan-price">{{ item.points }} puntos<span>/mes</span></p>
+          <div class="money-equivalence">
+            <span>Equivale a {{ item.price }} € / mes</span>
+          </div>
+          <div class="plan-description">
+            {{ item.description }}
+          </div>
 
+          <ul class="features-list">
+            <li>
+              <i class="fa-solid fa-calendar-days"></i> Acceso:
+              <span class="number-highlight"> {{ item.duration_days }} días</span>
+            </li>
+          </ul>
+
+          <button @click="handleSubscribe(item.id)" class="btn-accion">
+            <i class="fa-solid fa-angle-right"></i> Seleccionar {{ item.name }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -207,67 +210,139 @@ onMounted(() => {
 }
 
 .page-content {
-  padding-top: 60px;
+  padding: 30px 20px 60px;
 }
 
-.icon-subscription {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 10px;
+.plans-main-container {
+  background: #ffffff;
+  padding: 35px 40px;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
 
-  border: 1px solid var(--granate-principal);
-  border-radius: 50%;
-
+.plans-header-bar {
+  position: relative;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-bottom: 25px;
+}
 
-  background: var(--rosa-claro);
-  color: #8B0029;
-  font-size: 24px;
+.btn-back-top {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background-color: var(--rosa-claro, #fff0f3);
+  color: var(--granate-principal, #7a0026);
+  border: 1px solid #f2cdd6;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-top:hover {
+  background-color: #ffe1e8;
+  border-color: var(--rosa-fuerte, #db7093);
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.header-center-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.header-icon-box {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  background-color: var(--rosa-claro, #fff0f3);
+  color: var(--granate-principal, #7a0026);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 1px solid #f2cdd6;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.03);
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
 }
 
 .title-welcome {
-  color: var(--granate-principal);
-  font-size: 2.2em;
+  margin: 0;
+  font-size: 1.6rem;
   font-weight: 800;
+  color: var(--granate-principal, #7a0026);
   line-height: 1.2;
-  margin: 15px 0;
-
-  text-align: center;
 }
 
 .subtitle-welcome {
-  text-align: center;
+  margin: 4px 0 0 0;
   color: #666;
-  margin-bottom: 30px;
+  font-size: 0.88rem;
 }
 
 .plans-container {
   display: flex;
   gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 40px 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto; 
+  padding: 20px 10px 15px 10px;
+  justify-content: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
+}
+
+.plans-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.plans-container::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+  border-radius: 4px;
+}
+
+.plans-container::-webkit-scrollbar-thumb {
+  background: var(--granate-principal);
+  border-radius: 4px;
 }
 
 .plan-card {
+  flex: 0 0 280px;
   background: white;
   border: 1px solid #ddd;
   border-radius: 12px;
   padding: 25px;
-  width: 280px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .plan-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   border-color: var(--rosa-fuerte);
-  background-color: var(--rosa-claro);
-  box-shadow: 0 8px 15px rgba(128, 0, 32, 0.1);
+  background-color: #fffafc;
+  box-shadow: 0 8px 15px rgba(128, 0, 32, 0.08);
 }
 
 .plan-name {
@@ -302,20 +377,18 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.features-list li i {
-  color: var(--granate-principal);
-  font-size: 1rem;
-  margin-right: 8px;
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-}
-
 .features-list li {
+  display: flex;
   align-items: center;
   justify-content: center;
   color: var(--texto-oscuro);
   font-size: 0.95em;
+}
+
+.features-list li i {
+  color: var(--granate-principal);
+  font-size: 1rem;
+  margin-right: 8px;
 }
 
 .btn-accion {
@@ -337,14 +410,11 @@ onMounted(() => {
   width: 60px;
   height: 60px;
   margin: 0 auto 20px;
-
   border: 1px solid var(--granate-principal);
   border-radius: 50%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   background: var(--rosa-claro);
   color: #8B0029;
   font-size: 24px;
@@ -364,31 +434,5 @@ onMounted(() => {
   padding: 3px 12px;
   border-radius: 12px;
   display: inline-block;
-}
-
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: fit-content;
-  margin: 25px auto 0 auto;
-  padding: 10px 22px;
-  background-color: transparent;
-  color: var(--granate-principal);
-  border: 1.5px solid var(--granate-principal);
-  border-radius: 25px; 
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.btn-back:hover {
-  background-color: var(--rosa-claro);
-  border-color: var(--rosa-fuerte);
-  color: var(--granate-principal);
-  transform: translateX(-4px);
 }
 </style>

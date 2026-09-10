@@ -930,3 +930,25 @@ body {
     from { opacity: 0.55; }
     to { opacity: 1; }
   }
+
+  .btn-back-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background-color: var(--rosa-claro, #fff0f3);
+    color: var(--granate-principal, #7a0026);
+    border: 1px solid #f2cdd6;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-back-top:hover {
+    background-color: #ffe1e8;
+    border-color: var(--rosa-fuerte, #db7093);
+    transform: translateX(-2px);
+  }

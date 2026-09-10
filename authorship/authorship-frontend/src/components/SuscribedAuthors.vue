@@ -106,9 +106,18 @@
       <div>
 
         <div class="content-header">
-          <i class="fas fa-book"></i>
-          <div class="header-text">
-            <h1>Mis autores</h1>
+          <router-link to="/dashboard" class="btn-back-top">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Volver</span>
+          </router-link>
+
+          <div class="header-center-info">
+            <div class="header-icon-box">
+              <i class="fa-solid fa-users icon-primary"></i>
+            </div>
+            <div class="header-text">
+              <h1>Mis autores</h1>
+            </div>
           </div>
         </div>
 
@@ -251,9 +260,6 @@
         </Teleport>
       </div>
 
-      <router-link to="/dashboard" class="btn-back-link" style="margin-top: 30px;">
-        &larr; Volver al Panel Principal
-      </router-link>
     </div>
   </div>
 </template>
@@ -510,33 +516,69 @@ onMounted(async () => {
 }
 
 .content-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.content-header i {
-  width: 70px;
-  height: 70px;
-  flex-shrink: 0;
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  border-radius: 50%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8em;
-  font-weight: bold;
-  margin: 0;
-  border: 2px solid var(--rosa-claro);
+  margin-bottom: 30px;
+  min-height: 52px;
+}
+
+.btn-back-top {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  border: 1px solid #f2cdd6;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-top:hover {
+  background-color: #ffe1e8;
+  border-color: var(--rosa-fuerte);
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.header-center-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.header-icon-box {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 1px solid #f2cdd6;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
 }
 
 .header-text h1 {
-  margin: 0 0 5px 0;
-  color: #000;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+  line-height: 1.2;
 }
-
 
 .filter-input {
   flex: 2;
