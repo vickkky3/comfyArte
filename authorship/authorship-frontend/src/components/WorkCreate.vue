@@ -125,11 +125,28 @@
               </div>
               <div class="form-group-compact">
                 <label>Género <span class="required">*</span></label>
-                <input type="text" v-model="genre" placeholder="Ej: Novela, Ciencia ficción..." required>
+                <select v-model="genre" required>
+                  <option value="" disabled selected>Selecciona un género</option>
+                  <option value="Narrativa / Ficción">Narrativa / Ficción</option>
+                  <option value="Misterio / Suspense">Misterio / Suspense</option>
+                  <option value="Ciencia Ficción / Fantasía">Ciencia Ficción / Fantasía</option>
+                  <option value="Novela Romántica">Novela Romántica</option>
+                  <option value="Novela Histórica">Novela Histórica</option>
+                  <option value="Poesía">Poesía</option>
+                  <option value="Teatro">Teatro</option>
+                  <option value="Ensayo">Ensayo</option>
+                  <option value="Biografía">Biografía</option>
+                  <option value="Divulgación Científica">Divulgación Científica</option>
+                  <option value="Desarrollo Personal">Desarrollo Personal</option>
+                  <option value="Infantil / Juvenil">Infantil / Juvenil</option>
+                  <option value="Cómic">Cómic</option>
+                  <option value="Otro">Otro</option>
+                </select>
               </div>
+
               <div class="form-group-compact">
                 <label>Idioma <span class="required">*</span></label>
-                <select v-model="language" required>
+                <select v-model="language" class="select-pink" required>
                   <option value="" disabled selected>Selecciona un idioma</option>
                   <option value="Español">Español</option>
                   <option value="Inglés">Inglés</option>
@@ -151,14 +168,18 @@
                 <input type="text" v-model="album" placeholder="Ej: Nombre del álbum" required>
               </div>
               <div class="form-group-compact">
-                <label>Género <span class="required">*</span></label>
-                <select v-model="language" required>
+                <label>Género<span class="required">*</span></label>
+                <select v-model="genre" class="select-pink" required>
                   <option value="" disabled selected>Selecciona una geńero músical</option>
-                  <option value="Español">Español</option>
-                  <option value="Inglés">Inglés</option>
-                  <option value="Francés">Francés</option>
-                  <option value="Alemán">Alemán</option>
-                  <option value="Italiano">Italiano</option>
+                  <option value="Pop">Pop</option>
+                  <option value="Rock">Rock</option>
+                  <option value="Urbano / Reggaetón / Trap">Urbano / Reggaetón / Trap</option>
+                  <option value="Electrónica / Dance / Lo-Fi">Electrónica / Dance / Lo-Fi</option>
+                  <option value="Hip Hop / Rap">Hip Hop / Rap</option>
+                  <option value="Indie / Cantautor">Indie / Cantautor</option>
+                  <option value="Clásica / Instrumental">Clásica / Instrumental'</option>
+                  <option value="Jazz">Jazz</option>
+                  <option value="Folk / Tradicional / Flamenco">Folk / Tradicional / Flamenco</option>
                   <option value="Otro">Otro</option>
                 </select>
               </div>
@@ -171,13 +192,17 @@
               </div>
               <div class="form-group-compact">
                 <label>Categoría <span class="required">*</span></label>
-                <select v-model="language" required>
+                <select v-model="genre" class="select-pink" required>
                   <option value="" disabled selected>Selecciona una categoría</option>
-                  <option value="Español">Español</option>
-                  <option value="Inglés">Inglés</option>
-                  <option value="Francés">Francés</option>
-                  <option value="Alemán">Alemán</option>
-                  <option value="Italiano">Italiano</option>
+                  <option value="Ficción">Ficción</option>
+                  <option value="Documental">Documental</option>
+                  <option value="Videoclip">Videoclip</option>
+                  <option value="Animación">Animación</option>
+                  <option value="Tutorial">Tutorial</option>
+                  <option value="Cortometraje">Cortometraje</option>
+                  <option value="Entrevista / Charlas / Podcast">Entrevista / Charlas / Podcast</option>
+                  <option value="Publicitario">Publicitario</option>
+                  <option value="Teatro / Danza">Teatro / Danza</option>
                   <option value="Otro">Otro</option>
                 </select>
               </div>
@@ -1072,5 +1097,25 @@ textarea {
 .back-link:hover {
   color: var(--granate-principal);
   text-decoration: underline;
+}
+
+select.select-pink {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  color: #333333;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+select.select-pink:focus {
+  background-color: #ffffff;
+  border-color: var(--rosa-fuerte);
+  box-shadow: 0 0 0 3px rgba(219, 112, 147, 0.2);
+}
+
+select.select-pink option {
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  font-weight: 600;
 }
 </style>
