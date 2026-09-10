@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from users.models import User
+from users.models import User, Notification
 from works.models import Work
 from .models import SubscriptionPlan
 from .serializers import SubscriptionPlanSerializer
@@ -137,6 +137,13 @@ class AuthorSubscribeAPIView(APIView):
                 consumer=consumer,
                 author=author
             )
+        
+        Notification.objects.create(
+            recipient=author,
+            sender=request.user,
+            notification_type='new_follower',
+            message=f"El usuario @{request.user.username} ha comenzado a seguirte."
+        )
             
         return Response({"detail": f"Te has suscrito con éxito al autor {author.username}"})
     

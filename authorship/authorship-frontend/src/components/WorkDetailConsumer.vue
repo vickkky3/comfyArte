@@ -34,18 +34,31 @@
               <div v-if="notifications.length > 0">
                 <div v-for="notif in notifications" :key="notif.id" class="notif-item">
                   <div class="notif-icon-circle">
-                    <i class="fa-solid fa-book-open"></i>
+                    <i v-if="notif.notification_type === 'new_follower'" class="fa-solid fa-user-plus"></i>
+                    <i v-else class="fa-solid fa-book-open"></i>
                   </div>
 
                   <div class="notif-content">
                     <div class="notif-title-row">
-                      <span class="notif-title">Nueva obra disponible</span>
+                      <span class="notif-title" v-if="notif.notification_type === 'new_follower'">
+                        ¡Nuevo suscriptor!
+                      </span>
+                      <span class="notif-title" v-else>
+                        Nueva obra disponible
+                      </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
+
                     <p class="notif-text">
-                      El autor <strong>{{ notif.author_username }}</strong> ha subido una nueva obra: <em>"{{
-                        notif.work_title }}"</em>.
+                      <template v-if="notif.notification_type === 'new_follower'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
+                      </template>
+                      <template v-else>
+                        El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
+                        nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      </template>
                     </p>
+
                     <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
                   </div>
                 </div>
@@ -55,6 +68,7 @@
                 <p>No tienes notificaciones por ahora.</p>
               </div>
             </div>
+            
           </div>
         </div>
 
@@ -347,7 +361,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                      }}</a>
+                    }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>

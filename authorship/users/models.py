@@ -20,12 +20,39 @@ class User(AbstractUser):
     private_key = models.TextField(blank=True, null=True)
 
 class Notification(models.Model):
+    TYPE_CHOICES = [
+        ('new_work', 'Nueva obra publicada'),
+        ('new_follower', 'Nuevo suscriptor / seguidor'),
+    ]
+
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
         related_name='notifications'
     )
-    work = models.ForeignKey('works.Work', on_delete=models.CASCADE)
+    
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sent_notifications'
+    )
+    
+    work = models.ForeignKey(
+        'works.Work', 
+        on_delete=models.CASCADE,
+        null=True, 
+        blank=True,
+        related_name='notifications'
+    )
+    
+    notification_type = models.CharField(
+        max_length=30, 
+        choices=TYPE_CHOICES, 
+        default='new_work'
+    )
+    
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -33,7 +60,7 @@ class Notification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Notificación para {self.recipient.username}"
+        return f"Notificación ({self.notification_type}) para {self.recipient.username}"
     
            
 @receiver(post_save, sender=User)

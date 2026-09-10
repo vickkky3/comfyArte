@@ -24,9 +24,21 @@ class AuthorPublicSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'first_name', 'last_name', 'biography', 'role']
         
 class NotificationSerializer(serializers.ModelSerializer):
-    work_title = serializers.CharField(source='work.title', read_only=True)
-    author_username = serializers.CharField(source='work.author.username', read_only=True)
+    work_title = serializers.CharField(source='work.title', read_only=True, default=None)
+    author_username = serializers.CharField(source='work.author.username', read_only=True, default=None)
+    sender_username = serializers.CharField(source='sender.username', read_only=True, default=None)
     
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'work', 'work_title', 'author_username', 'message', 'created_at']
+        fields = [
+            'id',
+            'recipient',
+            'sender',
+            'sender_username',
+            'work',
+            'work_title',
+            'author_username',
+            'notification_type',
+            'message',
+            'created_at',
+        ]

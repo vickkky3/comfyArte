@@ -6,7 +6,7 @@ from django.http import HttpResponse
 
 from subscriptions.models import SubscriptionPlan
 from .models import Work
-from users.models import Notification, User
+from users.models import Notification
 from subscriptions.models import AuthorSubscription
 from .serializers import WorkSerializer
 from .models import Work, Book, Music, Video, Software, Paint, Sculpture
@@ -183,6 +183,7 @@ class WorkListCreateAPIView(APIView):
                     notifications_to_create.append(
                         Notification(
                             recipient=sub.consumer,
+                            notification_type='new_work',
                             work=obj,
                             message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
                         )
