@@ -184,6 +184,7 @@
             <tbody>
               <tr v-for="work in sortedWorks" :key="work.id">
                 <td>
+                  <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
                   <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
                 </td>
                 <td>
@@ -338,6 +339,7 @@
                         <tbody>
                           <tr v-for="w in authorWorks" :key="w.id">
                             <td class="col-type">
+                              <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
                               <span class="pill-type">{{ getWorkTypeName(w.work_type) }}</span>
                             </td>
                             <td class="col-title">
@@ -743,17 +745,24 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString("es-ES");
 };
 
-const getWorkTypeName = (type) => {
-  const types = {
-    book: 'Libro',
-    music: 'Música',
-    video: 'Video',
-    software: 'Software',
-    paint: 'Pintura',
-    sculpture: 'Escultura'
-  };
-  return types[type] || 'Obra';
+const workTypeNames = {
+  book: 'Libro',
+  music: 'Música', video: 'Video',
+  software: 'Software', paint: 'Pintura',
+  sculpture: 'Escultura'
 };
+
+const workIconMap = {
+  book: 'fa-solid fa-book-open',
+  music: 'fa-solid fa-music',
+  video: 'fa-solid fa-video',
+  software: 'fa-solid fa-code',
+  paint: 'fa-solid fa-palette',
+  sculpture: 'fa-solid fa-hammer'
+};
+
+const getWorkTypeName = (type) => workTypeNames[type] || 'Obra';
+const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 
 const getUserPoints = async () => {
   try {
@@ -1359,5 +1368,11 @@ tr:hover {
   background: var(--rosa-claro);
   color: var(--granate-principal);
   border-color: var(--rosa-fuerte);
+}
+
+.work-icon {
+  color: var(--rosa-fuerte);
+  font-size: 1em;
+  flex-shrink: 0;
 }
 </style>

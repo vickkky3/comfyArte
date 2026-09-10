@@ -683,6 +683,12 @@ body {
     scrollbar-width: thin;
     scrollbar-color: var(--granate-principal) var(--rosa-claro);
   }
+
+  .table-works td:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   
   .table-works::-webkit-scrollbar {
     width: 6px;

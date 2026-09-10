@@ -271,6 +271,7 @@
                   <tbody>
                     <tr v-for="work in paginatedWorksAuthor" :key="work.id">
                       <td>
+                        <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
                         <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
                       </td>
                       <td>
@@ -325,6 +326,7 @@
                   <tbody>
                     <tr v-for="work in paginatedWorksConsumer" :key="work.id">
                       <td>
+                        <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
                         <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
                       </td>
                       <td>
@@ -1437,6 +1439,12 @@ onMounted(() => {
   border-bottom: 1px solid #f0e4e8;
 }
 
+.recommended-table td:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .label-tipo {
   color: var(--rosa-fuerte);
   font-weight: bold;
@@ -1600,6 +1608,12 @@ onMounted(() => {
 
 .saved-work-icon {
   color: var(--granate-principal);
+  font-size: 1em;
+  flex-shrink: 0;
+}
+
+.work-icon {
+  color: var(--rosa-fuerte);
   font-size: 1em;
   flex-shrink: 0;
 }
