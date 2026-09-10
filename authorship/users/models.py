@@ -23,6 +23,7 @@ class Notification(models.Model):
     TYPE_CHOICES = [
         ('new_work', 'Nueva obra publicada'),
         ('new_follower', 'Nuevo suscriptor / seguidor'),
+        ('new_saved_work', 'Nueva obra guardada'),
     ]
 
     recipient = models.ForeignKey(

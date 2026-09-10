@@ -18,7 +18,67 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+
+        <div class="notifications-wrapper">
+          <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+
+          <div v-if="isNotificationsOpen" class="notifications-dropdown">
+
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+            </div>
+
+            <div class="notif-body">
+              <div v-if="notifications.length > 0">
+                <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-icon-circle">
+                    <i v-if="notif.notification_type === 'new_follower'" class="fa-solid fa-user-plus"></i>
+                    <i v-else class="fa-solid fa-book-open"></i>
+                  </div>
+
+                  <div class="notif-content">
+                    <div class="notif-title-row">
+                      <span class="notif-title" v-if="notif.notification_type === 'new_follower'">
+                        ¡Nuevo suscriptor!
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_work'">
+                        Nueva obra disponible
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
+                        Obra guardada
+                      </span>
+                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                    </div>
+
+                    <p class="notif-text">
+                      <template v-if="notif.notification_type === 'new_follower'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'new_work'" f>
+                        El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
+                        nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'new_saved_work'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
+                        obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
+                      </template>
+                    </p>
+
+                    <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="notif-empty">
+                <p>No tienes notificaciones por ahora.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
@@ -490,18 +550,6 @@ const getUserData = async () => {
   }
 };
 
-const getUserPoints = async () => {
-  try {
-    const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
-      headers: { Authorization: `Token ${token}` },
-    });
-    userPoints.value = response.data.points;
-  } catch (err) {
-    console.error("Error en los puntos:", err);
-  }
-};
-
 const fetchWorkDetails = async () => {
   try {
     const id = route.params.id;
@@ -512,23 +560,6 @@ const fetchWorkDetails = async () => {
   } catch (err) {
     console.error("Error al cargar la obra:", err);
     router.push("/works");
-  }
-};
-
-const fetchMySubscription = async () => {
-  try {
-    const id = route.params.id;
-    const response = await axios.get(`http://localhost:8000/api/subscriptions/me/`, {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem('token')}` }
-    });
-    activeSubscription.value = response.data;
-
-  } catch (err) {
-    if (err.response && err.response.status === 404) {
-      activeSubscription.value = null;
-    } else {
-      console.error("Error al cargar tu suscripción:", err);
-    }
   }
 };
 
@@ -553,41 +584,34 @@ const formatDate = (dateString) => {
   });
 };
 
-const isAuthor = computed(() => {
-  if (!authStore.user || !work.value) return false;
+const isNotificationsOpen = ref(false);
 
-  const userId = authStore.user.id || authStore.user.pk;
-  const authorId = work.value.author;
+const notifications = ref([
+]);
 
-  return Number(userId) === Number(authorId);
+const unreadCount = computed(() => {
+  return notifications.value.filter(n => !n.is_read).length;
 });
 
-const canSeeProtectedContent = computed(() => {
-  if (!work.value) return false;
-
-  if (!authStore.user) return false;
-
-  const isAdmin = authStore.user.role === 'admin';
-  const isAuthor = Number(authStore.user.id) === Number(work.value.author);
-
-  const isFreeWork = !work.value.plan_required;
-
-  let isSubscribed = false;
-
-  if (activeSubscription.value && work.value.plan_required) {
-    const planUserId = activeSubscription.value.plan;
-    const planRequiredId = work.value.plan_required.id;
-
-    if (planUserId === planRequiredId) {
-      isSubscribed = true;
-    }
-    else if (activeSubscription.value.plan_points >= work.value.plan_required.points) {
-      isSubscribed = true;
-    }
+const toggleNotifications = () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  if (isNotificationsOpen.value) {
+    fetchNotifications();
   }
+};
 
-  return isAdmin || isAuthor || isFreeWork || isSubscribed;
-});
+const fetchNotifications = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+      headers: { Authorization: `Token ${token}` }
+    });
+    notifications.value = response.data;
+  } catch (error) {
+    console.error("Error al cargar notificaciones:", error);
+  }
+};
+
 
 const deleteWork = async (id) => {
   try {
@@ -644,10 +668,8 @@ onMounted(async () => {
   }
 
   getUserData(),
-    getUserPoints(),
     fetchWorkDetails(),
-    fetchSubscriptionPlan(),
-    fetchMySubscription()
+    fetchSubscriptionPlan()
 });
 </script>
 

@@ -11,8 +11,7 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
-
+        
         <div class="notifications-wrapper">
           <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
             <i class="fa-solid fa-bell"></i>
@@ -37,8 +36,11 @@
                       <span class="notif-title" v-if="notif.notification_type === 'new_follower'">
                         ¡Nuevo suscriptor!
                       </span>
-                      <span class="notif-title" v-else>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_work'">
                         Nueva obra disponible
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
+                        Obra guardada
                       </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
@@ -47,9 +49,13 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else>
+                      <template v-else-if="notif.notification_type === 'new_work'" f>
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'new_saved_work'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
+                        obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
                       </template>
                     </p>
 
@@ -487,7 +493,6 @@ const user = ref({
   es_autor: false,
   es_consumidor: false
 });
-const userPoints = ref(0);
 
 const subscriptionTypes = ref([]);
 const selectedPlan = ref("");
@@ -552,23 +557,6 @@ const fetchNotifications = async () => {
     notifications.value = response.data;
   } catch (error) {
     console.error("Error al cargar notificaciones:", error);
-  }
-};
-
-const getUserPoints = async () => {
-  try {
-    const token = authStore.token || localStorage.getItem("token");
-
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    });
-
-    userPoints.value = response.data.points;
-    console.log("Puntos del usuario cargados:", userPoints.value);
-  } catch (err) {
-    console.error("Error en la petición:", err);
   }
 };
 
@@ -699,7 +687,6 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   getUserData();
-  getUserPoints();
 });
 </script>
 

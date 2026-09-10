@@ -44,8 +44,11 @@
                       <span class="notif-title" v-if="notif.notification_type === 'new_follower'">
                         ¡Nuevo suscriptor!
                       </span>
-                      <span class="notif-title" v-else>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_work'">
                         Nueva obra disponible
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
+                        Obra guardada
                       </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
@@ -54,9 +57,13 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else>
+                      <template v-else-if="notif.notification_type === 'new_work'"f>
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'new_saved_work'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
+                        obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
                       </template>
                     </p>
 

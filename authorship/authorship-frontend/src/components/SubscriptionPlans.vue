@@ -79,6 +79,11 @@
           </div>
         </div>
       </div>
+
+      <button @click="goBack" type="button" class="btn-back">
+        <i class="fa-solid fa-circle-arrow-left"></i> Volver
+      </button>
+
     </div>
   </div>
 </template>
@@ -173,6 +178,14 @@ const handleSubscribe = async (planId) => {
     } else {
       triggerNotification("Error al procesar la suscripción. Inténtalo de nuevo.", "error");
     }
+  }
+};
+
+const goBack = () => {
+  if (window.history.state?.back) {
+    router.back();
+  } else {
+    router.push('/dashboard');
   }
 };
 
@@ -347,9 +360,35 @@ onMounted(() => {
   font-size: 0.9rem;
   color: #777777;
   font-weight: 500;
-  background-color: var(--rosa-claro, #FFF0F3);
+  background-color: var(--rosa-claro);
   padding: 3px 12px;
   border-radius: 12px;
   display: inline-block;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 25px auto 0 auto;
+  padding: 10px 22px;
+  background-color: transparent;
+  color: var(--granate-principal);
+  border: 1.5px solid var(--granate-principal);
+  border-radius: 25px; 
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-back:hover {
+  background-color: var(--rosa-claro);
+  border-color: var(--rosa-fuerte);
+  color: var(--granate-principal);
+  transform: translateX(-4px);
 }
 </style>

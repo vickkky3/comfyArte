@@ -43,8 +43,11 @@
                       <span class="notif-title" v-if="notif.notification_type === 'new_follower'">
                         ¡Nuevo suscriptor!
                       </span>
-                      <span class="notif-title" v-else>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_work'">
                         Nueva obra disponible
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
+                        Obra guardada
                       </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
@@ -53,9 +56,13 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else>
+                      <template v-else-if="notif.notification_type === 'new_work'" f>
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'new_saved_work'">
+                        El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
+                        obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
                       </template>
                     </p>
 
@@ -68,7 +75,7 @@
                 <p>No tienes notificaciones por ahora.</p>
               </div>
             </div>
-            
+
           </div>
         </div>
 
@@ -361,7 +368,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                      }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>

@@ -210,6 +210,14 @@ class SaveWorkAPIView(APIView):
                 consumer=consumer,
                 work=work
             )
+        
+        Notification.objects.create(
+            recipient=work.author,
+            sender=request.user,
+            notification_type='new_saved_work',
+            work=work,
+            message=f"El usuario @{request.user.username} se ha guardado su obra {work.title}."
+        )
             
         return Response({"detail": f"Te has guardado con éxito la obra {work.title}"})
     
