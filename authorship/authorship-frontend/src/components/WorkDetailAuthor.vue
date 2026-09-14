@@ -392,20 +392,34 @@
         <div class="crypto-security-box">
           <div class="crypto-header">
             <span class="crypto-badge">Registro con Firma RSA Garantizada</span>
-            <p class="field-desc-mini">Esta obra está protegida mediante criptografía asimétrica de clave
-              pública/privada.
+            <p class="field-desc-mini">
+              Esta obra está protegida mediante criptografía asimétrica de clave pública/privada.
             </p>
           </div>
 
           <div class="crypto-body">
             <div class="crypto-row">
               <span class="label-mini">Firma Electrónica de Autoría (RSA-2048)</span>
-              <div class="signature-scroll-box">
-                <code class="signature-code">{{ work?.hash_security || 'No firmado' }}</code>
+
+              <div class="signature-wrapper">
+                <div class="signature-scroll-box">
+                  <code class="signature-code">{{ work?.hash_security || 'No firmado' }}</code>
+                </div>
+
+                <button type="button" @click="copySignature" class="btn-copy-signature"
+                  :class="{ 'btn-copied': copied }" title="Copiar firma al portapapeles">
+                  <i v-if="copied" class="fa-solid fa-check"></i>
+                  <i v-else class="fa-regular fa-copy"></i>
+                  <span v-if="copied">¡Copiado!</span>
+                  <span v-else>Copiar</span>
+                </button>
               </div>
-              <p class="crypto-explanation">Garantiza el <strong>no repudio</strong>: este bloque certifica
-                matemáticamente que
-                fuiste tú, {{ work.author_username }}, quien firmó este archivo usando tu clave privada.</p>
+
+              <p class="crypto-explanation">
+                Garantiza el <strong>no repudio</strong>: este bloque certifica
+                matemáticamente que fuiste tú, {{ work.author_username }}, quien firmó este archivo usando tu clave
+                privada.
+              </p>
             </div>
           </div>
         </div>
@@ -630,6 +644,24 @@ const deleteWork = async (id) => {
 
   } finally {
     loading.value = false;
+  }
+};
+
+const copied = ref(false);
+
+const copySignature = async () => {
+  const textToCopy = work.value?.hash_security;
+  if (!textToCopy) return;
+
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    copied.value = true;
+
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error("Error al copiar al portapapeles:", err);
   }
 };
 
@@ -1125,6 +1157,45 @@ onMounted(async () => {
   color: #0dcaf0;
   word-break: break-all;
   white-space: pre-wrap;
+}
+
+.signature-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.btn-copy-signature {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-copy-signature:hover {
+  background-color: var(--rosa-claro);
+  border-color: var(--rosa-fuerte);
+}
+
+.btn-copy-signature.btn-copied {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.signature-scroll-box {
+  padding-right: 85px;
 }
 
 .license-container {
