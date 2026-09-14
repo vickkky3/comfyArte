@@ -52,11 +52,12 @@
 
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fa-solid fa-chart-line"></i>
+                <i class="fa-solid fa-shield-halved"></i>
               </div>
               <div class="feature-text">
-                <h2>Monetiza tu trabajo</h2>
-                <p>Conecta con más personas y genera ingresos.</p>
+                <h2>Protección y Validación con IA</h2>
+                <p>Analizamos cada obra automáticamente mediante inteligencia artificial para garantizar un espacio
+                  seguro y libre de contenido ilegal.</p>
               </div>
             </div>
 
@@ -106,8 +107,9 @@
                 <i class="fa-solid fa-heart"></i>
               </div>
               <div class="feature-text">
-                <h2>Apoyo directo al creador</h2>
-                <p>Fomenta el consumo responsable y valora el talento de tus artistas favoritos.</p>
+                <h2>Sigue a tus autores y guarda obras</h2>
+                <p>Guarda tus creaciones favoritas en tu lista personal y mantente al día siguiendo directamente el
+                  trabajo de los creadores.</p>
               </div>
             </div>
           </div>
@@ -116,6 +118,11 @@
       </div>
     </div>
     <div class="form-container">
+      <router-link to="/" class="btn-back-top">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Volver</span>
+      </router-link>
+
       <div v-if="currentRol === 'author'" class="icon-circle author">
         <i class="fa-solid fa-pen-nib"></i>
       </div>
@@ -200,21 +207,15 @@
           </div>
           <small class="info-help">Selecciona los tipos de contenido que deseas descubrir en tu catálogo.</small>
         </div>
-
         <button class="btn-register" type="submit" :disabled="loading">
           <template v-if="loading">
             <i class="fa-solid fa-spinner fa-spin"></i> Procesando...
           </template>
 
           <template v-else>
-            Finalizar Registro
+            <i class="fa-solid fa-user-plus"></i> Finalizar Registro
           </template>
         </button>
-
-        <div class="back-link">
-          <i class="fa-solid fa-circle-arrow-left  "></i>
-          <router-link :to="{ path: '/' }">Volver a la pantalla de selección de tipo de usuario</router-link>
-        </div>
       </form>
     </div>
   </div>
