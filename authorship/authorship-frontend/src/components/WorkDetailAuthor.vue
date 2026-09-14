@@ -312,10 +312,15 @@
                 Este es el fragmento que los usuarios pueden revisar libremente sin necesidad de suscripción:
               </p>
               <div class="media-preview-container">
-                <a :href="`http://localhost:8000/api/works/${work?.id}/serve-resume/`" target="_blank"
-                  class="btn-sidebar-secondary">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar Muestra ({{ work?.resume_name }})
-                </a>
+                <button type="button" class="btn-sidebar-secondary" @click="openResumePreview"
+                    :disabled="loadingResume">
+                    <span v-if="loadingResume">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Abriendo...
+                    </span>
+                    <span v-else>
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar muestra ({{ work.resume_name }})
+                    </span>
+                  </button>
               </div>
             </div>
 
@@ -331,11 +336,15 @@
                 Este es tu archivo original protegido y firmado digitalmente con tu clave privada en la plataforma:
               </p>
               <div class="unlocked-zone">
-                <a :href="`http://localhost:8000/api/works/${work?.id}/serve/`" class="btn-action btn-download"
-                  target="_blank">
+                <button type="button" class="btn-action btn-download" @click="downloadOriginal"
+                :disabled="downloadingOriginal">
+                <span v-if="downloadingOriginal">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Descargando...
+                </span>
+                <span v-else>
                   <i class="fa-solid fa-circle-down"></i> Descargar Original
-                </a>
-                <span class="file-real-name-tag">{{ work?.file_name }}</span>
+                </span>
+              </button>
               </div>
             </div>
           </div>
@@ -457,6 +466,9 @@ const userPoints = ref(0);
 const work = ref(null);
 const subscriptionTypes = ref([]);
 const activeSubscription = ref(null);
+
+const downloadingOriginal = ref(false);
+const loadingResume = ref(false);
 
 const workTypes = {
   book: 'LIBRO',
@@ -644,6 +656,72 @@ const deleteWork = async (id) => {
 
   } finally {
     loading.value = false;
+  }
+};
+
+const openResumePreview = async () => {
+  if (!work.value) return;
+  if (loadingResume.value) return;
+
+  loadingResume.value = true;
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(
+      `http://localhost:8000/api/works/${work.value.id}/serve-resume/`,
+      {
+        headers: { Authorization: `Token ${token}` },
+        responseType: "blob",
+      }
+    );
+
+    const contentType = response.headers["content-type"] || "application/pdf";
+    const blob = new Blob([response.data], { type: contentType });
+    const blobUrl = window.URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank");
+  } catch (err) {
+    console.error("Error al abrir muestra:", err);
+    triggerInformation("No se ha podido abrir la vista previa de la muestra.", "error");
+  } finally {
+    loadingResume.value = false;
+  }
+};
+
+const downloadOriginal = async () => {
+  if (!work.value) return;
+  if (downloadingOriginal.value) return;
+
+  downloadingOriginal.value = true;
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(
+      `http://localhost:8000/api/works/${work.value.id}/serve/`,
+      {
+        headers: { Authorization: `Token ${token}` },
+        responseType: "blob",
+      }
+    );
+
+    const blob = new Blob([response.data]);
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+
+    let fileName = "obra_original";
+    if (work.value.file_name) {
+      fileName = work.value.file_name;
+    }
+
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error("Error al descargar archivo original:", err);
+    triggerInformation("No se ha podido descargar el archivo de la obra.", "error");
+  } finally {
+    downloadingOriginal.value = false;
   }
 };
 
