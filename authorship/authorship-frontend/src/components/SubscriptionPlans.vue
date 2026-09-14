@@ -41,7 +41,6 @@
     </transition>
 
     <div class="plans-main-container">
-      <!-- Cabecera con botón volver a la izquierda y título centrado -->
       <div class="plans-header-bar">
         <button @click="goBack" type="button" class="btn-back-top">
           <i class="fa-solid fa-arrow-left"></i>

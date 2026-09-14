@@ -125,23 +125,45 @@
 
               <template v-else>
                 <div class="edit-group">
-                  <label class="label-mini">Nombre de Usuario</label>
-                  <input v-model="editForm.username" class="edit-input" placeholder="Usuario">
+                  <label class="field-label-top">
+                    <i class="fa-solid fa-user"></i> Nombre de Usuario
+                  </label>
+                  <div class="input-icon-wrapper">
+                    <i class="fa-regular fa-user input-inner-icon"></i>
+                    <input v-model="editForm.username" class="edit-input-field" placeholder="Usuario">
+                  </div>
 
-                  <label class="label-mini">Nombre</label>
-                  <input v-model="editForm.first_name" class="edit-input" placeholder="Nombre">
+                  <label class="field-label-top">
+                    <i class="fa-solid fa-user"></i> Nombre
+                  </label>
+                  <div class="input-icon-wrapper">
+                    <i class="fa-regular fa-user input-inner-icon"></i>
+                    <input v-model="editForm.first_name" class="edit-input-field" placeholder="Nombre">
+                  </div>
 
-                  <label class="label-mini">Apellidos</label>
-                  <input v-model="editForm.last_name" class="edit-input" placeholder="Apellido">
+                  <label class="field-label-top">
+                    <i class="fa-solid fa-user"></i> Apellidos
+                  </label>
+                  <div class="input-icon-wrapper">
+                    <i class="fa-regular fa-user input-inner-icon"></i>
+                    <input v-model="editForm.last_name" class="edit-input-field" placeholder="Apellidos">
+                  </div>
                 </div>
               </template>
             </div>
 
             <div class="profile-section">
               <div v-if="!isEditing">
-                <div v-if="user.es_autor && user.biography" class="info-group">
-                  <label class="section-subtitle">Biografía Profesional</label>
-                  <p class="bio-text">{{ user.biography }}</p>
+                <div v-if="user.es_autor" class="info-group-full">
+                  <div class="bio-display-card">
+                    <div class="bio-display-header">
+                      <i class="fa-solid fa-feather-pointed bio-display-icon"></i>
+                      <span class="bio-display-title">Biografía Profesional</span>
+                    </div>
+                    <p class="bio-text">
+                      {{ user.biography || 'Aún no has añadido una biografía a tu perfil.' }}
+                    </p>
+                  </div>
                 </div>
 
                 <div v-if="user.es_consumidor" class="interests-container">
@@ -158,22 +180,41 @@
               </div>
 
               <div v-else>
-                <div v-if="user.es_autor" class="info-group">
-                  <label class="label-mini">Biografía</label>
-                  <textarea v-model="editForm.biography" class="edit-textarea"></textarea>
+                <div v-if="user.es_autor" class="info-group-full">
+                  <div class="edit-interests-card">
+                    <div class="interests-header">
+                      <i class="fa-solid fa-feather-pointed icon-heart-top"></i>
+                      <div class="interests-titles">
+                        <span class="interests-title">Biografía Profesional</span>
+                        <span class="interests-subtitle">Cuéntale a tu comunidad sobre tu trayectoria.</span>
+                      </div>
+                    </div>
+
+                    <div class="bio-textarea-wrapper">
+                      <textarea v-model="editForm.biography" class="edit-bio-textarea"
+                        placeholder="Escribe una breve descripción sobre ti y tus creaciones..." rows="4"></textarea>
+                    </div>
+                  </div>
                 </div>
 
-                <div v-else-if="user.es_consumidor" class="info-group">
-                  <label class="label-mini">Mis Intereses</label>
-                  <div class="interests-grid">
-                    <div v-for="work in availableWorkTypes" :key="work.id" class="checkbox-item">
-                      <label class="checkbox-wrapper">
-                        <input type="checkbox" :value="work.id" v-model="editForm.interests" class="custom-check">
-                        <span class="check-label">{{ work.label }}</span>
+                <div v-else-if="user.es_consumidor" class="info-group-full">
+                  <div class="edit-interests-card">
+                    <div class="interests-header">
+                      <i class="fa-regular fa-heart icon-heart-top"></i>
+                      <div class="interests-titles">
+                        <span class="interests-title">Mis Intereses</span>
+                        <span class="interests-subtitle">Selecciona lo que quieres descubrir.</span>
+                      </div>
+                    </div>
+
+                    <div class="interests-two-columns">
+                      <label v-for="work in availableWorkTypes" :key="work.id" class="interest-option">
+                        <input type="checkbox" :value="work.id" v-model="editForm.interests" class="square-check" />
+                        <i :class="getWorkIcon(work.id)" class="interest-work-icon"></i>
+                        <span class="interest-tag-name">{{ work.label }}</span>
                       </label>
                     </div>
                   </div>
-                  <small class="info-help">Selecciona lo que quieres descubrir.</small>
                 </div>
               </div>
             </div>
@@ -222,12 +263,12 @@
                 </router-link>
 
                 <router-link to="/subscription/works/subscribe" class="nav-item-link" active-class="active">
-                  <i class="fa-solid fa-heart icon-primary"></i>
+                  <i class="fa-solid fa-heart"></i>
                   <span>Obras Guardadas</span>
                 </router-link>
 
                 <router-link to="/subscription/authors/subscribe" class="nav-item-link" active-class="active">
-                  <i class="fa-solid fa-users icon-primary"></i>
+                  <i class="fa-solid fa-users"></i>
                   <span>Mis Autores</span>
                 </router-link>
 
@@ -240,12 +281,16 @@
 
             <hr class="nav-divider" />
 
-            <div class="email-info-section">
-              <i class="fa-regular fa-envelope email-icon"></i>
-              <div class="email-text-box">
-                <span class="email-label">Correo electrónico:</span>
-                <p v-if="!isEditing" class="email-val">{{ user.email }}</p>
-                <input v-else v-model="editForm.email" class="edit-input-sm">
+            <div class="email-edit-box">
+              <label class="field-label-top">
+                <i class="fa-regular fa-envelope"></i> Correo electrónico
+              </label>
+              <div v-if="!isEditing" class="email-text-box">
+                <p class="email-val">{{ user.email }}</p>
+              </div>
+              <div v-else class="input-icon-wrapper">
+                <i class="fa-regular fa-envelope input-inner-icon"></i>
+                <input v-model="editForm.email" class="edit-input-field" placeholder="Correo">
               </div>
             </div>
 
@@ -254,9 +299,14 @@
                 Editar Perfil
               </button>
 
-              <div v-else class="edit-buttons">
-                <button @click="modifyProfile" class="btn-save-small">Guardar Cambios</button>
-                <button @click="isEditing = false" class="btn-cancel-small">Cancelar</button>
+              <div v-else class="edit-buttons-row">
+                <button @click="modifyProfile" class="btn-save-action">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>Guardar cambios</span>
+                </button>
+                <button @click="isEditing = false" class="btn-cancel-action">
+                  Cancelar
+                </button>
               </div>
             </div>
 
@@ -423,8 +473,8 @@
             </div>
 
             <router-link v-if="user.es_consumidor" to="/works" class="btn-primary-save">
+              <i class="fa-solid fa-compass"></i>
               Explorar Catálogo
-              &rarr;
             </router-link>
 
           </div>
@@ -709,16 +759,31 @@ const modifyProfile = async () => {
     loading.value = true;
     const token = authStore.token || localStorage.getItem("token");
 
-    const payload = { ...editForm.value };
-
-    if (!payload.username || !payload.first_name || !payload.last_name) {
+    if (!editForm.value.username || !editForm.value.first_name || !editForm.value.last_name) {
       triggerInformation("Nombre, Apellidos y Usuario son campos obligatorios.", "error");
       loading.value = false;
       return;
     }
 
-    if (user.value.es_consumidor && Array.isArray(payload.interests)) {
-      payload.interests = payload.interests.join(',');
+    const payload = {
+      username: editForm.value.username,
+      first_name: editForm.value.first_name,
+      last_name: editForm.value.last_name,
+      email: editForm.value.email || user.value.email,
+    };
+
+    if (user.value.es_autor) {
+      payload.biography = editForm.value.biography || "";
+    } else if (user.value.es_consumidor) {
+      if (Array.isArray(editForm.value.interests)) {
+        payload.interests = editForm.value.interests.join(',');
+
+      } else if (editForm.value.interests) {
+        payload.interests = editForm.value.interests;
+
+      } else {
+        payload.interests = "";
+      }
     }
 
     const response = await axios.patch("http://localhost:8000/api/users/me/", payload, {
@@ -733,13 +798,27 @@ const modifyProfile = async () => {
 
     isEditing.value = false;
 
-    await getRecommendedWorks();
+    if (user.value.es_consumidor) {
+      await getRecommendedWorks();
+    }
 
     triggerInformation("Perfil actualizado correctamente.", "success");
 
   } catch (err) {
     console.error(err);
-    triggerInformation("Error al actualizar el perfil.", "error");
+    let serverMessage = "Error al actualizar el perfil.";
+
+    if (err.response && err.response.data) {
+      const firstError = Object.values(err.response.data)[0];
+
+      if (Array.isArray(firstError)) {
+        serverMessage = firstError[0];
+      } else {
+        serverMessage = firstError;
+      }
+    }
+
+    triggerInformation(serverMessage, "error");
 
   } finally {
     loading.value = false;
@@ -913,7 +992,7 @@ onMounted(() => {
   flex-shrink: 0;
   background: var(--rosa-claro);
   color: var(--granate-principal);
-  border-radius: 50%;
+  border-radius: 25%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1118,18 +1197,52 @@ onMounted(() => {
   gap: 10px;
   cursor: pointer;
   justify-content: flex-start;
+  user-select: none;
 }
 
-.label-mini,
+.check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.edit-profile-icon {
+  color: var(--granate-principal);
+  font-size: 0.95rem;
+  width: 18px;
+  text-align: center;
+}
+
+.label-mini {
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+  margin-bottom: 4px;
+}
+
+.custom-check {
+  accent-color: var(--granate-principal);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .info-help {
   text-align: left;
   width: 100%;
-  margin-left: 0;
   display: block;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: #666;
-  margin-bottom: 4px;
+  margin-bottom: 16px;
 }
 
 .sidebar-nav-list {
@@ -1497,13 +1610,20 @@ onMounted(() => {
 
 .recommended-table td {
   padding: 10px 8px;
-  border-bottom: 1px solid #f0e4e8;
 }
 
 .recommended-table td:first-child {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.edit-interests-container {
+  background: #fdf8fa;
+  border: 1px solid var(--rosa-claro);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 25px 0;
 }
 
 .label-tipo {
@@ -1581,6 +1701,11 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   white-space: nowrap;
+}
+
+.card-title-group i {
+  color: var(--granate-principal);
+  font-size: 1.15rem;
 }
 
 .card-title-group h3 {
@@ -1823,5 +1948,280 @@ onMounted(() => {
 .btn-page:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.edit-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b4256;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.field-label-top i {
+  font-size: 0.85rem;
+  color: #555e77;
+}
+
+.input-icon-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.input-inner-icon {
+  position: absolute;
+  left: 14px;
+  color: #8c96ab;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.edit-input-field {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 40px;
+  border: 1.5px solid #e1e6ef;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #2b3040;
+  background-color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.edit-input-field:focus {
+  border-color: var(--rosa-fuerte);
+}
+
+.info-group-full {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.edit-interests-card {
+  background: #fdf5f7;
+  border: 1px solid #f9e2e7;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+}
+
+.interests-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.icon-heart-top {
+  color: var(--granate-principal);
+  font-size: 1.15rem;
+  margin-top: 2px;
+}
+
+.interests-titles {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.interests-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--granate-principal);
+  line-height: 1.2;
+}
+
+.interests-subtitle {
+  font-size: 0.74rem;
+  color: #7d8495;
+  margin-top: 2px;
+}
+
+.interests-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 12px;
+  column-gap: 16px;
+}
+
+.interest-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.square-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid #d495a6;
+  border-radius: 4px;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  outline: none;
+  margin: 0;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.square-check:checked {
+  background-color: var(--granate-principal);
+  border-color: var(--granate-principal);
+}
+
+.square-check:checked::before {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.interest-work-icon {
+  color: var(--granate-principal);
+  font-size: 0.95rem;
+  width: 16px;
+  text-align: center;
+}
+
+.interest-tag-name {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #3b4256;
+  letter-spacing: 0.4px;
+}
+
+.email-edit-box {
+  width: 100%;
+  margin-top: 14px;
+  margin-bottom: 20px;
+}
+
+.edit-buttons-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-save-action {
+  background: var(--granate-principal);
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-save-action:hover {
+  background: var(--rosa-fuerte);
+}
+
+.btn-cancel-action {
+  background: #ffffff;
+  color: var(--granate-principal);
+  border: 1.5px solid #f2cdd6;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-action:hover {
+  background: #fdf5f7;
+  border-color: var(--rosa-fuerte);
+}
+
+.bio-display-card {
+  background-color: #fdf5f7;
+  border: 1px solid #f9e2e7;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.bio-display-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bio-display-icon {
+  color: var(--granate-principal);
+  font-size: 1rem;
+}
+
+.bio-display-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--granate-principal);
+}
+
+.bio-text {
+  font-size: 0.86rem;
+  color: #555e77;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bio-textarea-wrapper {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.edit-bio-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1.5px solid #e1e6ef;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: #2b3040;
+  background-color: #ffffff;
+  outline: none;
+  resize: vertical;
+  min-height: 95px;
+  line-height: 1.45;
+  transition: border-color 0.2s;
+}
+
+.edit-bio-textarea:focus {
+  border-color: var(--rosa-fuerte);
 }
 </style>

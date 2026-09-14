@@ -117,11 +117,11 @@
 
       <div v-if="searchMode === 'works'">
 
-        <div v-if="isAuthor">
-          <h1>Mis Obras Registradas</h1>
-        </div>
-
-        <div v-else-if="isConsumer">
+        <div class="view-header-bar">
+          <router-link to="/dashboard" class="btn-back-top">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Volver</span>
+          </router-link>
           <h1>Catálogo de Obras Disponibles</h1>
         </div>
 
@@ -256,7 +256,14 @@
       </div>
 
       <div v-else-if="searchMode === 'authors'">
-        <h1>Directorio de Autores</h1>
+        <div class="view-header-bar">
+          <router-link to="/dashboard" class="btn-back-top">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Volver</span>
+          </router-link>
+
+          <h1>Directorio de Autores</h1>
+        </div>
 
         <div class="filters-container">
           <div class="filter-field" style="flex: 1;">
@@ -402,10 +409,6 @@
           </div>
         </Teleport>
       </div>
-
-      <router-link to="/dashboard" class="btn-back-link" style="margin-top: 30px;">
-        &larr; Volver al Panel Principal
-      </router-link>
     </div>
   </div>
 </template>
@@ -1049,7 +1052,7 @@ tr:hover {
   display: flex;
   gap: 15px;
   margin-bottom: 25px;
-  background-color: #fffafc;
+  background-color: var(--rosa-claro);
   padding: 15px 20px;
   border-radius: 10px;
   border: 1px solid var(--rosa-claro);
@@ -1393,5 +1396,48 @@ tr:hover {
   color: var(--rosa-fuerte);
   font-size: 1em;
   flex-shrink: 0;
+}
+
+.view-header-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-bottom: 25px;
+}
+
+.view-header-bar h1 {
+  margin: 0;
+  color: var(--granate-principal);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.btn-back-top {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  border: 1px solid #f2cdd6;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-top:hover {
+  background-color: #ffe1e8;
+  border-color: var(--rosa-fuerte);
+  transform: translateY(-50%) translateX(-2px);
 }
 </style>
