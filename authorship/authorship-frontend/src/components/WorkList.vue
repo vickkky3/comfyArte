@@ -858,6 +858,7 @@ const fetchNotifications = async () => {
 
 const handleLogout = () => {
   authStore.logout();
+  localStorage.removeItem("token");
   router.push("/login");
 };
 

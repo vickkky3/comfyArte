@@ -708,6 +708,12 @@ const handleSubmit = async () => {
   }
 };
 
+const handleLogout = () => {
+  authStore.logout();
+  localStorage.removeItem("token");
+  router.push("/login");
+};
+
 onMounted(() => {
   getUserData();
 });

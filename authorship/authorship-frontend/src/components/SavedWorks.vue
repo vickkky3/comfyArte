@@ -361,6 +361,7 @@ const saveWork = async (workId) => {
 
 const handleLogout = () => {
   authStore.logout();
+  localStorage.removeItem("token");
   router.push("/login");
 };
 

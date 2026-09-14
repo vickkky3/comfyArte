@@ -638,18 +638,10 @@ const deleteWork = async (id) => {
   }
 };
 
-const handleLogout = async () => {
-  try {
-    await axios.post("http://localhost:8000/api/users/", {}, {
-      headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
-    });
-  } catch (err) {
-    console.error("Error al cerrar sesión:", err);
-  } finally {
-    authStore.setToken(null);
-    localStorage.removeItem("token");
-    router.push("/login");
-  }
+const handleLogout = () => {
+  authStore.logout();
+  localStorage.removeItem("token");
+  router.push("/login");
 };
 
 onMounted(async () => {
