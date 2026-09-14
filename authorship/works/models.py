@@ -14,7 +14,6 @@ class Work(models.Model):
     ]
     
     LICENSES_CHOICES = [
-        ('none', 'Sin licencia'),
         ('by', 'BY'),
         ('by-sa', 'BY-SA'),
         ('by-nd', 'BY-ND'),

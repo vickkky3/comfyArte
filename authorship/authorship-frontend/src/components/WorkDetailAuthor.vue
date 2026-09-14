@@ -261,7 +261,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -271,7 +271,7 @@
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -354,7 +354,7 @@
               {{ licenseMeanings[work.license].summary }}
             </p>
 
-            <div v-if="work.license !== 'none'" class="license-rules-grid">
+            <div class="license-rules-grid">
               <span v-if="licenseMeanings[work.license].commercial" class="rule-pill rule-allow">
                 <i class="fa-solid fa-check"></i>
                 Uso comercial
@@ -373,13 +373,13 @@
                 No permite adaptaciones
               </span>
 
-              <span v-if="licenseMeanings[work.license].sameLicense" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i>
-                Exige que cualquier adaptación se distribuya bajo la misma licencia
+              <span v-if="licenseMeanings[work.license].sameLicense" class="rule-pill rule-warn">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                Exige distribuir versiones con la misma licencia
               </span>
-              <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i>
-                No exige que cualquier adaptación se distribuya bajo la misma licencia
+              <span v-else class="rule-pill rule-neutral">
+                <i class="fa-solid fa-unlock"></i>
+                Sin obligación de mantener la misma licencia
               </span>
             </div>
           </div>
@@ -454,11 +454,6 @@ const workTypes = {
 };
 
 const licenseMeanings = {
-  'none': {
-    name: 'Sin licencia específica',
-    summary: 'Aplica la reserva habitual de derechos de autor de tu obra.',
-    badges: ['Uso estándar'],
-  },
   'by': {
     name: 'CC BY · Atribución',
     summary: 'Cualquiera puede usar, modificar o lucrarse con tu obra mencionándote.',
@@ -1199,6 +1194,11 @@ onMounted(async () => {
 .rule-warn {
   background-color: var(--rosa-claro);
   color: var(--granate-principal);
+}
+
+.rule-neutral {
+  background-color: #f0f2f5;
+  color: #555e6d;
 }
 
 .license-description {

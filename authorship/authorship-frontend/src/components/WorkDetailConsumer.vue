@@ -368,7 +368,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                      }}</a>
+                    }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -468,23 +468,23 @@
             <span class="license-badge-name">{{ currentLicenseInfo.name }}</span>
             <p class="license-summary">{{ currentLicenseInfo.summary }}</p>
 
-            <div v-if="work.license !== 'none'" class="license-rules-grid">
+            <div class="license-rules-grid">
               <span v-if="currentLicenseInfo.commercial" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i> Uso comercial permitido
+                <i class="fa-solid fa-check"></i> Puedes vender la obra o ganar dinero con ella
               </span>
               <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i> Solo uso personal (no comercial)
+                <i class="fa-solid fa-xmark"></i> Prohibido vender la obra o ganar dinero con ella
               </span>
 
               <span v-if="currentLicenseInfo.derivatives" class="rule-pill rule-allow">
-                <i class="fa-solid fa-check"></i> Puedes crear versiones derivadas
+                <i class="fa-solid fa-check"></i> Puedes hacer adaptaciones de la obra
               </span>
               <span v-else class="rule-pill rule-deny">
-                <i class="fa-solid fa-xmark"></i> No alterar ni modificar
+                <i class="fa-solid fa-xmark"></i> Probido alterar y modificar la obra
               </span>
 
               <span v-if="currentLicenseInfo.sameLicense" class="rule-pill rule-warn">
-                <i class="fa-solid fa-arrows-rotate"></i> Compartir versiones con misma licencia
+                <i class="fa-solid fa-arrows-rotate"></i> Tus versiones se deben compartir bajo la misma licencia
               </span>
             </div>
           </div>
@@ -544,51 +544,44 @@ const workTypes = {
 };
 
 const licenseMeanings = {
-  'none': {
-    name: 'Todos los derechos reservados',
-    summary: 'El autor se reserva todos los derechos. Solo se permite el acceso y consumo dentro de la plataforma.',
-    commercial: false,
-    derivatives: false,
-    sameLicense: false
-  },
   'by': {
-    name: 'Creative Commons (CC BY)',
-    summary: 'Puedes disfrutar, compartir e incluso reutilizar esta obra citando a su autor/a original.',
+    name: 'Uso Libre con Mención (CC BY)',
+    summary: 'Puedes disfrutar, compartir, modificar e incluso vender creaciones derivadas, siempre que menciones a su autor original.',
     commercial: true,
     derivatives: true,
     sameLicense: false
   },
   'by-sa': {
-    name: 'Creative Commons (CC BY-SA)',
-    summary: 'Puedes compartir y adaptar la obra citando autoría, siempre que compartas tus creaciones bajo estos mismos términos.',
+    name: 'Compartir Igual con Mención (CC BY-SA)',
+    summary: 'Puedes compartir, modificar y usarla comercialmente citando al autor, siempre que tu nueva creación tenga esta misma licencia.',
     commercial: true,
     derivatives: true,
     sameLicense: true
   },
   'by-nd': {
-    name: 'Creative Commons (CC BY-ND)',
-    summary: 'Puedes compartir la obra citando al autor/a, pero debes mantenerla íntegra y sin modificaciones.',
+    name: 'Sin Modificaciones con Mención (CC BY-ND)',
+    summary: 'Puedes descargarla, compartirla y usarla comercialmente citando la autoría, pero la obra no puede ser alterada ni recortada.',
     commercial: true,
     derivatives: false,
     sameLicense: false
   },
   'by-nc': {
-    name: 'Creative Commons (CC BY-NC)',
-    summary: 'Puedes disfrutar y versionar esta obra libremente, siempre que sea sin fines de lucro comercial y citando autoría.',
+    name: 'Solo Uso Personal con Mención (CC BY-NC)',
+    summary: 'Puedes disfrutarla, compartirla y adaptarla citando al autor, pero está prohibido ganar dinero o usarla con fines comerciales.',
     commercial: false,
     derivatives: true,
     sameLicense: false
   },
   'by-nc-sa': {
-    name: 'Creative Commons (CC BY-NC-SA)',
-    summary: 'Puedes disfrutar y versionar sin fines de lucro, citando autoría y compartiendo derivados con esta misma licencia.',
+    name: 'Uso Personal y Compartir Igual (CC BY-NC-SA)',
+    summary: 'Puedes adaptarla y compartirla citando la autoría y sin ganar dinero, pero debes publicar tus versiones bajo esta misma licencia.',
     commercial: false,
     derivatives: true,
     sameLicense: true
   },
   'by-nc-nd': {
-    name: 'Creative Commons (CC BY-NC-ND)',
-    summary: 'Puedes descargarla y compartirla citando al autor/a, pero no puedes lucrarte con ella ni alterarla de ningún modo.',
+    name: 'Solo Difusión / Más Restrictiva (CC BY-NC-ND)',
+    summary: 'Solo puedes descargarla y compartirla mencionando al autor. Queda prohibido modificarla o usarla para obtener beneficios económicos.',
     commercial: false,
     derivatives: false,
     sameLicense: false
@@ -1550,7 +1543,6 @@ onMounted(async () => {
   word-break: break-all;
 }
 
-/* Tarjeta informativa de Licencias */
 .license-container {
   border-left: 5px solid var(--granate-principal);
 }
@@ -1612,8 +1604,9 @@ onMounted(async () => {
 }
 
 .rule-warn {
-  background-color: var(--rosa-claro);
-  color: var(--granate-principal);
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  ;
 }
 
 .license-description {

@@ -354,7 +354,8 @@
 
         <button type="submit" class="btn-save" :disabled="loading">
           <i class="fa-solid fa-floppy-disk"></i>
-          <span>{{ loading ? 'Guardando y validando...' : 'Guardar y proteger obra' }}</span>
+          <span v-if="loading">Guardando y validando...</span>
+          <span v-else>Guardar y proteger obra</span>
         </button>
 
       </form>
@@ -425,7 +426,6 @@ const licenses = [
   { id: 'by-nc', name: 'CC BY-NC (No Comercial)' },
   { id: 'by-nc-sa', name: 'CC BY-NC-SA' },
   { id: 'by-nc-nd', name: 'CC BY-NC-ND' },
-  { id: 'none', name: 'Sin licencia' },
 ];
 
 const selectedLicense = ref("none");
@@ -446,11 +446,6 @@ const selectedLicenseName = computed(() => {
 });
 
 const licenseMeanings = {
-  'none': {
-    name: 'Sin licencia específica',
-    summary: 'Aplica la reserva habitual de derechos de autor de tu obra.',
-    badges: ['Uso estándar'],
-  },
   'by': {
     name: 'CC BY · Atribución',
     summary: 'Cualquiera puede usar, modificar o lucrarse con tu obra mencionándote.',
