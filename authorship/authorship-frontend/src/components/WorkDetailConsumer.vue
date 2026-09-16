@@ -462,7 +462,15 @@
         </div>
 
         <div class="container-card license-container" v-if="work">
-          <h3>Uso permitido de la obra</h3>
+          <div class="license-header">
+            <h3>Información de la Licencia</h3>
+            <img 
+              v-if="getLicenseBadge(work?.license)" 
+              :src="getLicenseBadge(work?.license)" 
+              :alt="`Licencia ${work?.license_label || work?.license}`" 
+              class="license-badge-img"
+            />
+          </div>
 
           <div v-if="currentLicenseInfo" class="license-card-info">
             <span class="license-badge-name">{{ currentLicenseInfo.name }}</span>
@@ -585,6 +593,16 @@ const licenseMeanings = {
     commercial: false,
     derivatives: false,
     sameLicense: false
+  }
+};
+
+const getLicenseBadge = (licenseKey) => {
+  if (!licenseKey || licenseKey === 'none') return null;
+
+  try {
+    return new URL(`../assets/licenses/${licenseKey}.png`, import.meta.url).href;
+  } catch (e) {
+    return null;
   }
 };
 
@@ -1576,6 +1594,25 @@ onMounted(async () => {
   color: var(--granate-principal);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.license-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.license-header h3 {
+  margin: 0;
+  color: var(--granate-principal);
+}
+
+.license-badge-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .license-card-info {

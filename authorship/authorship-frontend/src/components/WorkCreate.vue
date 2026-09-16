@@ -345,9 +345,13 @@
             <p class="preview-text">{{ licenseMeanings[selectedLicense].summary }}</p>
           </div>
 
-          <p class="license-footnote">
-            Tu obra será protegida bajo: <strong>{{ selectedLicenseName }}</strong>
-          </p>
+          <div class="license-footer-row" v-if="getLicenseBadge(selectedLicense)">
+            <p class="license-footnote">
+              Tu obra será protegida bajo: <strong>{{ selectedLicenseName }}</strong>
+            </p>
+            <img :src="getLicenseBadge(selectedLicense)" :alt="`Licencia ${selectedLicenseName}`"
+              class="license-badge-img" />
+          </div>
         </div>
 
         <div v-if="error" class="error-msg">{{ error }}</div>
@@ -428,7 +432,7 @@ const licenses = [
   { id: 'by-nc-nd', name: 'CC BY-NC-ND' },
 ];
 
-const selectedLicense = ref("none");
+const selectedLicense = ref("by");
 
 const selectedLicenseName = computed(() => {
   const idSeleccionado = selectedLicense.value;
@@ -488,6 +492,16 @@ const licenseMeanings = {
     derivatives: false,
     sameLicense: false,
   },
+};
+
+const getLicenseBadge = (licenseKey) => {
+  if (!licenseKey || licenseKey === 'none') return null;
+
+  try {
+    return new URL(`../assets/licenses/${licenseKey}.png`, import.meta.url).href;
+  } catch (e) {
+    return null;
+  }
 };
 
 const workIcons = {
@@ -1034,6 +1048,32 @@ textarea {
   margin: 12px 0 0 0;
   font-size: 0.8rem;
   color: #777;
+}
+
+.license-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed #f0d5dc;
+}
+
+.license-footnote {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.license-footnote strong {
+  color: var(--granate-principal);
+}
+
+.license-badge-img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 .license-select {
