@@ -28,3 +28,5 @@ typing-inspection==0.4.4
 typing_extensions==4.16.0
 webencodings==0.6.1
 gunicorn
+dj-database-url
+psycopg2-binary
