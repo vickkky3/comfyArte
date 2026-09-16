@@ -4,6 +4,8 @@ from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
+from pathlib import Path
+
 from subscriptions.models import SubscriptionPlan
 from .models import Work
 from users.models import Notification
@@ -16,6 +18,7 @@ from .services import validate_work_content, process_file_for_ai, get_recommende
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
+from .throttles import CryptoOpsRateThrottle
 
 ALLOWED_EXTENSIONS = {
     'pdf', 'txt', 'jpg', 'jpeg', 'png', 'webp', 
@@ -30,18 +33,41 @@ ALLOWED_EXTENSIONS = {
     'swift', 'kt', 'sql', 'sh', 'ipynb', 'json', 'xml', 'yaml', 'yml'
 }
 
+SAFE_INLINE_MIMES = {
+    'image/jpeg', 'image/png', 'image/webp', 
+    'audio/mpeg', 'audio/ogg', 'audio/wav', 
+    'video/mp4', 'application/pdf'
+}
+
 def is_extension_allowed(filename):
-        if not filename or '.' not in filename:
-            return False
-        
-        if any(filename.endswith('.' + ext) for ext in ALLOWED_EXTENSIONS):
-            return True
-        
+    if not filename:
         return False
+    
+    ext = Path(filename).suffix.lstrip('.').lower()
+    
+    return ext in ALLOWED_EXTENSIONS
+
+MAX_FILE_SIZE = 50 * 1024 * 1024
+
+def sign_binary_data(binary_data, private_key_pem):
+    private_key = serialization.load_pem_private_key(
+        private_key_pem.encode('utf-8'),
+        password=None
+    )
+    signature = private_key.sign(
+        binary_data,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    return base64.b64encode(signature).decode('utf-8')
 
 class WorkListCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [CryptoOpsRateThrottle]
     
     def get(self, request):
         user = request.user
@@ -59,145 +85,114 @@ class WorkListCreateAPIView(APIView):
         data = request.data
         work_type = data.get('work_type')
         
-        serializer = WorkSerializer(data=data)
-        
         if not request.user.has_perm('works.add_work'):
             return Response(
                 {"error": "Tu cuenta no tiene permisos para registrar nuevas obras en la plataforma."}, 
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        if serializer.is_valid():
-            try:
-                models_map = {
-                    'book': Book,
-                    'music': Music,
-                    'video': Video,
-                    'software': Software,
-                    'paint': Paint,
-                    'sculpture': Sculpture
-                }
-                model_class = models_map.get(work_type, Work)
-                
-                valid_fields = {field.name for field in model_class._meta.get_fields()}
-                
-                create_data = {}
-                for k, v in data.items():
-                    if k != 'file_upload' and k != 'resume_upload' and v != "":
-                        if k in valid_fields:
-                            create_data[k] = v
-                        
-                plan_id = data.get('plan_required')
-                
-                if plan_id and plan_id != "":
-                    plan_obj = SubscriptionPlan.objects.get(id=plan_id)
-                    create_data['plan_required'] = plan_obj
-                    
-                else:
-                    create_data['plan_required'] = None
-                
-                if work_type in ['paint', 'sculpture'] and 'type_detail' in create_data:
-                    create_data['type'] = create_data.pop('type_detail')
-                
-                file = request.FILES.get('file_upload')
-                resume = request.FILES.get('resume_upload')
-                
-                title = data.get('title')
-                description = data.get('description')
-                
-                file_info = process_file_for_ai(file)
-                resume_info = process_file_for_ai(resume)
-                
-                result_ai_validator = validate_work_content(title, description, file_info, resume_info)
-                
-                print("--- RESULTADO DE LA IA ---", result_ai_validator)
-                
-                if not result_ai_validator.get("is_valid"):
-                    return Response(
-                        {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                if file:
-                    
-                    if not is_extension_allowed(file.name):
-                        return Response(
-                            {"error": "Formato de archivo no permitido. Los formatos aceptados son: .pdf, .jpg, .jpeg, .png, .webp, .mp3, .wav, .ogg, .mp4, .avi, .mov, .zip"},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                        
-
-                    if resume and not is_extension_allowed(resume.name):
-                        return Response(
-                            {"error": "Formato del archivo de muestra no permitido."},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-    
-    
-                    binary_file = file.read()
-                    create_data['binary_file'] = binary_file
-                    create_data['file_name'] = file.name
-                    create_data['file_type'] = file.content_type
-                    
-                    user_private_key_pem = request.user.private_key
-                
-                    if not user_private_key_pem:
-                        return Response({"error": "El usuario no dispone de una clave privada para firmar."}, status=status.HTTP_400_BAD_REQUEST)
-                    
-                    private_key = serialization.load_pem_private_key(
-                        user_private_key_pem.encode('utf-8'),
-                        password=None
-                    )   
-                    
-                    signature = private_key.sign(
-                        binary_file,
-                        padding.PSS(
-                            mgf=padding.MGF1(hashes.SHA256()),
-                            salt_length=padding.PSS.MAX_LENGTH
-                        ),
-                        hashes.SHA256()
-                    )
-                    
-                    signature_base64 = base64.b64encode(signature).decode('utf-8')
-                    
-                    create_data['hash_security'] = signature_base64
-                    
-                else:
-                    return Response(
-                        {"error": "Es obligatorio adjuntar un archivo para registrar y firmar la obra."}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                    
-                if resume:
-                    resume_file = resume.read()
-                    create_data['resume_file'] = resume_file
-                    create_data['resume_name'] = resume.name
-                    create_data['resume_type'] = resume.content_type
-                                    
-                obj = model_class.objects.create(author=request.user, **create_data)
-                
-                subscriptions = AuthorSubscription.objects.filter(author=request.user)
-                
-                notifications_to_create = []
-                for sub in subscriptions:
-                    notifications_to_create.append(
-                        Notification(
-                            recipient=sub.consumer,
-                            notification_type='new_work',
-                            work=obj,
-                            message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
-                        )
-                    )
-                    
-                if notifications_to_create:
-                    Notification.objects.bulk_create(notifications_to_create)
-
-                return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
-                            
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = WorkSerializer(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        clean_data = serializer.validated_data
+        
+        try:
+            models_map = {
+                'book': Book,
+                'music': Music,
+                'video': Video,
+                'software': Software,
+                'paint': Paint,
+                'sculpture': Sculpture
+            }
+            model_class = models_map.get(work_type, Work)
+            
+            valid_fields = {field.name for field in model_class._meta.get_fields()}
+            
+            create_data = {}
+            for k, v in clean_data.items():
+                if k != 'file_upload' and k != 'resume_upload' and v != "":
+                    if k in valid_fields:
+                        create_data[k] = v
+                    
+            plan_id = data.get('plan_required')
+            
+            if plan_id:
+                create_data['plan_required'] = SubscriptionPlan.objects.get(id=plan_id)
+            else:
+                create_data['plan_required'] = None
+            
+            if work_type in ['paint', 'sculpture'] and 'type_detail' in clean_data:
+                create_data['type'] = clean_data['type_detail']
+            
+            file = request.FILES.get('file_upload')
+            resume = request.FILES.get('resume_upload')
+            
+            if not file:
+                return Response({"error": "Es obligatorio adjuntar un archivo para registrar y firmar la obra."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if file.size > MAX_FILE_SIZE or (resume and resume.size > MAX_FILE_SIZE):
+                return Response({"error": "El archivo excede el tamaño máximo permitido (50 MB)."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not is_extension_allowed(file.name) or (resume and not is_extension_allowed(resume.name)):
+                return Response({"error": "Formato de archivo no permitido."}, status=status.HTTP_400_BAD_REQUEST)
+
+            file_info = process_file_for_ai(file)
+            file.seek(0)
+            
+            resume_info = None
+            if resume:
+                resume_info = process_file_for_ai(resume)
+                resume.seek(0)
+
+            result_ai_validator = validate_work_content(clean_data.get('title'), clean_data.get('description'), file_info, resume_info)
+            if not result_ai_validator.get("is_valid"):
+                return Response(
+                    {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            user_private_key_pem = request.user.private_key
+        
+            if not user_private_key_pem:
+                return Response({"error": "El usuario no dispone de una clave privada para firmar."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            binary_file = file.read()
+            clean_filename = Path(file.name).name
+            create_data['binary_file'] = binary_file
+            create_data['file_name'] = clean_filename
+            create_data['file_type'] = file.content_type
+            create_data['hash_security'] = sign_binary_data(binary_file, user_private_key_pem)
+                
+            if resume:
+                clean_resume_name = Path(resume.name).name
+                create_data['resume_file'] = resume.read()
+                create_data['resume_name'] = clean_resume_name
+                create_data['resume_type'] = resume.content_type
+                                
+            obj = model_class.objects.create(author=request.user, **create_data)
+            
+            subscriptions = AuthorSubscription.objects.filter(author=request.user)
+            
+            notifications_to_create = []
+            for sub in subscriptions:
+                notifications_to_create.append(
+                    Notification(
+                        recipient=sub.consumer,
+                        notification_type='new_work',
+                        work=obj,
+                        message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
+                    )
+                )
+                
+            if notifications_to_create:
+                Notification.objects.bulk_create(notifications_to_create)
+                
+            return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
+                        
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         
 class WorkDetailAPIView(APIView):
@@ -220,105 +215,6 @@ class WorkDetailAPIView(APIView):
         work.delete()
         
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    def patch(self, request, pk):
-        work = get_object_or_404(Work, pk=pk)
-        
-        if work.author != request.user:
-            return Response(
-                {"error": "No tienes autorización para modificar esta obra."}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        data = request.data
-        work_type = data.get('work_type', work.work_type)
-        
-        serializer = WorkSerializer(work, data=data, partial=True)
-        
-        models_map = {
-        'book': Book,
-        'music': Music,
-        'video': Video,
-        'software': Software,
-        'paint': Paint,
-        'sculpture': Sculpture
-        }
-        
-        model_class = models_map.get(work_type, Work)
-        
-        if serializer.is_valid():
-            try:
-                obj = model_class.objects.get(pk=work.pk)
-                
-                valid_fields = {field.name for field in model_class._meta.get_fields()}
-                
-                create_data = {}
-                for k, v in data.items():
-                    if k != 'file_upload' and k != 'resume_upload' and v != "":
-                        if k in valid_fields:
-                            create_data[k] = v
-                        
-                plan_id = data.get('plan_required')
-                
-                if plan_id and plan_id != "":
-                    plan_obj = SubscriptionPlan.objects.get(id=plan_id)
-                    create_data['plan_required'] = plan_obj
-                    
-                else:
-                    create_data['plan_required'] = None
-                
-                if work_type in ['paint', 'sculpture'] and 'type_detail' in create_data:
-                    create_data['type'] = create_data.pop('type_detail')
-                
-                file = request.FILES.get('file_upload')
-                resume = request.FILES.get('resume_upload')
-                
-                if file:
-                    binary_file = file.read()
-                    create_data['binary_file'] = binary_file
-                    create_data['file_name'] = file.name
-                    create_data['file_type'] = file.content_type
-                    
-                    user_private_key_pem = request.user.private_key
-                
-                    if not user_private_key_pem:
-                        return Response({"error": "El usuario no dispone de una clave privada para firmar."}, status=status.HTTP_400_BAD_REQUEST)
-                    
-                    private_key = serialization.load_pem_private_key(
-                        user_private_key_pem.encode('utf-8'),
-                        password=None
-                    )   
-                    
-                    signature = private_key.sign(
-                        binary_file,
-                        padding.PSS(
-                            mgf=padding.MGF1(hashes.SHA256()),
-                            salt_length=padding.PSS.MAX_LENGTH
-                        ),
-                        hashes.SHA256()
-                    )
-                    
-                    signature_base64 = base64.b64encode(signature).decode('utf-8')
-                    
-                    create_data['hash_security'] = signature_base64
-                
-                if resume:
-                    resume_file = resume.read()
-                    create_data['resume_file'] = resume_file
-                    create_data['resume_name'] = resume.name
-                    create_data['resume_type'] = resume.content_type
-                    
-                for key, value in create_data.items():
-                    setattr(obj, key, value)
-                    
-                obj.save()
-                    
-                return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
-                
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-            
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class ListWorksByAuthorAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -345,18 +241,16 @@ class ServeWorkFileAPIView(APIView):
                 {"error": "Esta obra no tiene ningún archivo digital adjunto."}, 
                 status=status.HTTP_404_NOT_FOUND
             )
+            
+        safe_name = Path(work.file_name).name
+        disposition = 'inline' if work.file_type in SAFE_INLINE_MIMES else 'attachment'
         
-        response = HttpResponse(work.binary_file, content_type=work.file_type)
-        
-        response['Content-Disposition'] = f'inline; filename="{work.file_name}"'
-        
+        response = HttpResponse(work.binary_file, content_type=work.file_type or 'application/octet-stream')
+        response['Content-Disposition'] = f'{disposition}; filename="{safe_name}"'
+        response['X-Content-Type-Options'] = 'nosniff'
         return response
     
 class ServeWorkResumeAPIView(APIView):
-    """
-    Vista elástica para servir la muestra gratuita / resumen 
-    sin restricciones de suscripción comercial.
-    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
@@ -365,8 +259,11 @@ class ServeWorkResumeAPIView(APIView):
         if not work.resume_file:
             return HttpResponse("Esta obra no dispone de muestra gratuita.", status=404)
         
-        response = HttpResponse(work.resume_file, content_type=work.resume_type)
-        response['Content-Disposition'] = f'inline; filename="preview_{work.resume_name}"'
+        safe_name = Path(work.resume_name).name
+        disposition = 'inline' if work.resume_type in SAFE_INLINE_MIMES else 'attachment'
+        
+        response = HttpResponse(work.resume_file, content_type=work.resume_type or 'application/octet-stream')
+        response['Content-Disposition'] = f'{disposition}; filename="preview_{safe_name}"'
         return response
     
 class RecommendedWorksAPIView(APIView):

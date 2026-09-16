@@ -56,7 +56,7 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else-if="notif.notification_type === 'new_work'" f>
+                      <template v-else-if="notif.notification_type === 'new_work'">
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
                       </template>
@@ -738,15 +738,21 @@ const downloadOriginal = async () => {
       }
     );
 
-    const blob = new Blob([response.data]);
+    let fileName = work.value.file_name || "obra_original";
+    const disposition = response.headers["content-disposition"];
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+
+      if (match && match[1]) fileName = match[1];
+    }
+
+    const blob = new Blob([response.data], {
+      type: work.value.file_type || "application/octet-stream"
+    });
+
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
-
-    let fileName = "obra_original";
-    if (work.value.file_name) {
-      fileName = work.value.file_name;
-    }
 
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
@@ -754,6 +760,7 @@ const downloadOriginal = async () => {
 
     document.body.removeChild(link);
     window.URL.revokeObjectURL(blobUrl);
+
   } catch (err) {
     console.error("Error al descargar archivo original:", err);
     triggerInformation("No se ha podido descargar el archivo de la obra.", "error");
@@ -763,8 +770,7 @@ const downloadOriginal = async () => {
 };
 
 const openResumePreview = async () => {
-  if (!work.value) return;
-  if (loadingResume.value) return;
+  if (!work.value || loadingResume.value) return;
 
   loadingResume.value = true;
   try {
@@ -777,18 +783,34 @@ const openResumePreview = async () => {
       }
     );
 
-    const contentType = response.headers["content-type"] || "application/pdf";
-    const blob = new Blob([response.data], { type: contentType });
+    let fileName = work.value.resume_name || "muestra";
+    const disposition = response.headers["content-disposition"];
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) fileName = match[1];
+    }
+
+    const blob = new Blob([response.data], {
+      type: work.value.resume_type || "application/octet-stream"
+    });
+
     const blobUrl = window.URL.createObjectURL(blob);
-    window.open(blobUrl, "_blank");
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+
   } catch (err) {
-    console.error("Error al abrir muestra:", err);
-    triggerInformation("No se ha podido abrir la vista previa de la muestra.", "error");
+    console.error("Error al descargar la muestra:", err);
+    triggerInformation("No se ha podido descargar la muestra.", "error");
   } finally {
     loadingResume.value = false;
   }
 };
-
 const consultAuthorWork = (newWorkId) => {
   closeAuthorModal();
   router.push(`/works/${newWorkId}`);

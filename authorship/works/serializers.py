@@ -2,6 +2,13 @@ from rest_framework import serializers
 
 from subscriptions.serializers import SubscriptionPlanSerializer
 from .models import Work
+import bleach
+
+def clean_plain_text(value):
+    if value and isinstance(value, str):
+        return bleach.clean(value.strip(), tags=[], attributes={}, strip=True)
+    
+    return value
 
 class WorkSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
@@ -27,9 +34,31 @@ class WorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Work
         fields = '__all__'
+        
+    def validate_title(self, value):
+        return clean_plain_text(value)
+
+    def validate_description(self, value):
+        return clean_plain_text(value)
+
+    def validate_isbn(self, value):
+        return clean_plain_text(value)
+
+    def validate_album(self, value):
+        return clean_plain_text(value)
+
+    def validate_repository_url(self, value):
+        return clean_plain_text(value)
+    
+    def validate_documentation_url(self, value):
+        return clean_plain_text(value)
+
+    def validate_programming_language(self, value):
+        return clean_plain_text(value)
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)            
+        data = super().to_representation(instance)     
+               
         if instance.work_type == 'book' and hasattr(instance, 'book'):
             data['isbn'] = instance.book.isbn
             data['pages'] = instance.book.pages

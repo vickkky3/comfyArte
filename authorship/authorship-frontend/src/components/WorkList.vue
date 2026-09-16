@@ -57,7 +57,7 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else-if="notif.notification_type === 'new_work'" f>
+                      <template v-else-if="notif.notification_type === 'new_work'">
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
                       </template>

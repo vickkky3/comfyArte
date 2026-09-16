@@ -49,7 +49,7 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else-if="notif.notification_type === 'new_work'" f>
+                      <template v-else-if="notif.notification_type === 'new_work'">
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
                       </template>
@@ -664,7 +664,11 @@ const handleSubmit = async () => {
   } catch (err) {
     let errorMsg = "Error inesperado al procesar la subida.";
 
-    if (err.response && err.response.data) {
+    if (err.response.status === 429) {
+      errorMsg = "Has alcanzado el límite de registros permitidos. Por favor, inténtalo más tarde.";
+    }
+
+    else if (err.response && err.response.data) {
       const data = err.response.data;
 
       if (data.error) {

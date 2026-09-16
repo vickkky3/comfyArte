@@ -56,7 +56,7 @@
                       <template v-if="notif.notification_type === 'new_follower'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha comenzado a seguirte.
                       </template>
-                      <template v-else-if="notif.notification_type === 'new_work'" f>
+                      <template v-else-if="notif.notification_type === 'new_work'">
                         El autor <strong>{{ notif.author_username || notif.sender_username }}</strong> ha subido una
                         nueva obra: <em>"{{ notif.work_title }}"</em>.
                       </template>
@@ -261,7 +261,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -270,8 +270,8 @@
                 <div class="icon-circle"><i class="fa-solid fa-book"></i></div>
                 <span class="tech-label">Repositorio de documentación</span>
                 <span class="tech-value">
-                  <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.documentation_url
-                    }}</a>
+                  <a v-if="work.documentation_url" :href="work.documentation_url" target="_blank">{{
+                    work.documentation_url }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -313,14 +313,14 @@
               </p>
               <div class="media-preview-container">
                 <button type="button" class="btn-sidebar-secondary" @click="openResumePreview"
-                    :disabled="loadingResume">
-                    <span v-if="loadingResume">
-                      <i class="fa-solid fa-spinner fa-spin"></i> Abriendo...
-                    </span>
-                    <span v-else>
-                      <i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar muestra ({{ work.resume_name }})
-                    </span>
-                  </button>
+                  :disabled="loadingResume">
+                  <span v-if="loadingResume">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Abriendo...
+                  </span>
+                  <span v-else>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Verificar muestra ({{ work.resume_name }})
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -337,14 +337,14 @@
               </p>
               <div class="unlocked-zone">
                 <button type="button" class="btn-action btn-download" @click="downloadOriginal"
-                :disabled="downloadingOriginal">
-                <span v-if="downloadingOriginal">
-                  <i class="fa-solid fa-spinner fa-spin"></i> Descargando...
-                </span>
-                <span v-else>
-                  <i class="fa-solid fa-circle-down"></i> Descargar Original
-                </span>
-              </button>
+                  :disabled="downloadingOriginal">
+                  <span v-if="downloadingOriginal">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Descargando...
+                  </span>
+                  <span v-else>
+                    <i class="fa-solid fa-circle-down"></i> Descargar Original
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -462,10 +462,8 @@ const user = ref({
   es_autor: false,
   es_consumidor: false
 });
-const userPoints = ref(0);
 const work = ref(null);
 const subscriptionTypes = ref([]);
-const activeSubscription = ref(null);
 
 const downloadingOriginal = ref(false);
 const loadingResume = ref(false);
@@ -660,8 +658,7 @@ const deleteWork = async (id) => {
 };
 
 const openResumePreview = async () => {
-  if (!work.value) return;
-  if (loadingResume.value) return;
+  if (!work.value || loadingResume.value) return;
 
   loadingResume.value = true;
   try {
@@ -674,13 +671,30 @@ const openResumePreview = async () => {
       }
     );
 
-    const contentType = response.headers["content-type"] || "application/pdf";
-    const blob = new Blob([response.data], { type: contentType });
+    let fileName = work.value.resume_name || "muestra";
+    const disposition = response.headers["content-disposition"];
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) fileName = match[1];
+    }
+
+    const blob = new Blob([response.data], {
+      type: work.value.resume_type || "application/octet-stream"
+    });
+
     const blobUrl = window.URL.createObjectURL(blob);
-    window.open(blobUrl, "_blank");
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+
   } catch (err) {
-    console.error("Error al abrir muestra:", err);
-    triggerInformation("No se ha podido abrir la vista previa de la muestra.", "error");
+    console.error("Error al descargar la muestra:", err);
+    triggerInformation("No se ha podido descargar la muestra.", "error");
   } finally {
     loadingResume.value = false;
   }
@@ -701,15 +715,21 @@ const downloadOriginal = async () => {
       }
     );
 
-    const blob = new Blob([response.data]);
+    let fileName = work.value.file_name || "obra_original";
+    const disposition = response.headers["content-disposition"];
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+
+      if (match && match[1]) fileName = match[1];
+    }
+
+    const blob = new Blob([response.data], {
+      type: work.value.file_type || "application/octet-stream"
+    });
+
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = blobUrl;
-
-    let fileName = "obra_original";
-    if (work.value.file_name) {
-      fileName = work.value.file_name;
-    }
 
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
@@ -717,9 +737,11 @@ const downloadOriginal = async () => {
 
     document.body.removeChild(link);
     window.URL.revokeObjectURL(blobUrl);
+
   } catch (err) {
     console.error("Error al descargar archivo original:", err);
     triggerInformation("No se ha podido descargar el archivo de la obra.", "error");
+
   } finally {
     downloadingOriginal.value = false;
   }
