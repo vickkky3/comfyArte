@@ -98,6 +98,8 @@ const password = ref("");
 const error = ref("");
 const loading = ref(false);
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const notification = ref({
     show: false,
     message: "",
@@ -113,7 +115,7 @@ const handleLogin = async () => {
     error.value = "";
 
     try {
-        const response = await axios.post("http://localhost:8000/api/users/login/", {
+        const response = await axios.post(`${API_BASE}/api/users/login/`, {
             username: username.value,
             password: password.value,
         });
