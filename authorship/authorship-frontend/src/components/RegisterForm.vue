@@ -272,6 +272,8 @@ const notification = ref({
   type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const triggerNotification = (message, type = 'error') => {
   notification.value = { show: true, message, type };
 };
@@ -297,7 +299,7 @@ const handleRegister = async () => {
       payload.interests = interests.value.join(',');
     }
 
-    const response = await axios.post("http://localhost:8000/api/users/register/", payload);
+    const response = await axios.post(`${API_BASE}/api/users/register/`, payload);
 
     const token = response.data.token;
     if (token) {

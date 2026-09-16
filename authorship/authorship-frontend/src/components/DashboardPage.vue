@@ -596,6 +596,8 @@ const workIconMap = {
   sculpture: 'fa-solid fa-hammer'
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const getWorkTypeName = (type) => workTypeNames[type] || 'Obra';
 const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 
@@ -624,7 +626,7 @@ const getRecommendedWorks = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/works/recommended/", {
+    const response = await axios.get(`${API_BASE}/api/works/recommended/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -662,7 +664,7 @@ const getUserData = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/users/me/", {
+    const response = await axios.get(`${API_BASE}/api/users/me/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -674,7 +676,7 @@ const getUserData = async () => {
     user.value.es_consumidor = user.value.role === 'consumer';
 
     if (user.value.es_autor) {
-      const statsResponse = await axios.get("http://localhost:8000/api/subscriptions/authors/stats/", {
+      const statsResponse = await axios.get(`${API_BASE}/api/subscriptions/authors/stats/`, {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -683,7 +685,7 @@ const getUserData = async () => {
       numSubscriptors.value = statsResponse.data.subscribers_count || 0;
       savedCount.value = statsResponse.data.saved_works_count || 0;
 
-      const worksResponse = await axios.get(`http://localhost:8000/api/works/authors/${user.value.id}/`, {
+      const worksResponse = await axios.get(`${API_BASE}/api/works/authors/${user.value.id}/`, {
         headers: {
           Authorization: `Token ${token}`,
         },
@@ -707,7 +709,7 @@ const getUserPoints = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/points/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -724,7 +726,7 @@ const getSuscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/authors/subscribe/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/authors/subscribe/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -741,7 +743,7 @@ const getSavedWorks = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/works/subscribe/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/works/subscribe/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -786,7 +788,7 @@ const modifyProfile = async () => {
       }
     }
 
-    const response = await axios.patch("http://localhost:8000/api/users/me/", payload, {
+    const response = await axios.patch(`${API_BASE}/api/users/me/`, payload, {
       headers: {
         Authorization: `Token ${token}`,
       }
@@ -852,7 +854,7 @@ const toggleNotifications = () => {
 const fetchNotifications = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+    const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
     notifications.value = response.data;
@@ -896,7 +898,7 @@ const prevPage = () => {
 const deleteWork = async (id) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    await axios.delete(`http://localhost:8000/api/works/${id}/`, {
+    await axios.delete(`${API_BASE}/api/works/${id}/`, {
       headers: { Authorization: `Token ${token}` }
     });
 
