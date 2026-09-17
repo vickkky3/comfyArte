@@ -27,14 +27,14 @@ class Work(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     work_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='book')
-    license = models.CharField(max_length=20, choices=LICENSES_CHOICES, default='by')
+    license = models.CharField(max_length=50, choices=LICENSES_CHOICES, default='by')
     
     binary_file = models.BinaryField(blank=True, null=True)
     file_name = models.CharField(max_length=200, blank=True)
-    file_type = models.CharField(max_length=50, blank=True)
+    file_type = models.CharField(max_length=120, blank=True)
     resume_file = models.BinaryField(blank=True, null=True)
     resume_name = models.CharField(max_length=200, blank=True)
-    resume_type = models.CharField(max_length=50, blank=True)
+    resume_type = models.CharField(max_length=120, blank=True)
     
     plan_required = models.ForeignKey(
         SubscriptionPlan, 
@@ -44,7 +44,7 @@ class Work(models.Model):
         related_name='works'
     ) 
     
-    hash_security = models.CharField(max_length=64, blank=True, null=True)
+    hash_security = models.CharField(max_length=512, blank=True, null=True)
     
     class Meta:
         permissions = [
@@ -64,7 +64,7 @@ class Work(models.Model):
     
 class Book(Work):
     pages = models.IntegerField()
-    isbn = models.CharField(max_length=20)
+    isbn = models.CharField(max_length=30)
     genre = models.CharField(max_length=100, blank=True)
     language = models.CharField(max_length=100, blank=True)
 
