@@ -195,6 +195,8 @@ const information = ref({
   type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const triggerInformation = (message, type = 'error') => {
   information.value = { show: true, message, type };
 };
@@ -221,7 +223,7 @@ const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 
 const getUserData = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/users/me/", {
+    const response = await axios.get(`${API_BASE}/api/users/me/`, {
       headers: {
         Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
       },
@@ -242,7 +244,7 @@ const getSavedWorks = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/works/subscribe/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/works/subscribe/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -278,7 +280,7 @@ const getUserPoints = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/points/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -312,7 +314,7 @@ const toggleNotifications = () => {
 const fetchNotifications = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+    const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
 
@@ -336,7 +338,7 @@ const saveWork = async (workId) => {
   try {
     if (isSaved(workId)) {
 
-      await axios.delete(`http://localhost:8000/api/subscriptions/works/subscribe/`, config);
+      await axios.delete(`${API_BASE}/api/subscriptions/works/subscribe/`, config);
       savedWorkIds.value.delete(workId);
 
       savedWorks.value = savedWorks.value.filter(item => (item.work_id || item.id) !== workId);
@@ -344,7 +346,7 @@ const saveWork = async (workId) => {
       triggerInformation("¡Obra eliminada de tus favoritos!", "success");
     } else {
 
-      await axios.post(`http://localhost:8000/api/subscriptions/works/subscribe/`, { work_id: workId }, {
+      await axios.post(`${API_BASE}/api/subscriptions/works/subscribe/`, { work_id: workId }, {
         headers: { Authorization: `Token ${token}` }
       });
 

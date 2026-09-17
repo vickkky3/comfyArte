@@ -537,13 +537,15 @@ const information = ref({
   type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const triggerInformation = (message, type = 'error') => {
   information.value = { show: true, message, type };
 };
 
 const getUserData = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/users/me/", {
+    const response = await axios.get(`${API_BASE}/api/users/me/`, {
       headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` },
     });
 
@@ -583,7 +585,7 @@ const toggleNotifications = () => {
 const fetchNotifications = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+    const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
     notifications.value = response.data;
@@ -595,7 +597,7 @@ const fetchNotifications = async () => {
 const fetchPlans = async () => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/subscriptions/plans/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/plans/`, {
       headers: { Authorization: `Token ${token}` }
     });
 
@@ -663,7 +665,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post("http://localhost:8000/api/works/", formData, {
+    await axios.post(`${API_BASE}/api/works/`, formData, {
       headers: {
         "Authorization": `Token ${authStore.token || localStorage.getItem("token")}`
       }

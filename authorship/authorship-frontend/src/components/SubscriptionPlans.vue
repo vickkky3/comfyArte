@@ -117,16 +117,18 @@ const notification = ref({
   type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const getSubscriptionPlanData = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/subscriptions/plans/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/plans/`, {
       headers: {
         Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
       },
     });
     plans.value = response.data;
 
-    const responseUser = await axios.get("http://localhost:8000/api/users/me/", {
+    const responseUser = await axios.get(`${API_BASE}/api/users/me/`, {
       headers: {
         Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
       },
@@ -145,7 +147,7 @@ const getUserPoints = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/points/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -164,7 +166,7 @@ const triggerNotification = (message, type = 'error') => {
 
 const handleSubscribe = async (planId) => {
   try {
-    const response = await axios.post("http://localhost:8000/api/subscriptions/subscribe/",
+    const response = await axios.post(`${API_BASE}/api/subscriptions/subscribe/`,
       { plan_id: planId },
       { headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` } }
     );

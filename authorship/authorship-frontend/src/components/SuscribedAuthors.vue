@@ -288,6 +288,8 @@ const information = ref({
   type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const triggerInformation = (message, type = 'error') => {
   information.value = { show: true, message, type };
 };
@@ -295,7 +297,7 @@ const triggerInformation = (message, type = 'error') => {
 const getUserData = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/me/", {
+    const response = await axios.get(`${API_BASE}/api/users/me/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -319,7 +321,7 @@ const getSuscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/authors/subscribe/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/authors/subscribe/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -374,7 +376,7 @@ const openAuthorModal = async (author) => {
 
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get(`http://localhost:8000/api/works/authors/${author.id}/`, {
+    const response = await axios.get(`${API_BASE}/api/works/authors/${author.id}/`, {
       headers: { Authorization: `Token ${token}` }
     });
     authorWorks.value = response.data;
@@ -395,7 +397,7 @@ const cancelSuscriptionToAuthor = async (authorId) => {
     const token = authStore.token || localStorage.getItem("token");
 
     await axios.delete(
-      "http://localhost:8000/api/subscriptions/authors/subscribe/",
+      `${API_BASE}/api/subscriptions/authors/subscribe/`,
       {
         headers: {
           Authorization: `Token ${token}`
@@ -428,7 +430,7 @@ const getUserPoints = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
-    const response = await axios.get("http://localhost:8000/api/subscriptions/points/", {
+    const response = await axios.get(`${API_BASE}/api/subscriptions/points/`, {
       headers: {
         Authorization: `Token ${token}`,
       },
@@ -460,7 +462,7 @@ const toggleNotifications = () => {
 const fetchNotifications = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/users/notifications/", {
+    const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
     notifications.value = response.data;
