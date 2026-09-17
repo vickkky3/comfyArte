@@ -368,7 +368,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                      }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -464,12 +464,8 @@
         <div class="container-card license-container" v-if="work">
           <div class="license-header">
             <h3>Información de la Licencia</h3>
-            <img 
-              v-if="getLicenseBadge(work?.license)" 
-              :src="getLicenseBadge(work?.license)" 
-              :alt="`Licencia ${work?.license_label || work?.license}`" 
-              class="license-badge-img"
-            />
+            <img v-if="getLicenseBadge(work?.license)" :src="getLicenseBadge(work?.license)"
+              :alt="`Licencia ${work?.license_label || work?.license}`" class="license-badge-img" />
           </div>
 
           <div v-if="currentLicenseInfo" class="license-card-info">
@@ -850,27 +846,83 @@ const formatDate = (dateString) => {
 };
 
 const canSeeProtectedContent = computed(() => {
-  if (!work.value) return false;
-  if (!authStore.user) return false;
+  if (!work.value) {
+    return false;
 
-  const isAdmin = authStore.user.role === 'admin';
-  const isAuthor = Number(authStore.user.id) === Number(work.value.author);
-  const isFreeWork = !work.value.plan_required;
-
-  let isSubscribed = false;
-
-  if (activeSubscription.value && work.value.plan_required) {
-    const planUserId = activeSubscription.value.plan;
-    const planRequiredId = work.value.plan_required.id;
-
-    if (planUserId === planRequiredId) {
-      isSubscribed = true;
-    } else if (activeSubscription.value.plan_points >= work.value.plan_required.points) {
-      isSubscribed = true;
-    }
+  } else if (!authStore.user) {
+    return false;
   }
 
-  return isAdmin || isAuthor || isFreeWork || isSubscribed;
+  const user = authStore.user;
+
+  let authorId;
+  if (typeof work.value.author === 'object') {
+    if (work.value.author) {
+      authorId = work.value.author.id;
+
+    } else {
+      authorId = null;
+    }
+  } else {
+    authorId = work.value.author;
+  }
+
+  const isAuthor = Number(user.id) === Number(authorId);
+
+  if (isAuthor) {
+    return true;
+  }
+
+  const planReq = work.value.plan_required;
+  if (!planReq) {
+    return true;
+  }
+
+  if (!activeSubscription.value) {
+    return false;
+
+  } else {
+    let userPlanId;
+    if (typeof activeSubscription.value.plan === 'object') {
+      if (activeSubscription.value.plan) {
+        userPlanId = activeSubscription.value.plan.id;
+
+      } else {
+        userPlanId = null;
+      }
+    } else {
+      userPlanId = activeSubscription.value.plan;
+    }
+
+    let requiredPlanId;
+    let requiredPoints = 0;
+
+    if (typeof planReq === 'object') {
+      requiredPlanId = planReq.id;
+
+      if (planReq.points) {
+        requiredPoints = Number(planReq.points);
+
+      }
+    } else {
+      requiredPlanId = planReq;
+    }
+
+    if (Number(userPlanId) === Number(requiredPlanId)) {
+      return true;
+
+    } else {
+      const userPoints = Number(activeSubscription.value.plan_points || 0);
+
+      if (userPoints >= requiredPoints && requiredPoints > 0) {
+        return true;
+
+      } else {
+        return false;
+        
+      }
+    }
+  }
 });
 
 const handleSubscribe = () => {

@@ -5,18 +5,18 @@ from users.models import User
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=6, decimal_places=2)
-    points = models.IntegerField(default=15)
+    points = models.IntegerField(default=15, editable=False)
     description = models.TextField()
     duration_days = models.IntegerField(default=30)
-    
-    features_raw = models.TextField(
-        help_text="Introduce las características separadas por comas.", 
-        blank=True, 
-        default=""
-    )
+
+    def save(self, *args, **kwargs):
+        if self.price is not None:
+            self.points = int(self.price * 10)
+            
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.points} pts)"
     
 class UserSubscription(models.Model):
     user = models.OneToOneField(
@@ -66,7 +66,7 @@ class AuthorSubscription(models.Model):
         unique_together = ('consumer', 'author')
 
     def __str__(self):
-        return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.name}"
+        return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.username}"
     
 class SaveWork(models.Model):
     consumer = models.ForeignKey(
