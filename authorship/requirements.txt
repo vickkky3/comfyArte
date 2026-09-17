@@ -30,3 +30,4 @@ webencodings==0.6.1
 gunicorn
 dj-database-url
 psycopg2-binary
+whitenoise
