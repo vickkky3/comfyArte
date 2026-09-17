@@ -851,79 +851,59 @@ const canSeeProtectedContent = computed(() => {
   }
 
   const planReq = work.value.plan_required;
+
   if (!planReq) {
+    return true;
+
+  } else if (typeof planReq === 'object' && !planReq.id) {
     return true;
   }
 
   if (!authStore.user) {
     return false;
-  }
 
-  const user = authStore.user;
-
-  let authorId;
-  if (typeof work.value.author === 'object') {
-    if (work.value.author) {
-      authorId = work.value.author.id;
-
-    } else {
-      authorId = null;
-
-    }
-  } else {
-    authorId = work.value.author;
-  }
-
-  const isAuthor = Number(user.id) === Number(authorId);
-
-  if (isAuthor) {
-    return true;
-  }
-
-  if (!activeSubscription.value) {
+  } else if (!activeSubscription.value) {
     return false;
+  }
+
+  let userPlanId;
+  if (typeof activeSubscription.value.plan === 'object') {
+    if (activeSubscription.value.plan) {
+      userPlanId = activeSubscription.value.plan.id;
+
+    } else {
+      userPlanId = null;
+
+    }
+  } else {
+    userPlanId = activeSubscription.value.plan;
+  }
+
+  let requiredPlanId;
+  let requiredPoints = 0;
+
+  if (typeof planReq === 'object') {
+    requiredPlanId = planReq.id;
+
+    if (planReq.points) {
+      requiredPoints = Number(planReq.points);
+
+    }
+  } else {
+    requiredPlanId = planReq;
+  }
+
+  if (Number(userPlanId) === Number(requiredPlanId)) {
+    return true;
 
   } else {
-    let userPlanId;
+    const userPoints = Number(activeSubscription.value.plan_points || 0);
 
-    if (typeof activeSubscription.value.plan === 'object') {
-      if (activeSubscription.value.plan) {
-        userPlanId = activeSubscription.value.plan.id;
-
-      } else {
-        userPlanId = null;
-
-      }
-    } else {
-      userPlanId = activeSubscription.value.plan;
-    }
-
-    let requiredPlanId;
-    let requiredPoints = 0;
-
-    if (typeof planReq === 'object') {
-      requiredPlanId = planReq.id;
-
-      if (planReq.points) {
-        requiredPoints = Number(planReq.points);
-
-      }
-    } else {
-      requiredPlanId = planReq;
-    }
-
-    if (Number(userPlanId) === Number(requiredPlanId)) {
+    if (userPoints >= requiredPoints && requiredPoints > 0) {
       return true;
-
+      
     } else {
-      const userPoints = Number(activeSubscription.value.plan_points || 0);
-
-      if (userPoints >= requiredPoints && requiredPoints > 0) {
-        return true;
-        
-      } else {
-        return false;
-      }
+      return false;
     }
   }
 });

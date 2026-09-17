@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     token: null,
@@ -18,7 +20,7 @@ export const useAuthStore = defineStore("auth", {
       }
 
       try {
-        const res = await axios.get("http://localhost:8000/api/users/me/", {
+        const res = await axios.get(`${API_BASE}/api/users/me/`, {
           headers: { Authorization: `Token ${this.token}` }
         });
         this.user = res.data; 
