@@ -368,7 +368,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                      }}</a>
+                    }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -848,8 +848,14 @@ const formatDate = (dateString) => {
 const canSeeProtectedContent = computed(() => {
   if (!work.value) {
     return false;
+  }
 
-  } else if (!authStore.user) {
+  const planReq = work.value.plan_required;
+  if (!planReq) {
+    return true;
+  }
+
+  if (!authStore.user) {
     return false;
   }
 
@@ -862,6 +868,7 @@ const canSeeProtectedContent = computed(() => {
 
     } else {
       authorId = null;
+
     }
   } else {
     authorId = work.value.author;
@@ -873,22 +880,19 @@ const canSeeProtectedContent = computed(() => {
     return true;
   }
 
-  const planReq = work.value.plan_required;
-  if (!planReq) {
-    return true;
-  }
-
   if (!activeSubscription.value) {
     return false;
 
   } else {
     let userPlanId;
+
     if (typeof activeSubscription.value.plan === 'object') {
       if (activeSubscription.value.plan) {
         userPlanId = activeSubscription.value.plan.id;
 
       } else {
         userPlanId = null;
+
       }
     } else {
       userPlanId = activeSubscription.value.plan;
@@ -916,10 +920,9 @@ const canSeeProtectedContent = computed(() => {
 
       if (userPoints >= requiredPoints && requiredPoints > 0) {
         return true;
-
+        
       } else {
         return false;
-        
       }
     }
   }
