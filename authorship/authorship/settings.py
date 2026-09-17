@@ -74,11 +74,16 @@ CORS_ALLOWED_ORIGINS = [
     "https://comfy-arte.vercel.app",
 ]
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://comfyarte.onrender.com",
     "https://comfy-arte.vercel.app",
+    "https://*.vercel.app",
 ]
 
 ROOT_URLCONF = 'authorship.urls'
