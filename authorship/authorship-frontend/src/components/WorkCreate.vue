@@ -80,12 +80,14 @@
       <div v-if="information.show" :class="['popup-notification', information.type]">
         <div class="popup-icon">
           <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else-if="information.type === 'warning'" class="fa-solid fa-triangle-exclamation"></i>
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
           <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else-if="information.type === 'warning'">Revisión Manual en Curso</span>
           <span class="popup-title" v-else>¡Acción Exitosa!</span>
-          <p class="popup-message">{{ information.message }}</p>
+          <p class="popup-message" style="white-space: pre-line;">{{ information.message }}</p>
         </div>
         <button @click="information.show = false" class="popup-close">
           <i class="fa-solid fa-xmark"></i>
@@ -354,6 +356,21 @@
           </div>
         </div>
 
+        <div class="form-card review-option-card">
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="requestManualReview">
+            <span class="checkbox-custom"></span>
+            <div class="checkbox-text-group">
+              <span class="checkbox-title">Solicitar revisión manual si la IA rechaza la obra</span>
+              <span class="checkbox-desc">
+                Si la inteligencia artificial no valida tu archivo, se enviará al equipo de administradores para una
+                segunda
+                evaluación humana.
+              </span>
+            </div>
+          </label>
+        </div>
+
         <div v-if="error" class="error-msg">{{ error }}</div>
 
         <button type="submit" class="btn-save" :disabled="loading">
@@ -398,6 +415,8 @@ const weight = ref(0);
 const type_detail = ref("");
 
 const workType = route.query.type;
+
+const requestManualReview = ref(true);
 
 const workIconMap = {
   book: 'fa-solid fa-book-open',
@@ -638,6 +657,7 @@ const handleSubmit = async () => {
   formData.append("resume_upload", selectedFile.value);
   formData.append("license", selectedLicense.value);
   formData.append("plan_required", selectedPlan.value);
+  formData.append("request_manual_review", requestManualReview.value);
   if (selectedResume.value) {
     formData.append("resume_upload", selectedResume.value);
   }
@@ -665,59 +685,64 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axios.post(`${API_BASE}/api/works/`, formData, {
+    const res = await axios.post(`${API_BASE}/api/works/`, formData, {
       headers: {
         "Authorization": `Token ${authStore.token || localStorage.getItem("token")}`
       }
     });
 
-    triggerInformation("¡Obra registrada y protegida con éxito!", "success");
+    if (res.data.status === 'appealed') {
+      const reason = res.data.rejection_reason || "Contenido no validado automáticamente.";
 
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1200);
+      triggerInformation(
+        `El sistema de validación por IA ha rechazado tu obra.\nMotivo: "${reason}".\n\nAl haber solicitado la revisión manual, tu obra ha quedado registrada y pasará a ser evaluada directamente por el equipo de administración.`,
+        "warning"
+      );
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 3800);
+
+    } else {
+      triggerInformation("¡Obra registrada y protegida con éxito!", "success");
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    }
 
   } catch (err) {
     let errorMsg = "Error inesperado al procesar la subida.";
 
-    if (err.response.status === 429) {
+    if (err.response && err.response.status === 429) {
       errorMsg = "Has alcanzado el límite de registros permitidos. Por favor, inténtalo más tarde.";
-    }
-
-    else if (err.response && err.response.data) {
+    } else if (err.response && err.response.data) {
       const data = err.response.data;
 
       if (data.error) {
         errorMsg = data.error;
-
       } else if (data.detail) {
         errorMsg = data.detail;
-
       } else if (typeof data === "string") {
         errorMsg = data;
-
       } else {
         const firstKey = Object.keys(data)[0];
         const fieldWithError = data[firstKey];
 
         if (Array.isArray(fieldWithError)) {
           errorMsg = fieldWithError[0];
-
         } else {
           errorMsg = fieldWithError;
         }
       }
-
     } else if (err.request) {
-      errorMsg = "El servidor no responde. Asegúrate de que Django está corriendo.";
-
+      errorMsg = "El servidor no responde. Asegúrate de que el backend esté disponible.";
     } else if (err.message) {
       errorMsg = err.message;
     }
 
     error.value = errorMsg;
     triggerInformation(errorMsg, "error");
-
   } finally {
     loading.value = false;
   }
@@ -775,8 +800,8 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   min-width: 48px;
-  background-color: var(--rosa-claro, #fff0f3);
-  color: var(--granate-principal, #7a0026);
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -795,7 +820,7 @@ onMounted(() => {
 .header-titles h1 {
   margin: 0;
   font-size: 1.55rem;
-  color: var(--granate-principal, #7a0026);
+  color: var(--granate-principal);
   line-height: 1.2;
 }
 
@@ -898,13 +923,6 @@ textarea:focus {
 
 textarea {
   resize: vertical;
-}
-
-.field-desc {
-  font-size: 0.85em;
-  color: #666;
-  margin-top: -6px;
-  margin-bottom: 10px;
 }
 
 .mini-loader {
@@ -1046,12 +1064,6 @@ textarea {
   color: #666;
 }
 
-.license-footnote {
-  margin: 12px 0 0 0;
-  font-size: 0.8rem;
-  color: #777;
-}
-
 .license-footer-row {
   display: flex;
   justify-content: space-between;
@@ -1078,81 +1090,106 @@ textarea {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
-.license-select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: white;
-  font-family: inherit;
-  outline: none;
+.review-option-card {
+  background-color: #fdf5f7;
+  border: 1px solid #ebd0d7;
 }
 
-.license-select:focus {
-  border-color: var(--rosa-fuerte);
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.license-card-info {
-  margin-top: 14px;
-  padding: 16px 20px;
-  background-color: #fafbfc;
-  border: 1px solid #f0e6e9;
-  border-left: 4px solid var(--granate-principal);
-  border-radius: 10px;
+.checkbox-container input {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid var(--granate-principal);
+  border-radius: 4px;
+  margin-top: 2px;
+  position: relative;
+  background-color: #ffffff;
+  transition: all 0.2s;
+}
+
+.checkbox-container input:checked+.checkbox-custom {
+  background-color: var(--granate-principal);
+}
+
+.checkbox-container input:checked+.checkbox-custom::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-text-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
 }
 
-.license-badge-name {
-  font-weight: 800;
-  font-size: 0.95rem;
+.checkbox-title {
+  font-size: 0.88rem;
+  font-weight: 700;
   color: var(--granate-principal);
 }
 
-.license-summary {
-  margin: 0;
-  font-size: 0.88rem;
-  color: #555;
-  line-height: 1.45;
+.checkbox-desc {
+  font-size: 0.78rem;
+  color: #666666;
+  line-height: 1.35;
 }
 
-.license-rules-grid {
+.notif-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
-.rule-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.btn-action-publish {
+  background-color: #28a745;
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.rule-allow {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+.btn-action-publish:hover {
+  background-color: #218838;
 }
 
-.rule-deny {
-  background-color: #fbe9e7;
-  color: #c62828;
+.btn-action-delete {
+  background-color: #dc3545;
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.rule-warn {
-  background-color: var(--rosa-claro);
-  color: var(--granate-principal);
-}
-
-.license-info {
-  margin-top: 12px;
-  font-size: 0.85rem;
-  color: #666;
+.btn-action-delete:hover {
+  background-color: #c82333;
 }
 
 .btn-save {
@@ -1236,5 +1273,23 @@ select.select-pink option {
   background-color: #ffe1e8;
   border-color: var(--rosa-fuerte);
   transform: translateY(-50%) translateX(-2px);
+}
+
+.popup-notification.warning {
+  background-color: #fff8e6;
+  border-left: 5px solid #d97706;
+  color: #78350f;
+}
+
+.popup-notification.warning .popup-icon i {
+  color: #d97706;
+}
+
+.popup-notification.warning .popup-title {
+  color: #b45309;
+}
+
+.popup-notification.warning .popup-message {
+  color: #92400e;
 }
 </style>

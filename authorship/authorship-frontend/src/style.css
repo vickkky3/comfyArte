@@ -952,3 +952,40 @@ body {
     border-color: var(--rosa-fuerte, #db7093);
     transform: translateX(-2px);
   }
+
+  .notif-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .btn-action-publish {
+    background-color: #28a745;
+    color: #ffffff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .btn-action-publish:hover {
+    background-color: #218838;
+  }
+  
+  .btn-action-delete {
+    background-color: #dc3545;
+    color: #ffffff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .btn-action-delete:hover {
+    background-color: #c82333;
+  }

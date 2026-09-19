@@ -74,9 +74,9 @@ class WorkListCreateAPIView(APIView):
         
         if user.groups.filter(name="Author").exists():
             queryset = Work.objects.filter(author=user)
-        else:
             
-            queryset = Work.objects.all()
+        else:
+            queryset = Work.objects.filter(status='published')
             
         serializer = WorkSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -120,6 +120,7 @@ class WorkListCreateAPIView(APIView):
             
             if plan_id:
                 create_data['plan_required'] = SubscriptionPlan.objects.get(id=plan_id)
+                
             else:
                 create_data['plan_required'] = None
             
@@ -147,11 +148,30 @@ class WorkListCreateAPIView(APIView):
                 resume.seek(0)
 
             result_ai_validator = validate_work_content(clean_data.get('title'), clean_data.get('description'), file_info, resume_info)
-            if not result_ai_validator.get("is_valid"):
-                return Response(
-                    {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            ai_is_valid = result_ai_validator.get("is_valid")
+            
+            request_review_raw = request.data.get('request_manual_review', False)
+
+            raw_str = str(request_review_raw).strip().lower()
+            if raw_str in ['true', '1', 'yes', 't']:
+                wants_manual_review = True
+                
+            else:
+                wants_manual_review = False
+
+            if ai_is_valid:
+                create_data['status'] = 'published'
+                
+            else:
+                if wants_manual_review:
+                    create_data['status'] = 'appealed'
+                    create_data['rejection_reason'] = result_ai_validator.get('reason', 'Contenido no apto según IA')
+                    
+                else:
+                    return Response(
+                        {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 
             user_private_key_pem = request.user.private_key
         
@@ -175,19 +195,21 @@ class WorkListCreateAPIView(APIView):
             
             subscriptions = AuthorSubscription.objects.filter(author=request.user)
             
-            notifications_to_create = []
-            for sub in subscriptions:
-                notifications_to_create.append(
-                    Notification(
-                        recipient=sub.consumer,
-                        notification_type='new_work',
-                        work=obj,
-                        message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
+            if obj.status == 'published':
+                subscriptions = AuthorSubscription.objects.filter(author=request.user)
+                notifications_to_create = []
+                for sub in subscriptions:
+                    notifications_to_create.append(
+                        Notification(
+                            recipient=sub.consumer,
+                            notification_type='new_work',
+                            work=obj,
+                            message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
+                        )
                     )
-                )
-                
-            if notifications_to_create:
-                Notification.objects.bulk_create(notifications_to_create)
+                    
+                if notifications_to_create:
+                    Notification.objects.bulk_create(notifications_to_create)
                 
             return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
                         
@@ -202,6 +224,49 @@ class WorkDetailAPIView(APIView):
         work = get_object_or_404(Work, pk=pk)
         serializer = WorkSerializer(work)
         return Response(serializer.data)
+     
+    def patch(self, request, pk):
+        work = get_object_or_404(Work, pk=pk)
+        user = request.user
+
+        if work.author != user:
+            return Response(
+                {"error": "No tienes permiso para modificar esta obra."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        new_status = request.data.get('status')
+        if new_status:
+            if new_status == 'published':
+                if work.status not in ['approved', 'published']:
+                    return Response(
+                        {"error": "Solo puedes publicar obras previamente aprobadas por el equipo de moderación."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                work.status = 'published'
+                work.save()
+
+                subscriptions = AuthorSubscription.objects.filter(author=work.author)
+                notifications_to_create = []
+                for sub in subscriptions:
+                    notifications_to_create.append(
+                        Notification(
+                            recipient=sub.consumer,
+                            notification_type='new_work',
+                            work=work,
+                            message=f"El autor {work.author.username} ha publicado una nueva obra: '{work.title}'"
+                        )
+                    )
+                if notifications_to_create:
+                    Notification.objects.bulk_create(notifications_to_create)
+
+            else:
+                work.status = new_status
+                work.save()
+
+        serializer = WorkSerializer(work)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk):
         work = get_object_or_404(Work, pk=pk)
@@ -220,7 +285,15 @@ class ListWorksByAuthorAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, author_id):
-        queryset = Work.objects.filter(author_id=author_id)
+        user = request.user
+
+        is_owner = (user.id == int(author_id))
+        
+        if is_owner:
+            queryset = Work.objects.filter(author_id=author_id)
+            
+        else:
+            queryset = Work.objects.filter(status__in=['published'], author_id=author_id)
         
         serializer = WorkSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -278,12 +351,13 @@ class RecommendedWorksAPIView(APIView):
             interests = consumer.interests or ""
             interests_list = [i.strip() for i in interests.split(',') if i.strip()]
             
-            recommended_works = Work.objects.filter(work_type__in=interests_list)
+            recommended_works = Work.objects.filter(status='published', work_type__in=interests_list)
             
         else:
-            recommended_works = Work.objects.filter(author__in=recommended_authors)
+            recommended_works = Work.objects.filter(status='published', author__in=recommended_authors)
                     
         recommended_works = recommended_works.distinct().order_by('-created_at')[:20]
         
         serializer = WorkSerializer(recommended_works, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)

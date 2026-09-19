@@ -147,7 +147,7 @@
 
                 <div class="info-block">
                   <span class="label"><i class="fa-solid fa-shield"></i>Estado</span>
-                  <span class="value">Registrada</span>
+                  <span class="value">{{ formattedStatus }}</span>
                 </div>
               </div>
 
@@ -784,6 +784,102 @@ const copySignature = async () => {
     console.error("Error al copiar al portapapeles:", err);
   }
 };
+
+const publishWorkFromNotif = async (notif) => {
+  let targetWorkId;
+  if (typeof notif.work === 'object') {
+    if (notif.work) {
+      targetWorkId = notif.work.id;
+    } else {
+      targetWorkId = null;
+    }
+  } else {
+    targetWorkId = notif.work;
+  }
+
+  if (!targetWorkId) {
+    return;
+  }
+
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    await axios.patch(
+      `${API_BASE}/api/works/${targetWorkId}/`,
+      { status: 'published' },
+      { headers: { Authorization: `Token ${token}` } }
+    );
+
+    triggerInformation("La obra ha sido publicada en la plataforma con éxito.", "success");
+    notifications.value = notifications.value.filter(n => n.id !== notif.id);
+
+    if (work.value && Number(work.value.id) === Number(targetWorkId)) {
+      work.value.status = 'published';
+    }
+  } catch (err) {
+    console.error("Error al publicar la obra desde notificación:", err);
+    triggerInformation("No se pudo publicar la obra.", "error");
+  }
+};
+
+const discardWorkFromNotif = async (notif) => {
+  let targetWorkId;
+  if (typeof notif.work === 'object') {
+    if (notif.work) {
+      targetWorkId = notif.work.id;
+    } else {
+      targetWorkId = null;
+    }
+  } else {
+    targetWorkId = notif.work;
+  }
+
+  if (!targetWorkId) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `¿Deseas descartar y eliminar permanentemente la obra "${notif.work_title || ''}"?`
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    await axios.delete(`${API_BASE}/api/works/${targetWorkId}/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    triggerInformation("Obra descartada y eliminada.", "success");
+    notifications.value = notifications.value.filter(n => n.id !== notif.id);
+
+    if (work.value && Number(work.value.id) === Number(targetWorkId)) {
+      router.push("/dashboard");
+    }
+  } catch (err) {
+    console.error("Error al descartar la obra:", err);
+    triggerInformation("Error al intentar eliminar la obra.", "error");
+  }
+};
+
+const formattedStatus = computed(() => {
+  if (!work.value) {
+    return 'Desconocido';
+  }
+
+  const st = work.value.status;
+  if (st === 'appealed') {
+    return 'Revisión manual solicitada';
+  } else if (st === 'approved') {
+    return 'Aprobada';
+  } else if (st === 'published') {
+    return 'Publicada';
+  } else if (st === 'rejected_manual') {
+    return 'Rechazada';
+  } else {
+    return 'Registrada';
+  }
+});
 
 const handleLogout = () => {
   authStore.logout();

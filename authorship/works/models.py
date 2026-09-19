@@ -46,6 +46,26 @@ class Work(models.Model):
     
     hash_security = models.CharField(max_length=512, blank=True, null=True)
     
+    STATUS_CHOICES = [
+        ('approved', 'Aprobada'),
+        ('appealed', 'Revisión manual solicitada'),
+        ('rejected_manual', 'Rechazada definitivamente'),
+        ('published', 'Publicada'),
+    ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending_ai',
+        verbose_name="Estado de validación"
+    )
+    
+    rejection_reason = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Motivo de rechazo (IA o Manual)"
+    )
+    
     class Meta:
         permissions = [
             ("validate_work", "Can validate or reject works"),

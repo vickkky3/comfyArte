@@ -24,6 +24,8 @@ class Notification(models.Model):
         ('new_work', 'Nueva obra publicada'),
         ('new_follower', 'Nuevo suscriptor / seguidor'),
         ('new_saved_work', 'Nueva obra guardada'),
+        ('approved_work', 'Obra aprobada por el administrador'),
+        ('rejected_work', 'Obra rechazada por el administrador'),
     ]
 
     recipient = models.ForeignKey(

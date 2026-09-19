@@ -52,6 +52,12 @@
                       <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
                         Obra guardada
                       </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'approved_work'">
+                        Obra aprobada
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'rejected_work'">
+                        Obra rechazada
+                      </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
 
@@ -67,7 +73,24 @@
                         El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
                         obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
                       </template>
+                      <template v-else-if="notif.notification_type === 'approved_work'">
+                        La obra: <em>"{{ notif.work_title }}"</em> ha sido aprobada por el administrador.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'rejected_work'">
+                        La obra: <em>"{{ notif.work_title }}"</em> ha sido rechazada por el administrador.
+                      </template>
                     </p>
+
+                    <div v-if="notif.notification_type === 'approved_work' && notif.work && getWorkStatus(notif) !== 'published'" class="notif-actions">
+                      <button class="btn-action-publish" @click="publishWork(notif)"
+                        title="Hacer pública la obra en la plataforma">
+                        Publicar obra
+                      </button>
+                      <button class="btn-action-delete" @click="discardWork(notif)"
+                        title="Descartar y eliminar permanentemente la obra">
+                        Descartar
+                      </button>
+                    </div>
 
                     <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
                   </div>
@@ -375,6 +398,7 @@
                     <tr>
                       <th>Tipo</th>
                       <th>Título de la Obra</th>
+                      <th style="text-align: center;">Estado</th>
                       <th style="text-align: center;">Detalles</th>
                       <th style="text-align: center;">Eliminar</th>
                     </tr>
@@ -387,6 +411,23 @@
                       </td>
                       <td>
                         <span class="work-title-sm">{{ work.title }}</span>
+                      </td>
+                      <td style="text-align: center;">
+                        <span v-if="work.status === 'appealed'" class="status-badge status-warning">
+                          En revisión manual
+                        </span>
+                        <span v-else-if="work.status === 'approved'" class="status-badge status-info">
+                          Aprobada
+                        </span>
+                        <span v-else-if="work.status === 'published'" class="status-badge status-success">
+                          Publicada
+                        </span>
+                        <span v-else-if="work.status === 'rejected_manual'" class="status-badge status-danger">
+                          Rechazada
+                        </span>
+                        <span v-else class="status-badge status-default">
+                          Registrada
+                        </span>
                       </td>
                       <td style="text-align: center;">
                         <router-link :to="`/worksAuthor/${work.id}`" class="btn-table-sm">
@@ -567,7 +608,6 @@ const isEditing = ref(false);
 const editForm = ref({});
 const userPoints = ref(0);
 const authorWorks = ref([]);
-const authorWorksLength = ref(0);
 const numSubscriptors = ref(0);
 const savedCount = ref(0);
 
@@ -622,6 +662,94 @@ const userInterestsArray = computed(() => {
   return [];
 });
 
+const getWorkStatus = (notif) => {
+  if (!notif) return null;
+  
+  if (typeof notif.work === 'object' && notif.work !== null) {
+    return notif.work.status;
+  }
+  
+  const found = authorWorks.value.find(w => w.id === notif.work);
+
+  if (found) {
+    return found.status;
+  }
+  else {
+    return null;
+  }
+};
+
+const publishWork = async (notif) => {
+  try {
+    let workId;
+
+    if (typeof notif.work === 'object') {
+      if (notif.work) {
+        workId = notif.work.id;
+
+      } else {
+        workId = null;
+
+      }
+    } else {
+      workId = notif.work;
+    }
+
+    if (!workId) return;
+
+    await axios.patch(
+      `${API_BASE}/api/works/${workId}/`,
+      { status: 'published' },
+      { headers: { Authorization: `Token ${authStore.token}` } }
+    );
+
+    if (typeof notif.work === 'object' && notif.work !== null) {
+      notif.work.status = 'published';
+    }
+
+    notifications.value = notifications.value.filter(n => n.id !== notif.id);
+
+    const targetWork = authorWorks.value.find(w => w.id === workId);
+    if (targetWork) {
+      targetWork.status = 'published';
+    } else {
+      await getUserData();
+    }
+
+    triggerInformation("La obra ha sido publicada con éxito.", "success");
+
+  } catch (err) {
+    console.error('Error al publicar la obra:', err.response?.data || err.message);
+  }
+};
+
+const discardWork = async (notif) => {
+  try {
+    let workId;
+
+    if (typeof notif.work === 'object') {
+      if (notif.work) {
+        workId = notif.work.id;
+
+      } else {
+        workId = null;
+
+      }
+    } else {
+      workId = notif.work;
+    }
+
+    await axios.delete(
+      `${API_BASE}/api/works/${workId}/`,
+      { headers: { Authorization: `Token ${authStore.token}` } }
+    );
+
+    notifications.value = notifications.value.filter(n => n.id !== notif.id);
+  } catch (err) {
+    console.error('Error al eliminar la obra:', err.response?.data || err.message);
+  }
+};
+
 const getRecommendedWorks = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
@@ -660,6 +788,10 @@ const startEditing = () => {
   isEditing.value = true;
 };
 
+const authorWorksLength = computed(() => {
+  return authorWorks.value.filter(work => work.status === 'published').length;
+});
+
 const getUserData = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
@@ -692,7 +824,6 @@ const getUserData = async () => {
       });
 
       authorWorks.value = worksResponse.data;
-      authorWorksLength.value = authorWorks.value.length;
     }
 
   } catch (err) {
@@ -903,7 +1034,6 @@ const deleteWork = async (id) => {
     });
 
     authorWorks.value = authorWorks.value.filter(work => work.id !== id);
-    authorWorksLength.value = authorWorks.value.length;
 
     if (currentPage.value > totalPages.value) {
       currentPage.value = Math.max(1, totalPages.value);
@@ -2214,5 +2344,39 @@ onMounted(() => {
 
 .edit-bio-textarea:focus {
   border-color: var(--rosa-fuerte);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-default {
+  background-color: #e2e3e5;
+  color: #383d41;
 }
 </style>
