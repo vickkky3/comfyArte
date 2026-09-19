@@ -190,36 +190,38 @@
         </div>
 
         <div v-if="sortedWorks.length > 0" class="table-works">
-          <table>
+          <table class="catalog-table">
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Título de la Obra</th>
-                <th v-if="isConsumer">Recomendación</th>
-                <th v-else>Fecha</th>
-                <th style="text-align: center;">Detalles</th>
-                <th v-if="isAuthor">Eliminar Obra</th>
+                <th class="col-type">Tipo</th>
+                <th class="col-title">Título de la Obra</th>
+                <th v-if="isConsumer" class="col-meta">Recomendación</th>
+                <th v-else class="col-meta">Fecha</th>
+                <th class="col-actions">Detalles</th>
+                <th v-if="isAuthor" class="col-delete">Eliminar Obra</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="work in sortedWorks" :key="work.id">
-                <td>
-                  <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
-                  <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                <td class="col-type">
+                  <div class="type-cell-wrapper">
+                    <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
+                    <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                  </div>
                 </td>
-                <td>
+                <td class="col-title">
                   <span class="work-title">{{ work.title }}</span>
                 </td>
 
-                <td v-if="isAuthor">
+                <td v-if="isAuthor" class="col-meta">
                   <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
                 </td>
-                <td v-else>
+                <td v-else class="col-meta">
                   <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
                   <span v-else class="badge-neutral">-</span>
                 </td>
 
-                <td style="text-align: center;">
+                <td class="col-actions">
                   <div class="actions-cell">
                     <router-link v-if="isAuthor" :to="`/worksAuthor/${work.id}`" class="btn-table">
                       <span>Ver Detalles</span>
@@ -231,14 +233,13 @@
                       title="Quitar de guardados">
                       <i class="fa-solid fa-bookmark"></i>
                     </button>
-
                     <button v-else type="button" @click="saveWork(work.id)" class="btn-icon" title="Guardar obra">
                       <i class="fa-regular fa-bookmark"></i>
                     </button>
                   </div>
                 </td>
 
-                <td v-if="isAuthor" style="text-align: center;">
+                <td v-if="isAuthor" class="col-delete">
                   <button @click="deleteWork(work.id)" class="btn-delete">Eliminar</button>
                 </td>
               </tr>
@@ -901,85 +902,187 @@ onMounted(() => {
   margin-bottom: 30px;
 }
 
-table {
+.table-works {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+  overflow-x: auto;
 }
 
-thead {
+.catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 20px;
+}
+
+.catalog-table thead tr {
   border-bottom: 2px solid var(--granate-principal);
 }
 
-th {
-  text-align: left;
-  padding: 12px;
-  color: var(--granate-principal);
-  font-size: 0.9em;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-td {
-  padding: 15px 12px;
-  border-bottom: 1px solid var(--rosa-claro);
+.catalog-table th,
+.catalog-table td {
+  padding: 14px 10px;
   vertical-align: middle;
+  box-sizing: border-box;
 }
 
-tr:hover {
+.catalog-table th {
+  color: var(--granate-principal);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.catalog-table tbody tr {
+  border-bottom: 1px solid var(--rosa-claro);
+  transition: background-color 0.2s;
+}
+
+.catalog-table tbody tr:hover {
   background-color: #fffafc;
+}
+
+.col-type {
+  width: 20%;
+  text-align: left;
+  padding-left: 8px;
+}
+
+.col-title {
+  width: 40%;
+  text-align: left;
+}
+
+.col-meta {
+  width: 20%;
+  text-align: left;
+}
+
+.col-actions {
+  width: 20%;
+  text-align: center;
+}
+
+th.col-actions {
+  text-align: center;
+}
+
+.col-delete {
+  width: 12%;
+  text-align: center;
+}
+
+th.col-delete {
+  text-align: center;
+}
+
+.type-cell-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.work-icon {
+  color: var(--rosa-fuerte);
+  font-size: 1rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .label-tipo {
   color: var(--rosa-fuerte);
-  font-weight: bold;
-  font-size: 0.85em;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .work-title {
-  color: black;
-  font-weight: bold;
-  font-size: 1.05em;
+  color: #222;
+  font-weight: 700;
+  font-size: 0.95rem;
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .btn-table {
   display: inline-block;
   background: var(--rosa-claro);
   color: black;
-  padding: 8px 15px;
-  border-radius: 8px;
+  padding: 6px 14px;
+  border-radius: 6px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   text-decoration: none;
-  font-size: 0.85em;
-  transition: 0.3s;
+  font-size: 0.82rem;
+  transition: 0.2s;
   border: 1px solid transparent;
+}
+
+.btn-table:hover {
+  background: var(--rosa-fuerte);
+  color: white;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: var(--granate-principal);
+  transition: transform 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.15);
 }
 
 .btn-delete {
   display: inline-block;
   background: var(--granate-principal);
   color: white;
-  padding: 8px 15px;
-  border-radius: 8px;
+  padding: 6px 14px;
+  border-radius: 6px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   text-decoration: none;
-  font-size: 0.85em;
-  transition: 0.3s;
-  border: 1px solid transparent;
+  font-size: 0.82rem;
+  transition: 0.2s;
+  border: none;
+  cursor: pointer;
 }
 
 .btn-delete:hover {
   background: var(--rosa-fuerte);
-  color: white;
 }
 
-.btn-table:hover {
-  background: var(--rosa-fuerte);
-  color: white;
+.badge-interes {
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-neutral {
+  color: #aaa;
+  font-size: 0.85rem;
 }
 
 .empty-msg {
@@ -989,84 +1092,11 @@ tr:hover {
   font-style: italic;
 }
 
-.btn-back-link {
-  display: block;
-  width: 100%;
-  background-color: var(--granate-principal);
-  color: white;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  text-align: center;
-  text-decoration: none;
-  transition: 0.3s;
-  font-size: 1.1em;
-}
-
-.btn-back-link:hover {
-  background-color: var(--rosa-fuerte);
-  transform: translateY(-2px);
-}
-
-.loading {
-  text-align: center;
-  margin-top: 100px;
-  color: var(--granate-principal);
-  font-weight: bold;
-}
-
-.badge-interes {
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.75em;
-  font-weight: bold;
-}
-
-.badge-neutral {
-  color: #ccc;
-  font-size: 0.8em;
-}
-
-.er {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  background-color: #fffafc;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid var(--rosa-claro);
-}
-
-.filter-input {
-  flex: 2;
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95em;
-  font-family: inherit;
-  outline: none;
-  transition: 0.2s;
-}
-
 .filters-container {
   display: flex;
   gap: 15px;
   margin-bottom: 25px;
   background-color: var(--rosa-claro);
-  padding: 15px 20px;
-  border-radius: 10px;
-  border: 1px solid var(--rosa-claro);
-  align-items: flex-start;
-}
-
-.filters-container-btn {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  background-color: #fffafc;
   padding: 15px 20px;
   border-radius: 10px;
   border: 1px solid var(--rosa-claro);
@@ -1085,8 +1115,8 @@ tr:hover {
 }
 
 .filter-label {
-  font-size: 0.8em;
-  font-weight: bold;
+  font-size: 0.78rem;
+  font-weight: 800;
   color: var(--granate-principal);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1094,23 +1124,24 @@ tr:hover {
 
 .filter-input {
   width: 100%;
-  height: 40px;
+  height: 38px;
   padding: 0 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.9em;
+  font-size: 0.88rem;
   font-family: inherit;
   box-sizing: border-box;
   outline: none;
+  background: white;
 }
 
 .filter-dropdown-btn {
   width: 100%;
-  height: 40px;
+  height: 38px;
   padding: 0 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.9em;
+  font-size: 0.88rem;
   font-family: inherit;
   background-color: white;
   text-align: left;
@@ -1119,12 +1150,6 @@ tr:hover {
   align-items: center;
   cursor: pointer;
 }
-
-.arrow-icon {
-  font-size: 0.7em;
-  color: #888;
-}
-
 
 .floating-dropdown-panel {
   position: absolute;
@@ -1147,7 +1172,7 @@ tr:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9em;
+  font-size: 0.85rem;
   cursor: pointer;
   color: #333;
   user-select: none;
@@ -1161,19 +1186,42 @@ tr:hover {
   background: var(--granate-principal);
   color: white;
   border: none;
-  padding: 0 25px;
+  padding: 0 24px;
   border-radius: 6px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 0.9em;
-  height: 40px;
+  font-size: 0.88rem;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: 0.2s;
 }
 
 .btn-search-submit:hover {
   background: var(--rosa-fuerte);
+}
+
+.btn-clear-filters {
+  background: transparent;
+  color: #777;
+  border: 1px solid #ddd;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.82rem;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
 }
 
 .main-mode-bar {
@@ -1189,7 +1237,6 @@ tr:hover {
   border-radius: 30px;
   padding: 4px;
   gap: 2px;
-  box-sizing: border-box;
 }
 
 .pill-btn {
@@ -1198,22 +1245,15 @@ tr:hover {
   background: transparent;
   color: #666;
   font-weight: 600;
-  font-size: 0.88em;
+  font-size: 0.85rem;
   border-radius: 25px;
   cursor: pointer;
-  transition: all 0.25s ease-in-out;
-  padding: 8px 20px;
+  padding: 7px 18px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: inherit;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-.pill-btn:hover {
-  color: var(--granate-principal);
+  transition: all 0.2s ease;
 }
 
 .pill-btn.active {
@@ -1221,184 +1261,6 @@ tr:hover {
   color: var(--granate-principal);
   font-weight: 800;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.avatar-circle {
-  width: 70px;
-  height: 70px;
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8em;
-  font-weight: bold;
-  margin: 0 auto 15px;
-  border: 2px solid var(--granate-principal);
-}
-
-.author-card {
-  border: 1px solid var(--rosa-claro);
-  border-radius: 12px;
-  padding: 20px;
-  background-color: #fffafc;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.author-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-}
-
-.author-main-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.avatar-circle {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  border-radius: 50%;
-  background-color: var(--granate-principal);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2em;
-  text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.author-details-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.author-header-titles h3 {
-  margin: 0 0 2px 0;
-  font-size: 1.1em;
-  color: #333;
-  line-height: 1.2;
-}
-
-.author-badge {
-  display: inline-block;
-  font-size: 0.72em;
-  color: var(--rosa-fuerte);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.author-bio {
-  font-size: 0.85em;
-  color: #666;
-  line-height: 1.4;
-  margin: 0;
-}
-
-.author-card-actions {
-  margin-top: 15px;
-}
-
-.authors-grid {
-  max-height: 450px;
-  overflow-y: auto;
-  padding-right: 5px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--granate-principal) var(--rosa-claro);
-}
-
-.authors-grid::-webkit-scrollbar {
-  width: 8px;
-}
-
-.authors-grid::-webkit-scrollbar-track {
-  background: var(--rosa-claro);
-  border-radius: 4px;
-}
-
-.authors-grid::-webkit-scrollbar-thumb {
-  background: var(--granate-principal);
-  border-radius: 4px;
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25em;
-  color: var(--granate-principal);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.btn-icon:hover {
-  transform: scale(1.15);
-  opacity: 0.85;
-}
-
-.actions-cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.filter-buttons-group {
-  flex: 0 0 auto;
-}
-
-.actions-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-clear-filters {
-  background: transparent;
-  color: #777;
-  border: 1px solid #ddd;
-  padding: 0 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.88em;
-  height: 40px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.btn-clear-filters:hover {
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  border-color: var(--rosa-fuerte);
-}
-
-.work-icon {
-  color: var(--rosa-fuerte);
-  font-size: 1em;
-  flex-shrink: 0;
 }
 
 .view-header-bar {
@@ -1413,7 +1275,7 @@ tr:hover {
 .view-header-bar h1 {
   margin: 0;
   color: var(--granate-principal);
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-weight: 800;
   text-align: center;
 }
@@ -1426,21 +1288,27 @@ tr:hover {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 7px 16px;
   background-color: var(--rosa-claro);
   color: var(--granate-principal);
   border: 1px solid #f2cdd6;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .btn-back-top:hover {
   background-color: #ffe1e8;
-  border-color: var(--rosa-fuerte);
-  transform: translateY(-50%) translateX(-2px);
+}
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 20px;
 }
 </style>

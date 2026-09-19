@@ -81,7 +81,9 @@
                       </template>
                     </p>
 
-                    <div v-if="notif.notification_type === 'approved_work' && notif.work && getWorkStatus(notif) !== 'published'" class="notif-actions">
+                    <div
+                      v-if="notif.notification_type === 'approved_work' && notif.work && getWorkStatus(notif) !== 'published'"
+                      class="notif-actions">
                       <button class="btn-action-publish" @click="publishWork(notif)"
                         title="Hacer pública la obra en la plataforma">
                         Publicar obra
@@ -396,23 +398,27 @@
                 <table class="recommended-table">
                   <thead>
                     <tr>
-                      <th>Tipo</th>
-                      <th>Título de la Obra</th>
-                      <th style="text-align: center;">Estado</th>
-                      <th style="text-align: center;">Detalles</th>
-                      <th style="text-align: center;">Eliminar</th>
+                      <th class="col-type">Tipo</th>
+                      <th class="col-title">Título de la Obra</th>
+                      <th class="col-status">Estado</th>
+                      <th class="col-details">Detalles</th>
+                      <th class="col-delete">Eliminar</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="work in paginatedWorksAuthor" :key="work.id">
-                      <td>
-                        <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
-                        <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                      <td class="col-type">
+                        <div class="type-cell-wrapper">
+                          <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
+                          <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                        </div>
                       </td>
-                      <td>
+
+                      <td class="col-title">
                         <span class="work-title-sm">{{ work.title }}</span>
                       </td>
-                      <td style="text-align: center;">
+
+                      <td class="col-status">
                         <span v-if="work.status === 'appealed'" class="status-badge status-warning">
                           En revisión manual
                         </span>
@@ -429,12 +435,14 @@
                           Registrada
                         </span>
                       </td>
-                      <td style="text-align: center;">
+
+                      <td class="col-details">
                         <router-link :to="`/worksAuthor/${work.id}`" class="btn-table-sm">
                           Consultar
                         </router-link>
                       </td>
-                      <td style="text-align: center;">
+
+                      <td class="col-delete">
                         <button @click="deleteWork(work.id)" class="btn-delete-plain" title="Eliminar obra">
                           <i class="fa-solid fa-trash-can"></i>
                         </button>
@@ -470,21 +478,23 @@
                 <table class="recommended-table">
                   <thead>
                     <tr>
-                      <th>Tipo</th>
-                      <th>Título de la Obra</th>
-                      <th style="text-align: center;">Detalles</th>
+                      <th class="col-consumer-type">Tipo</th>
+                      <th class="col-consumer-title">Título de la Obra</th>
+                      <th class="col-consumer-details">Detalles</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="work in paginatedWorksConsumer" :key="work.id">
-                      <td>
-                        <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
-                        <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                      <td class="col-consumer-type">
+                        <div class="type-cell-wrapper">
+                          <i :class="getWorkIcon(work.work_type)" class="work-icon"></i>
+                          <span class="label-tipo">{{ getWorkTypeName(work.work_type) }}</span>
+                        </div>
                       </td>
-                      <td>
+                      <td class="col-consumer-title">
                         <span class="work-title-sm">{{ work.title }}</span>
                       </td>
-                      <td style="text-align: center;">
+                      <td class="col-consumer-details">
                         <router-link :to="`/works/${work.id}`" class="btn-table-sm">
                           Consultar
                         </router-link>
@@ -664,11 +674,11 @@ const userInterestsArray = computed(() => {
 
 const getWorkStatus = (notif) => {
   if (!notif) return null;
-  
+
   if (typeof notif.work === 'object' && notif.work !== null) {
     return notif.work.status;
   }
-  
+
   const found = authorWorks.value.find(w => w.id === notif.work);
 
   if (found) {
@@ -1719,24 +1729,90 @@ onMounted(() => {
 .recommended-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.recommended-table th,
+.recommended-table td {
+  padding: 12px 10px;
+  vertical-align: middle;
 }
 
 .recommended-table th {
-  text-align: left;
-  padding: 8px;
   color: var(--granate-principal);
-  font-size: 0.85em;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-transform: uppercase;
+  text-align: left;
 }
 
-.recommended-table td {
-  padding: 10px 8px;
+.col-type {
+  width: 18%;
+  text-align: left;
 }
 
-.recommended-table td:first-child {
-  display: flex;
+.col-title {
+  width: 42%;
+  text-align: left;
+}
+
+.col-status {
+  width: 16%;
+  text-align: center;
+}
+
+.col-details {
+  width: 14%;
+  text-align: center;
+}
+
+.col-delete {
+  width: 10%;
+  text-align: center;
+}
+
+th.col-status,
+th.col-details,
+th.col-delete {
+  text-align: center;
+}
+
+.col-consumer-type {
+  width: 25%;
+  text-align: left;
+}
+
+.col-consumer-title {
+  width: 55%;
+  text-align: left;
+}
+
+.col-consumer-details {
+  width: 20%;
+  text-align: center;
+}
+
+th.col-consumer-details {
+  text-align: center;
+}
+
+.type-cell-wrapper {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.work-icon {
+  color: var(--rosa-fuerte);
+  font-size: 1rem;
+}
+
+.label-tipo {
+  color: var(--rosa-fuerte);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
 }
 
 .edit-interests-container {
@@ -1745,13 +1821,6 @@ onMounted(() => {
   border-radius: 10px;
   padding: 20px;
   margin: 25px 0;
-}
-
-.label-tipo {
-  color: var(--rosa-fuerte);
-  font-weight: bold;
-  font-size: 0.8em;
-  text-transform: uppercase;
 }
 
 .work-title-sm {
@@ -1915,12 +1984,6 @@ onMounted(() => {
 
 .saved-work-icon {
   color: var(--granate-principal);
-  font-size: 1em;
-  flex-shrink: 0;
-}
-
-.work-icon {
-  color: var(--rosa-fuerte);
   font-size: 1em;
   flex-shrink: 0;
 }

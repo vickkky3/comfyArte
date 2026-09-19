@@ -49,6 +49,12 @@
                       <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
                         Obra guardada
                       </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'approved_work'">
+                        Obra aprobada
+                      </span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'rejected_work'">
+                        Obra rechazada
+                      </span>
                       <span v-if="!notif.is_read" class="unread-dot"></span>
                     </div>
 
@@ -64,7 +70,26 @@
                         El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
                         obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
                       </template>
+                      <template v-else-if="notif.notification_type === 'approved_work'">
+                        La obra: <em>"{{ notif.work_title }}"</em> ha sido aprobada por el administrador.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'rejected_work'">
+                        La obra: <em>"{{ notif.work_title }}"</em> ha sido rechazada por el administrador.
+                      </template>
                     </p>
+
+                    <div
+                      v-if="notif.notification_type === 'approved_work' && notif.work && getWorkStatus(notif) !== 'published'"
+                      class="notif-actions">
+                      <button class="btn-action-publish" @click="publishWorkFromNotif(notif)"
+                        title="Hacer pública la obra en la plataforma">
+                        Publicar obra
+                      </button>
+                      <button class="btn-action-delete" @click="discardWorkFromNotif(notif)"
+                        title="Descartar y eliminar permanentemente la obra">
+                        Descartar
+                      </button>
+                    </div>
 
                     <span class="notif-time">{{ formatDate(notif.created_at) }}</span>
                   </div>
@@ -261,7 +286,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                  }}</a>
+                    }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -354,12 +379,8 @@
         <div class="license-container" v-if="work">
           <div class="license-header">
             <h3>Información de la Licencia</h3>
-            <img 
-              v-if="getLicenseBadge(work?.license)" 
-              :src="getLicenseBadge(work?.license)" 
-              :alt="`Licencia ${work?.license_label || work?.license}`" 
-              class="license-badge-img"
-            />
+            <img v-if="getLicenseBadge(work?.license)" :src="getLicenseBadge(work?.license)"
+              :alt="`Licencia ${work?.license_label || work?.license}`" class="license-badge-img" />
           </div>
 
           <div v-if="work?.license && licenseMeanings[work.license]" class="license-card-info">
@@ -783,6 +804,20 @@ const copySignature = async () => {
   } catch (err) {
     console.error("Error al copiar al portapapeles:", err);
   }
+};
+
+const getWorkStatus = (notif) => {
+  if (!notif) return null;
+
+  if (typeof notif.work === 'object' && notif.work !== null) {
+    return notif.work.status;
+  }
+
+  if (work.value && Number(work.value.id) === Number(notif.work)) {
+    return work.value.status;
+  }
+
+  return null;
 };
 
 const publishWorkFromNotif = async (notif) => {

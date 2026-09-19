@@ -607,7 +607,11 @@ const fetchNotifications = async () => {
     const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
-    notifications.value = response.data;
+    
+    const excludedTypes = ['approved_work', 'rejected_work'];
+    notifications.value = response.data.filter(
+      notif => !excludedTypes.includes(notif.notification_type)
+    );
   } catch (error) {
     console.error("Error al cargar notificaciones:", error);
   }
