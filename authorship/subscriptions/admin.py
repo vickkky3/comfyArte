@@ -22,9 +22,6 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         ('Tarificación y Recompensas', {
             'fields': ('price', 'points', 'duration_days')
         }),
-        ('Prestaciones', {
-            'fields': ('features_raw',)
-        }),
     )
 
     def subscribers_count(self, obj):
