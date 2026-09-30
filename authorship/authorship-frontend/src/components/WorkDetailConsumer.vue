@@ -18,7 +18,14 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+        <div v-if="user.es_consumidor" class="consumer-badges">
+          <span class="points">
+            <i class="fa-solid fa-star"></i> {{ activeSubscription?.plan_name || 'Sin plan' }}
+          </span>
+          <span class="points">
+            <i class="fa-solid fa-wallet"></i> {{ userPoints }} Puntos
+          </span>
+        </div>
 
         <div class="notifications-wrapper">
           <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
@@ -799,10 +806,12 @@ const fetchMySubscription = async () => {
     const response = await axios.get(`${API_BASE}/api/subscriptions/me/`, {
       headers: { Authorization: `Token ${token}` }
     });
+
     activeSubscription.value = response.data;
   } catch (err) {
     if (err.response && err.response.status === 404) {
       activeSubscription.value = null;
+
     } else {
       console.error("Error al cargar tu suscripción:", err);
     }

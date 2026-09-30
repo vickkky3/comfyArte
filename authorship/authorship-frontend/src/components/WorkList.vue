@@ -18,7 +18,14 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+        <div v-if="user.es_consumidor" class="consumer-badges">
+          <span class="points">
+            <i class="fa-solid fa-star"></i> {{ activeSubscription?.plan_name || 'Sin plan' }}
+          </span>
+          <span class="points">
+            <i class="fa-solid fa-wallet"></i> {{ userPoints }} Puntos
+          </span>
+        </div>
 
         <div class="notifications-wrapper">
           <button @click="toggleNotifications" class="btn-icon-bell" title="Notificaciones">
@@ -502,6 +509,8 @@ const authorWorks = ref([]);
 const numSubscriptors = ref(0);
 const savedCount = ref(0);
 
+const activeSubscription = ref(null);
+
 const handleSearchClick = () => {
   appliedTypes.value = [...selectedTypes.value];
   appliedPlans.value = [...selectedPlans.value];
@@ -713,6 +722,24 @@ const fetchSubscribedAuthors = async () => {
     );
   } catch (error) {
     console.error("Error al cargar suscripciones:", error);
+  }
+};
+
+const fetchMySubscription = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem('token');
+    const response = await axios.get(`${API_BASE}/api/subscriptions/me/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    activeSubscription.value = response.data;
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      activeSubscription.value = null;
+
+    } else {
+      console.error("Error al cargar tu suscripción:", err);
+    }
   }
 };
 
@@ -954,6 +981,7 @@ onMounted(() => {
   fetchAuthors();
   fetchSavedWorks();
   fetchSubscribedAuthors();
+  fetchMySubscription();
 });
 </script>
 
@@ -1343,6 +1371,184 @@ th.col-delete {
   color: var(--granate-principal);
   font-weight: 800;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-circle {
+  width: 70px;
+  height: 70px;
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 0 auto 15px;
+  border: 2px solid var(--granate-principal);
+}
+
+.author-card {
+  border: 1px solid var(--rosa-claro);
+  border-radius: 12px;
+  padding: 20px;
+  background-color: #fffafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.author-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.author-main-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.avatar-circle {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  background-color: var(--granate-principal);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.author-details-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.author-header-titles h3 {
+  margin: 0 0 2px 0;
+  font-size: 1.1em;
+  color: #333;
+  line-height: 1.2;
+}
+
+.author-badge {
+  display: inline-block;
+  font-size: 0.72em;
+  color: var(--rosa-fuerte);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.author-bio {
+  font-size: 0.85em;
+  color: #666;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.author-card-actions {
+  margin-top: 15px;
+}
+
+.authors-grid {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--granate-principal) var(--rosa-claro);
+}
+
+.authors-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.authors-grid::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+  border-radius: 4px;
+}
+
+.authors-grid::-webkit-scrollbar-thumb {
+  background: var(--granate-principal);
+  border-radius: 4px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25em;
+  color: var(--granate-principal);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.15);
+  opacity: 0.85;
+}
+
+.actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.filter-buttons-group {
+  flex: 0 0 auto;
+}
+
+.actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  color: #777;
+  border: 1px solid #ddd;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88em;
+  height: 40px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  background: var(--rosa-claro);
+  color: var(--granate-principal);
+  border-color: var(--rosa-fuerte);
+}
+
+.work-icon {
+  color: var(--rosa-fuerte);
+  font-size: 1em;
+  flex-shrink: 0;
 }
 
 .view-header-bar {

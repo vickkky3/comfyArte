@@ -18,7 +18,15 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+        <div v-if="user.es_consumidor" class="consumer-badges">
+          <span class="points">
+            <i class="fa-solid fa-star"></i> {{ userSubscription?.plan_name || 'Sin plan' }}
+          </span>
+          <span class="points">
+            <i class="fa-solid fa-wallet"></i> {{ userPoints }} Puntos
+          </span>
+        </div>
+
         <button @click="confirmHandleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
@@ -56,9 +64,6 @@
         </button>
 
         <div class="header-center-info">
-          <div class="header-icon-box">
-            <i class="fa-solid fa-wallet"></i>
-          </div>
           <div class="header-titles">
             <h1 class="title-welcome">Encuentra el plan perfecto para ti</h1>
             <p class="subtitle-welcome">
@@ -71,7 +76,7 @@
       <div class="plans-container">
         <div v-for="item in plans" :key="item.id" class="plan-card">
           <div class="plans-icon">
-            <i class="fa-solid fa-crown"></i>
+            <i class="fa-solid fa-star"></i>
           </div>
           <h3 class="plan-name">{{ item.name }}</h3>
           <p class="plan-price">{{ item.points }} puntos<span>/mes</span></p>

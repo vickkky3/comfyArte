@@ -18,8 +18,13 @@
         <span class="nav-user"><i class="fa-solid fa-circle-user"></i>{{ user.username }}</span>
       </div>
       <div class="navbar-right">
-        <div v-if="user.es_consumidor">
-          <span class=" points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
+        <div v-if="user.es_consumidor" class="consumer-badges">
+          <span class="points">
+            <i class="fa-solid fa-star"></i> {{ activeSubscription?.plan_name || 'Sin plan' }}
+          </span>
+          <span class="points">
+            <i class="fa-solid fa-wallet"></i> {{ userPoints }} Puntos
+          </span>
         </div>
 
         <div class="notifications-wrapper">
@@ -619,6 +624,7 @@ const user = ref({
 });
 
 const subscribedAuthors = ref([]);
+const activeSubscription = ref(null);
 const savedWorks = ref([]);
 const recommendedWorks = ref([]);
 const loading = ref(true);
@@ -882,6 +888,23 @@ const getUserData = async () => {
   }
 };
 
+const fetchMySubscription = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem('token');
+    const response = await axios.get(`${API_BASE}/api/subscriptions/me/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    activeSubscription.value = response.data;
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      activeSubscription.value = null;
+
+    } else {
+      console.error("Error al cargar tu suscripción:", err);
+    }
+  }
+};
 
 const getUserPoints = async () => {
   try {
@@ -1132,6 +1155,7 @@ onMounted(() => {
   getSuscribedAuthors();
   getSavedWorks();
   getRecommendedWorks();
+  fetchMySubscription();
 });
 </script>
 
