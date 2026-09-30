@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from users.models import User, Notification
 from works.models import Work
@@ -243,10 +244,15 @@ class AuthorStatsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        author = request.user
+        author_id = request.query_params.get('author_id')
         
-        total_saves = SaveWork.objects.filter(work__author=author).count()
-        total_subs = AuthorSubscription.objects.filter(author=author).count()
+        if author_id:
+            target_user = get_object_or_404(User, id=author_id)
+        else:
+            target_user = request.user
+        
+        total_saves = SaveWork.objects.filter(work__author=target_user).count()
+        total_subs = AuthorSubscription.objects.filter(author=target_user).count()
 
         return Response({
             "saved_works_count": total_saves,

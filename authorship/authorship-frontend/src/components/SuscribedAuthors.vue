@@ -192,6 +192,40 @@
                 <span class="author-handle">@{{ selectedAuthor.username }}</span>
               </div>
 
+              <h3 class="recommended-title"> Estadísticas </h3>
+
+              <div class="statistics-container">
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-book-open"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Obras publicadas</span>
+                    <span class="stat-number">{{ authorWorksLength }}</span>
+                  </div>
+                </div>
+
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-bookmark"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Obras en favoritos</span>
+                    <span class="stat-number">{{ savedCount }}</span>
+                  </div>
+                </div>
+
+                <div class="statistics-info">
+                  <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-users"></i>
+                  </div>
+                  <div class="stat-data">
+                    <span class="stat-label">Suscriptores</span>
+                    <span class="stat-number">{{ numSubscriptors }}</span>
+                  </div>
+                </div>
+              </div>
+
               <div class="modal-body">
 
                 <div class="info-section">
@@ -282,6 +316,9 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const authorWorks = ref([]);
+const numSubscriptors = ref(0);
+const savedCount = ref(0);
+
 const loading = ref(true);
 const user = ref({ interests: "" });
 
@@ -391,20 +428,31 @@ const formatDate = (dateString) => {
   });
 };
 
+const authorWorksLength = computed(() => {
+  return authorWorks.value.filter(work => work.status === 'published').length;
+});
+
 const openAuthorModal = async (author) => {
   selectedAuthor.value = author;
   authorWorks.value = [];
+  numSubscriptors.value = 0;
+  savedCount.value = 0;
 
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get(`${API_BASE}/api/works/authors/${author.id}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-    authorWorks.value = response.data;
+    const headers = { Authorization: `Token ${token}` };
+
+    const [worksResponse, statsResponse] = await Promise.all([
+      axios.get(`${API_BASE}/api/works/authors/${author.id}/`, { headers }),
+      axios.get(`${API_BASE}/api/subscriptions/authors/stats/?author_id=${author.id}`, { headers })
+    ]);
+
+    authorWorks.value = worksResponse.data || [];
+    numSubscriptors.value = statsResponse.data.subscribers_count ?? 0;
+    savedCount.value = statsResponse.data.saved_works_count ?? 0;
 
   } catch (error) {
-    console.error("Error al obtener las obras del autor:", error);
-
+    console.error("Error al obtener estadísticas del autor visitado:", error);
   }
 };
 
@@ -620,17 +668,6 @@ onMounted(async () => {
   line-height: 1.2;
 }
 
-.filter-input {
-  flex: 2;
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95em;
-  font-family: inherit;
-  outline: none;
-  transition: 0.2s;
-}
-
 .filters-container {
   display: flex;
   gap: 15px;
@@ -678,6 +715,83 @@ onMounted(async () => {
   font-family: inherit;
   box-sizing: border-box;
   outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-input:focus {
+  border-color: var(--granate-principal);
+}
+
+.recommended-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--granate-principal);
+  margin: 25px 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statistics-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 25px;
+}
+
+.statistics-info {
+  background: #fffafc;
+  border: 1px solid var(--rosa-claro);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statistics-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 29, 54, 0.08);
+}
+
+.stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  background-color: var(--rosa-claro);
+  color: var(--granate-principal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  border: 1px solid #f2cdd6;
+}
+
+.stat-data {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-number {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--granate-principal);
+  line-height: 1.2;
 }
 
 .authors-grid {
@@ -700,21 +814,6 @@ onMounted(async () => {
 .authors-grid::-webkit-scrollbar-thumb {
   background: var(--granate-principal);
   border-radius: 4px;
-}
-
-.avatar-circle {
-  width: 70px;
-  height: 70px;
-  background: var(--rosa-claro);
-  color: var(--granate-principal);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8em;
-  font-weight: bold;
-  margin: 0 auto 15px;
-  border: 2px solid var(--granate-principal);
 }
 
 .author-card {
