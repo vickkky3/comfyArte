@@ -339,6 +339,40 @@
 
               <div class="modal-body">
 
+                <h3 class="recommended-title"> Estadísticas </h3>
+
+                <div class="statistics-container">
+                  <div class="statistics-info">
+                    <div class="stat-icon-wrapper">
+                      <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div class="stat-data">
+                      <span class="stat-label">Obras publicadas</span>
+                      <span class="stat-number">{{ authorWorksLength }}</span>
+                    </div>
+                  </div>
+
+                  <div class="statistics-info">
+                    <div class="stat-icon-wrapper">
+                      <i class="fa-solid fa-bookmark"></i>
+                    </div>
+                    <div class="stat-data">
+                      <span class="stat-label">Obras en favoritos</span>
+                      <span class="stat-number">{{ savedCount }}</span>
+                    </div>
+                  </div>
+
+                  <div class="statistics-info">
+                    <div class="stat-icon-wrapper">
+                      <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-data">
+                      <span class="stat-label">Suscriptores</span>
+                      <span class="stat-number">{{ numSubscriptors }}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="info-section">
                   <div class="section-icon">
                     <i class="fa-regular fa-user"></i>
@@ -438,7 +472,6 @@ const route = useRoute();
 const router = useRouter();
 
 const works = ref([]);
-const authorWorks = ref([]);
 const loading = ref(true);
 const user = ref({ interests: "" });
 
@@ -464,6 +497,10 @@ const searchMode = ref("works");
 
 const authorsList = ref([]);
 const authorSearchQuery = ref("");
+
+const authorWorks = ref([]);
+const numSubscriptors = ref(0);
+const savedCount = ref(0);
 
 const handleSearchClick = () => {
   appliedTypes.value = [...selectedTypes.value];
@@ -629,20 +666,31 @@ const filteredAuthors = computed(() => {
 
 const selectedAuthor = ref(null);
 
+const authorWorksLength = computed(() => {
+  return authorWorks.value.filter(work => work.status === 'published').length;
+});
+
 const openAuthorModal = async (author) => {
   selectedAuthor.value = author;
   authorWorks.value = [];
+  numSubscriptors.value = 0;
+  savedCount.value = 0;
 
   try {
     const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.get(`${API_BASE}/api/works/authors/${author.id}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-    authorWorks.value = response.data;
+    const headers = { Authorization: `Token ${token}` };
+
+    const [worksResponse, statsResponse] = await Promise.all([
+      axios.get(`${API_BASE}/api/works/authors/${author.id}/`, { headers }),
+      axios.get(`${API_BASE}/api/subscriptions/authors/stats/?author_id=${author.id}`, { headers })
+    ]);
+
+    authorWorks.value = worksResponse.data || [];
+    numSubscriptors.value = statsResponse.data.subscribers_count ?? 0;
+    savedCount.value = statsResponse.data.saved_works_count ?? 0;
 
   } catch (error) {
-    console.error("Error al obtener las obras del autor:", error);
-
+    console.error("Error al obtener estadísticas del autor visitado:", error);
   }
 };
 

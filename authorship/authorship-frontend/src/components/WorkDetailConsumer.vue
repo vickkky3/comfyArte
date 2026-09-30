@@ -179,6 +179,41 @@
                       </div>
 
                       <div class="modal-body">
+
+                        <h3 class="recommended-title"> Estadísticas </h3>
+
+                        <div class="statistics-container">
+                          <div class="statistics-info">
+                            <div class="stat-icon-wrapper">
+                              <i class="fa-solid fa-book-open"></i>
+                            </div>
+                            <div class="stat-data">
+                              <span class="stat-label">Obras publicadas</span>
+                              <span class="stat-number">{{ authorWorksLength }}</span>
+                            </div>
+                          </div>
+
+                          <div class="statistics-info">
+                            <div class="stat-icon-wrapper">
+                              <i class="fa-solid fa-bookmark"></i>
+                            </div>
+                            <div class="stat-data">
+                              <span class="stat-label">Obras en favoritos</span>
+                              <span class="stat-number">{{ savedCount }}</span>
+                            </div>
+                          </div>
+
+                          <div class="statistics-info">
+                            <div class="stat-icon-wrapper">
+                              <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div class="stat-data">
+                              <span class="stat-label">Suscriptores</span>
+                              <span class="stat-number">{{ numSubscriptors }}</span>
+                            </div>
+                          </div>
+                        </div>
+
                         <div class="info-section">
                           <div class="section-icon">
                             <i class="fa-regular fa-user"></i>
@@ -382,7 +417,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                      }}</a>
+                    }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -564,7 +599,10 @@ const route = useRoute();
 const authStore = useAuthStore();
 const loading = ref(true);
 const works = ref([]);
+
 const authorWorks = ref([]);
+const numSubscriptors = ref(0);
+const savedCount = ref(0);
 
 const savedWorks = ref([]);
 const savedWorkIds = ref(new Set());
@@ -1037,6 +1075,10 @@ const getWorkTypeName = (type) => {
 
 const selectedAuthor = ref(null);
 
+const authorWorksLength = computed(() => {
+  return authorWorks.value.filter(work => work.status === 'published').length;
+});
+
 const openAuthorModal = async () => {
   if (!work.value) return;
 
@@ -1057,22 +1099,26 @@ const openAuthorModal = async () => {
     biography: ""
   };
   authorWorks.value = [];
+  numSubscriptors.value = 0;
+  savedCount.value = 0;
 
   try {
     const token = authStore.token || localStorage.getItem("token");
+    const headers = { Authorization: `Token ${token}` };
 
-    const responseWorks = await axios.get(`${API_BASE}/api/works/authors/${authorId}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-    authorWorks.value = responseWorks.data;
+    const [responseWorks, responseUser, responseStats] = await Promise.all([
+      axios.get(`${API_BASE}/api/works/authors/${authorId}/`, { headers }),
+      axios.get(`${API_BASE}/api/users/${authorId}/`, { headers }),
+      axios.get(`${API_BASE}/api/subscriptions/authors/stats/?author_id=${authorId}`, { headers })
+    ]);
 
-    const responseUser = await axios.get(`${API_BASE}/api/users/${authorId}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-
+    authorWorks.value = responseWorks.data || [];
     selectedAuthor.value = responseUser.data;
+    numSubscriptors.value = responseStats.data.subscribers_count ?? 0;
+    savedCount.value = responseStats.data.saved_works_count ?? 0;
+
   } catch (error) {
-    console.error("Error al cargar los detalles del autor:", error);
+    console.error("Error al cargar los detalles y estadísticas del autor:", error);
   }
 };
 
