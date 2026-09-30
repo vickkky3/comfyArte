@@ -294,7 +294,7 @@
                 <span class="tech-label">Repositorio de código</span>
                 <span class="tech-value">
                   <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                  }}</a>
                   <span v-else>-</span>
                 </span>
               </div>
@@ -437,23 +437,25 @@
 
         <div class="crypto-security-box">
           <div class="crypto-header">
-            <span class="crypto-badge">Registro con Firma RSA Garantizada</span>
+            <span class="crypto-badge">Integridad Criptográfica SHA-256</span>
             <p class="field-desc-mini">
-              Esta obra está protegida mediante criptografía asimétrica de clave pública/privada.
+              Esta obra cuenta con una huella digital única e inalterable que certifica la autenticidad e integridad de
+              su
+              contenido original.
             </p>
           </div>
 
           <div class="crypto-body">
             <div class="crypto-row">
-              <span class="label-mini">Firma Electrónica de Autoría (RSA-2048)</span>
+              <span class="label-mini">Huella Digital de la Obra (SHA-256)</span>
 
               <div class="signature-wrapper">
                 <div class="signature-scroll-box">
-                  <code class="signature-code">{{ work?.hash_security || 'No firmado' }}</code>
+                  <code class="signature-code">{{ work?.hash_security || 'Sin hash' }}</code>
                 </div>
 
                 <button type="button" @click="copySignature" class="btn-copy-signature"
-                  :class="{ 'btn-copied': copied }" title="Copiar firma al portapapeles">
+                  :class="{ 'btn-copied': copied }" title="Copiar hash al portapapeles">
                   <i v-if="copied" class="fa-solid fa-check"></i>
                   <i v-else class="fa-regular fa-copy"></i>
                   <span v-if="copied">¡Copiado!</span>
@@ -462,9 +464,7 @@
               </div>
 
               <p class="crypto-explanation">
-                Garantiza el <strong>no repudio</strong>: este bloque certifica
-                matemáticamente que fuiste tú, {{ work.author_username }}, quien firmó este archivo usando tu clave
-                privada.
+                Garantiza la <strong>integridad</strong>
               </p>
             </div>
           </div>
@@ -1395,111 +1395,6 @@ onMounted(async () => {
 
 .btn-subscribe-now:hover {
   background: var(--rosa-claro) !important;
-}
-
-.crypto-security-box {
-  background-color: #f4faf7;
-  border: 1px solid #d1e7dd;
-  border-left: 5px solid #0f5132;
-  padding: 25px;
-  border-radius: 12px;
-  margin: 30px 0;
-}
-
-.crypto-badge {
-  display: inline-block;
-  background-color: #0f5132;
-  color: white;
-  font-size: 0.85em;
-  font-weight: bold;
-  padding: 6px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.crypto-row {
-  margin-top: 15px;
-}
-
-.field-desc-mini {
-  font-size: 0.85em;
-  color: #41464b;
-  margin-top: 6px;
-  margin-bottom: 15px;
-}
-
-.crypto-explanation {
-  font-size: 0.8em;
-  color: #6c757d;
-  font-style: italic;
-  margin: 4px 0 0 0;
-}
-
-.label-mini {
-  display: block;
-  font-size: 0.8em;
-  color: #111;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.signature-scroll-box {
-  background-color: white;
-  padding: 12px;
-  border-radius: 6px;
-  max-height: 80px;
-  overflow-y: auto;
-  margin: 6px 0;
-}
-
-.signature-code {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.8em;
-  color: #0dcaf0;
-  word-break: break-all;
-  white-space: pre-wrap;
-}
-
-.signature-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.btn-copy-signature {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #ffffff;
-  color: #2e7d32;
-  border: 1px solid #2e7d32;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.btn-copy-signature:hover {
-  background-color: var(--rosa-claro);
-  border-color: var(--rosa-fuerte);
-}
-
-.btn-copy-signature.btn-copied {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border-color: #a5d6a7;
-}
-
-.signature-scroll-box {
-  padding-right: 85px;
 }
 
 .license-container {

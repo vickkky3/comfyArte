@@ -1019,3 +1019,109 @@ body {
     background-color: #e2e8f0;
     color: #334155;
   }
+
+  .crypto-security-box {
+    background-color: #f4faf7;
+    border: 1px solid #d1e7dd;
+    border-left: 5px solid #0f5132;
+    padding: 25px;
+    border-radius: 12px;
+    margin: 30px 0;
+  }
+  
+  .crypto-badge {
+    display: inline-block;
+    background-color: #0f5132;
+    color: white;
+    font-size: 0.85em;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .crypto-row {
+    margin-top: 15px;
+  }
+  
+  .field-desc-mini {
+    font-size: 0.85em;
+    color: #41464b;
+    margin-top: 6px;
+    margin-bottom: 15px;
+  }
+  
+  .crypto-explanation {
+    font-size: 0.8em;
+    color: #6c757d;
+    font-style: italic;
+    margin: 4px 0 0 0;
+  }
+  
+  .label-mini {
+    display: block;
+    font-size: 0.8em;
+    color: #111;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  
+  .signature-scroll-box {
+    background-color: white;
+    padding: 12px;
+    border-radius: 6px;
+    max-height: 80px;
+    overflow-y: auto;
+    margin: 6px 0;
+  }
+  
+  .signature-code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8em;
+    color: #0dcaf0;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  
+  .signature-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  
+  .btn-copy-signature {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #ffffff;
+    color: #2e7d32;
+    border: 1px solid #2e7d32;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .btn-copy-signature:hover {
+    background-color: var(--rosa-claro);
+    border-color: var(--rosa-fuerte);
+  }
+  
+  .btn-copy-signature.btn-copied {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-color: #a5d6a7;
+  }
+  
+  .signature-scroll-box {
+    padding-right: 85px;
+  }
+  

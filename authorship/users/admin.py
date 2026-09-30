@@ -9,7 +9,6 @@ class UserAdmin(BaseUserAdmin):
         'username',
         'email',
         'role',
-        'has_keys',
         'is_staff',
         'date_joined'
     )
@@ -17,7 +16,7 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('username', 'email', 'first_name', 'last_name', 'interests')
     ordering = ('-date_joined',)
     
-    readonly_fields = ('public_key', 'private_key', 'date_joined', 'last_login')
+    readonly_fields = ('date_joined', 'last_login')
 
     fieldsets = (
         ('Identificación y Cuenta', {
@@ -28,10 +27,6 @@ class UserAdmin(BaseUserAdmin):
         }),
         ('Rol de Plataforma', {
             'fields': ('role',)
-        }),
-        ('Par Criptográfico RSA', {
-            'classes': ('collapse',),
-            'fields': ('public_key', 'private_key')
         }),
         ('Permisos y Accesos', {
             'classes': ('collapse',),
@@ -48,23 +43,6 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('role', 'email', 'interests', 'biography')
         }),
     )
-
-    actions = ['set_as_author', 'set_as_consumer']
-
-    @admin.display(boolean=True, description='Claves RSA')
-    def has_keys(self, obj):
-        return bool(obj.public_key and obj.private_key)
-
-    @admin.action(description='Cambiar rol a Autor')
-    def set_as_author(self, request, queryset):
-        filas = queryset.update(role='author')
-        self.message_user(request, f"{filas} usuarios cambiados a rol Autor.")
-
-    @admin.action(description='Cambiar rol a Consumidor')
-    def set_as_consumer(self, request, queryset):
-        filas = queryset.update(role='consumer')
-        self.message_user(request, f"{filas} usuarios cambiados a rol Consumidor.")
-
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

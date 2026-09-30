@@ -382,7 +382,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                    }}</a>
+                      }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -510,6 +510,43 @@
           <p v-else class="license-description">
             Información de licencia no disponible.
           </p>
+        </div>
+
+        <div class="crypto-security-box">
+          <div class="crypto-header">
+            <span class="crypto-badge">
+              <i class="fa-solid fa-shield-halved"></i> Archivo Original Verificado
+            </span>
+            <p class="field-desc-mini">
+              Esta obra incluye un código de autenticidad que asegura que el archivo que descargas es el original del
+              autor
+              y no ha sido alterado.
+            </p>
+          </div>
+
+          <div class="crypto-body">
+            <div class="crypto-row">
+              <span class="label-mini">Código de Verificación Único (SHA-256)</span>
+
+              <div class="signature-wrapper">
+                <div class="signature-scroll-box">
+                  <code class="signature-code">{{ work?.hash_security || 'Huella no disponible' }}</code>
+                </div>
+
+                <button type="button" @click="copySignature" class="btn-copy-signature"
+                  :class="{ 'btn-copied': copied }" title="Copiar código de verificación al portapapeles">
+                  <i v-if="copied" class="fa-solid fa-check"></i>
+                  <i v-else class="fa-regular fa-copy"></i>
+                  <span v-if="copied">¡Copiado!</span>
+                  <span v-else>Copiar</span>
+                </button>
+              </div>
+
+              <p class="crypto-explanation">
+                Garantiza que el contenido es <strong>completo e inalterado</strong> desde su registro.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1114,6 +1151,23 @@ const confirmHandleLogout = () => {
   );
 };
 
+const copied = ref(false);
+
+const copySignature = async () => {
+  const textToCopy = work.value?.hash_security;
+  if (!textToCopy) return;
+
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    copied.value = true;
+
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error("Error al copiar al portapapeles:", err);
+  }
+};
 
 const handleLogout = () => {
   authStore.logout();

@@ -4,7 +4,9 @@ from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
+import hashlib
 from pathlib import Path
+from django.db import transaction
 
 from subscriptions.models import SubscriptionPlan
 from .models import Work
@@ -48,21 +50,6 @@ def is_extension_allowed(filename):
     return ext in ALLOWED_EXTENSIONS
 
 MAX_FILE_SIZE = 50 * 1024 * 1024
-
-def sign_binary_data(binary_data, private_key_pem):
-    private_key = serialization.load_pem_private_key(
-        private_key_pem.encode('utf-8'),
-        password=None
-    )
-    signature = private_key.sign(
-        binary_data,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
-    return base64.b64encode(signature).decode('utf-8')
 
 class WorkListCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -131,7 +118,7 @@ class WorkListCreateAPIView(APIView):
             resume = request.FILES.get('resume_upload')
             
             if not file:
-                return Response({"error": "Es obligatorio adjuntar un archivo para registrar y firmar la obra."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Es obligatorio adjuntar un archivo para registrar la obra."}, status=status.HTTP_400_BAD_REQUEST)
 
             if file.size > MAX_FILE_SIZE or (resume and resume.size > MAX_FILE_SIZE):
                 return Response({"error": "El archivo excede el tamaño máximo permitido (50 MB)."}, status=status.HTTP_400_BAD_REQUEST)
@@ -172,18 +159,15 @@ class WorkListCreateAPIView(APIView):
                         {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                
-            user_private_key_pem = request.user.private_key
-        
-            if not user_private_key_pem:
-                return Response({"error": "El usuario no dispone de una clave privada para firmar."}, status=status.HTTP_400_BAD_REQUEST)
             
             binary_file = file.read()
             clean_filename = Path(file.name).name
+            
+            file_hash = hashlib.sha256(binary_file).hexdigest()
             create_data['binary_file'] = binary_file
             create_data['file_name'] = clean_filename
             create_data['file_type'] = file.content_type
-            create_data['hash_security'] = sign_binary_data(binary_file, user_private_key_pem)
+            create_data['hash_security'] = file_hash
                 
             if resume:
                 clean_resume_name = Path(resume.name).name
@@ -191,25 +175,22 @@ class WorkListCreateAPIView(APIView):
                 create_data['resume_name'] = clean_resume_name
                 create_data['resume_type'] = resume.content_type
                                 
-            obj = model_class.objects.create(author=request.user, **create_data)
-            
-            subscriptions = AuthorSubscription.objects.filter(author=request.user)
-            
-            if obj.status == 'published':
-                subscriptions = AuthorSubscription.objects.filter(author=request.user)
-                notifications_to_create = []
-                for sub in subscriptions:
-                    notifications_to_create.append(
+            with transaction.atomic():
+                obj = model_class.objects.create(author=request.user, **create_data)
+                
+                if obj.status == 'published':
+                    subscriptions = AuthorSubscription.objects.filter(author=request.user)
+                    notifications = [
                         Notification(
                             recipient=sub.consumer,
                             notification_type='new_work',
                             work=obj,
                             message=f"El autor {request.user.username} ha publicado una nueva obra: '{obj.title}'"
                         )
-                    )
-                    
-                if notifications_to_create:
-                    Notification.objects.bulk_create(notifications_to_create)
+                        for sub in subscriptions
+                    ]
+                    if notifications:
+                        Notification.objects.bulk_create(notifications)
                 
             return Response(WorkSerializer(obj).data, status=status.HTTP_201_CREATED)
                         
