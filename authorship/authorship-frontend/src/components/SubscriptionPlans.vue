@@ -19,22 +19,30 @@
       </div>
       <div class="navbar-right">
         <span class="points"><i class="fa-solid fa-wallet"></i>{{ userPoints }} Puntos</span>
-        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+        <button @click="confirmHandleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
 
     <transition name="popup-fade">
-      <div v-if="notification.show" :class="['popup-notification', notification.type]">
+      <div v-if="information.show" :class="['popup-notification', information.type]">
         <div class="popup-icon">
-          <i v-if="notification.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else-if="information.type === 'confirm'" class="fa-solid fa-circle-question"></i>
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
-          <span class="popup-title" v-if="notification.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else-if="information.type === 'confirm'">Confirmar Acción</span>
           <span class="popup-title" v-else>¡Acción Exitosa!</span>
-          <p class="popup-message">{{ notification.message }}</p>
+          <p class="popup-message">{{ information.message }}</p>
+
+          <div v-if="information.type === 'confirm'" class="popup-actions">
+            <button @click="handleConfirm" class="btn-popup btn-confirm">Confirmar</button>
+            <button @click="closeInformation" class="btn-popup btn-cancel">Cancelar</button>
+          </div>
         </div>
-        <button @click="notification.show = false" class="popup-close">
+
+        <button @click="closeInformation" class="popup-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -81,7 +89,11 @@
             </li>
           </ul>
 
-          <button @click="handleSubscribe(item.id)" class="btn-accion">
+          <button v-if="isCurrentPlan(item.id)" type="button" class="btn-accion btn-plan-actual" disabled>
+            <i class="fa-solid fa-check"></i> Plan actual
+          </button>
+
+          <button v-else type="button" @click="confirmHandleSubscribe(item.id)" class="btn-accion">
             <i class="fa-solid fa-angle-right"></i> Seleccionar {{ item.name }}
           </button>
         </div>
@@ -103,6 +115,7 @@ const plans = ref([]);
 const error = ref("");
 const loading = ref(true);
 const userPoints = ref(0);
+const userSubscription = ref(null);
 
 const user = ref({
   username: "",
@@ -111,29 +124,26 @@ const user = ref({
   es_consumidor: false
 });
 
-const notification = ref({
-  show: false,
-  message: "",
-  type: "error"
-});
-
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const getSubscriptionPlanData = async () => {
   try {
-    const response = await axios.get(`${API_BASE}/api/subscriptions/plans/`, {
-      headers: {
-        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
-      },
-    });
-    plans.value = response.data;
+    const token = authStore.token || localStorage.getItem("token");
+    const headers = { Authorization: `Token ${token}` };
 
-    const responseUser = await axios.get(`${API_BASE}/api/users/me/`, {
-      headers: {
-        Authorization: `Token ${authStore.token || localStorage.getItem("token")}`,
-      },
-    });
+    const responsePlans = await axios.get(`${API_BASE}/api/subscriptions/plans/`, { headers });
+    plans.value = responsePlans.data;
+
+    const responseUser = await axios.get(`${API_BASE}/api/users/me/`, { headers });
     user.value = responseUser.data;
+
+    try {
+      const responseSub = await axios.get(`${API_BASE}/api/subscriptions/me/`, { headers });
+      userSubscription.value = responseSub.data;
+      console.log("Suscripción activa del usuario:", responseSub.data);
+    } catch (subErr) {
+      userSubscription.value = null;
+    }
 
   } catch (err) {
     console.error("Error al cargar los planes:", err);
@@ -141,6 +151,14 @@ const getSubscriptionPlanData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const isCurrentPlan = (planId) => {
+  if (!userSubscription.value) return false;
+
+  const activePlanId = userSubscription.value.plan?.id || userSubscription.value.plan;
+  
+  return Number(activePlanId) === Number(planId);
 };
 
 const getUserPoints = async () => {
@@ -160,8 +178,35 @@ const getUserPoints = async () => {
   }
 };
 
-const triggerNotification = (message, type = 'error') => {
-  notification.value = { show: true, message, type };
+const information = ref({
+  show: false,
+  message: "",
+  type: "error",
+  onConfirm: null
+});
+
+const triggerInformation = (message, type = 'error', onConfirm = null) => {
+  information.value = { show: true, message, type, onConfirm };
+};
+
+const handleConfirm = () => {
+  if (information.value.onConfirm) {
+    information.value.onConfirm();
+  }
+  closeInformation();
+};
+
+const closeInformation = () => {
+  information.value.show = false;
+  information.value.onConfirm = null;
+};
+
+const confirmHandleSubscribe = (planId) => {
+  triggerInformation(
+    "¿Estás seguro de que deseas suscribirte a este plan?",
+    "confirm",
+    () => handleSubscribe(planId)
+  );
 };
 
 const handleSubscribe = async (planId) => {
@@ -171,16 +216,16 @@ const handleSubscribe = async (planId) => {
       { headers: { Authorization: `Token ${authStore.token || localStorage.getItem("token")}` } }
     );
 
-    triggerNotification(response.data.detail || "¡Suscripción realizada con éxito!", "success");
+    triggerInformation(response.data.detail || "¡Suscripción realizada con éxito!", "success");
 
     setTimeout(() => {
       router.push("/dashboard");
     }, 1500);
   } catch (err) {
     if (err.response && err.response.data && err.response.data.detail) {
-      triggerNotification(err.response.data.detail, "error");
+      triggerInformation(err.response.data.detail, "error");
     } else {
-      triggerNotification("Error al procesar la suscripción. Inténtalo de nuevo.", "error");
+      triggerInformation("Error al procesar la suscripción. Inténtalo de nuevo.", "error");
     }
   }
 };
@@ -191,6 +236,14 @@ const goBack = () => {
   } else {
     router.push('/dashboard');
   }
+};
+
+const confirmHandleLogout = () => {
+  triggerInformation(
+    "¿Estás seguro de que deseas cerrar sesión?",
+    "confirm",
+    () => handleLogout()
+  );
 };
 
 const handleLogout = () => {
@@ -305,7 +358,7 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   flex-wrap: nowrap;
-  overflow-x: auto; 
+  overflow-x: auto;
   padding: 20px 10px 15px 10px;
   justify-content: flex-start;
   scrollbar-width: thin;
@@ -435,5 +488,13 @@ onMounted(() => {
   padding: 3px 12px;
   border-radius: 12px;
   display: inline-block;
+}
+
+.btn-plan-actual {
+  background-color: #64748b;
+  color: #ffffff;
+  cursor: default;
+  opacity: 0.8;
+  pointer-events: none;
 }
 </style>

@@ -84,11 +84,11 @@
                     <div
                       v-if="notif.notification_type === 'approved_work' && notif.work && getWorkStatus(notif) !== 'published'"
                       class="notif-actions">
-                      <button class="btn-action-publish" @click="publishWork(notif)"
+                      <button class="btn-action-publish" @click="confirmPublishWork(notif)"
                         title="Hacer pública la obra en la plataforma">
                         Publicar obra
                       </button>
-                      <button class="btn-action-delete" @click="discardWork(notif)"
+                      <button class="btn-action-delete" @click="confirmDiscardWork(notif)"
                         title="Descartar y eliminar permanentemente la obra">
                         Descartar
                       </button>
@@ -107,7 +107,7 @@
           </div>
         </div>
 
-        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+        <button @click="confirmHandleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
 
@@ -115,14 +115,22 @@
       <div v-if="information.show" :class="['popup-notification', information.type]">
         <div class="popup-icon">
           <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else-if="information.type === 'confirm'" class="fa-solid fa-circle-question"></i>
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
           <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else-if="information.type === 'confirm'">Confirmar Acción</span>
           <span class="popup-title" v-else>¡Acción Exitosa!</span>
           <p class="popup-message">{{ information.message }}</p>
+
+          <div v-if="information.type === 'confirm'" class="popup-actions">
+            <button @click="handleConfirm" class="btn-popup btn-confirm">Confirmar</button>
+            <button @click="closeInformation" class="btn-popup btn-cancel">Cancelar</button>
+          </div>
         </div>
-        <button @click="information.show = false" class="popup-close">
+
+        <button @click="closeInformation" class="popup-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -325,7 +333,7 @@
               </button>
 
               <div v-else class="edit-buttons-row">
-                <button @click="modifyProfile" class="btn-save-action">
+                <button @click="confirmModifyProfile" class="btn-save-action">
                   <i class="fa-solid fa-floppy-disk"></i>
                   <span>Guardar cambios</span>
                 </button>
@@ -443,7 +451,7 @@
                       </td>
 
                       <td class="col-delete">
-                        <button @click="deleteWork(work.id)" class="btn-delete-plain" title="Eliminar obra">
+                        <button @click="confirmDeleteWork(work.id)" class="btn-delete-plain" title="Eliminar obra">
                           <i class="fa-solid fa-trash-can"></i>
                         </button>
                       </td>
@@ -467,7 +475,7 @@
               </div>
 
               <p v-else class="no-recommendations-msg">
-                Aún no has publicado ninguna user.value.es_autorobra.
+                Aún no has publicado ninguna obra.
               </p>
             </div>
 
@@ -654,11 +662,24 @@ const getWorkIcon = (type) => workIconMap[type] || 'fa-solid fa-file-image';
 const information = ref({
   show: false,
   message: "",
-  type: "error"
+  type: "error",
+  onConfirm: null
 });
 
-const triggerInformation = (message, type = 'error') => {
-  information.value = { show: true, message, type };
+const triggerInformation = (message, type = 'error', onConfirm = null) => {
+  information.value = { show: true, message, type, onConfirm };
+};
+
+const handleConfirm = () => {
+  if (information.value.onConfirm) {
+    information.value.onConfirm();
+  }
+  closeInformation();
+};
+
+const closeInformation = () => {
+  information.value.show = false;
+  information.value.onConfirm = null;
 };
 
 const userInterestsArray = computed(() => {
@@ -687,6 +708,14 @@ const getWorkStatus = (notif) => {
   else {
     return null;
   }
+};
+
+const confirmPublishWork = (notif) => {
+  triggerInformation(
+    "¿Estás seguro de que deseas publicar esta obra?",
+    "confirm",
+    () => publishWork(notif)
+  );
 };
 
 const publishWork = async (notif) => {
@@ -731,6 +760,14 @@ const publishWork = async (notif) => {
   } catch (err) {
     console.error('Error al publicar la obra:', err.response?.data || err.message);
   }
+};
+
+const confirmDiscardWork = (notif) => {
+  triggerInformation(
+    "¿Estás seguro de que deseas descartar esta obra?",
+    "confirm",
+    () => discardWork(notif)
+  );
 };
 
 const discardWork = async (notif) => {
@@ -897,6 +934,14 @@ const getSavedWorks = async () => {
   }
 };
 
+const confirmModifyProfile = () => {
+  triggerInformation(
+    "¿Estás seguro de que deseas realizar estos cambios en tu perfil?",
+    "confirm",
+    () => modifyProfile(id)
+  );
+};
+
 const modifyProfile = async () => {
   try {
     loading.value = true;
@@ -1036,6 +1081,14 @@ const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--;
 };
 
+const confirmDeleteWork = (id) => {
+  triggerInformation(
+    "¿Estás seguro de que deseas eliminar esta obra?",
+    "confirm",
+    () => deleteWork(id)
+  );
+};
+
 const deleteWork = async (id) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
@@ -1057,6 +1110,15 @@ const deleteWork = async (id) => {
     loading.value = false;
   }
 };
+
+const confirmHandleLogout = () => {
+  triggerInformation(
+    "¿Estás seguro de que deseas cerrar sesión?",
+    "confirm",
+    () => handleLogout()
+  );
+};
+
 
 const handleLogout = () => {
   authStore.logout();

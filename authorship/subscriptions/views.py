@@ -67,12 +67,6 @@ class SubscribeAPIView(APIView):
                 status=400
             )
 
-        try:
-            plan_id = request.data.get('plan_id')
-            plan = SubscriptionPlan.objects.get(id=plan_id)
-        except SubscriptionPlan.DoesNotExist:
-            return Response({"detail": "No existe este plan"}, status=404)
-
         wallet, created = UserWallet.objects.update_or_create(user=request.user)
         
         if wallet.points < plan.points:

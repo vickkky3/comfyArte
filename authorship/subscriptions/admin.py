@@ -13,16 +13,20 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
     list_filter = ('duration_days',)
     search_fields = ('name', 'description')
     ordering = ('price',)
-    readonly_fields = ('points',)
 
     fieldsets = (
         ('Información básica', {
             'fields': ('name', 'description')
         }),
         ('Tarificación y Recompensas', {
-            'fields': ('price', 'points', 'duration_days')
+            'fields': ('price', 'duration_days'),
+            'description': 'Los puntos se asignan automáticamente de forma proporcional: 1 € = 10 puntos.'
         }),
     )
+
+    def points(self, obj):
+        return obj.points
+    points.short_description = 'Puntos asignados'
 
     def subscribers_count(self, obj):
         return obj.usersubscription_set.count()

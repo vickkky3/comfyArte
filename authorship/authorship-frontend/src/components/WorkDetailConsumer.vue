@@ -79,7 +79,7 @@
           </div>
         </div>
 
-        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+        <button @click="confirmHandleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
 
@@ -87,14 +87,22 @@
       <div v-if="information.show" :class="['popup-notification', information.type]">
         <div class="popup-icon">
           <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else-if="information.type === 'confirm'" class="fa-solid fa-circle-question"></i>
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
           <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else-if="information.type === 'confirm'">Confirmar Acción</span>
           <span class="popup-title" v-else>¡Acción Exitosa!</span>
           <p class="popup-message">{{ information.message }}</p>
+
+          <div v-if="information.type === 'confirm'" class="popup-actions">
+            <button @click="handleConfirm" class="btn-popup btn-confirm">Confirmar</button>
+            <button @click="closeInformation" class="btn-popup btn-cancel">Cancelar</button>
+          </div>
         </div>
-        <button @click="information.show = false" class="popup-close">
+
+        <button @click="closeInformation" class="popup-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -233,11 +241,17 @@
                       </div>
 
                       <div class="modal-footer">
-                        <button type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
-                          <div v-if="isSuscribed(selectedAuthor.id)">
+                        <button v-if="isSuscribed(selectedAuthor?.id)" type="button"
+                          @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
+                          title="Quitar de guardados">
+                          <div>
                             <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
                           </div>
-                          <div v-else>
+                        </button>
+
+                        <button v-else type="button" @click="subscribeToAuthor(selectedAuthor?.id)"
+                          class="btn-subscribe" title="Guardar obra">
+                          <div>
                             <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
                           </div>
                         </button>
@@ -621,16 +635,29 @@ const workIcons = {
   sculpture: 'fa-solid fa-hammer'
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const information = ref({
   show: false,
   message: "",
-  type: "error"
+  type: "error",
+  onConfirm: null
 });
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const triggerInformation = (message, type = 'error', onConfirm = null) => {
+  information.value = { show: true, message, type, onConfirm };
+};
 
-const triggerInformation = (message, type = 'error') => {
-  information.value = { show: true, message, type };
+const handleConfirm = () => {
+  if (information.value.onConfirm) {
+    information.value.onConfirm();
+  }
+  closeInformation();
+};
+
+const closeInformation = () => {
+  information.value.show = false;
+  information.value.onConfirm = null;
 };
 
 const workIcon = computed(() => {
@@ -901,7 +928,7 @@ const canSeeProtectedContent = computed(() => {
 
     if (userPoints >= requiredPoints && requiredPoints > 0) {
       return true;
-      
+
     } else {
       return false;
     }
@@ -1017,13 +1044,31 @@ const closeAuthorModal = () => {
   authorWorks.value = [];
 };
 
-const suscribedAuthorsIds = ref(new Set());
 const isSuscribed = (authorId) => {
   return suscribedAuthorsIds.value.has(authorId);
 };
 
+const suscribedAuthorsIds = ref(new Set());
+
+const fetchSubscribedAuthors = async () => {
+  try {
+    const token = authStore.token || localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/subscriptions/authors/subscribe/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    suscribedAuthorsIds.value = new Set(
+      response.data.map(item => item.author_id || item.author?.id || item.id)
+    );
+  } catch (error) {
+    console.error("Error al cargar suscripciones:", error);
+  }
+};
+
 const subscribeToAuthor = async (authorId) => {
+
   const token = authStore.token || localStorage.getItem("token");
+
   const config = {
     headers: { Authorization: `Token ${token}` },
     data: { author_id: authorId }
@@ -1031,20 +1076,25 @@ const subscribeToAuthor = async (authorId) => {
 
   try {
     if (isSuscribed(authorId)) {
+
       await axios.delete(`${API_BASE}/api/subscriptions/authors/subscribe/`, config);
       suscribedAuthorsIds.value.delete(authorId);
+
       triggerInformation("¡Has eliminado con éxito tu suscripción a este autor!", "success");
+
     } else {
+
       await axios.post(`${API_BASE}/api/subscriptions/authors/subscribe/`, { author_id: authorId }, {
         headers: { Authorization: `Token ${token}` }
       });
       suscribedAuthorsIds.value.add(authorId);
+
       triggerInformation("¡Te has suscrito con éxito a este autor!", "success");
     }
-    closeAuthorModal();
+
   } catch (error) {
     console.error("Error al suscribirse:", error);
-    triggerInformation("¡Se ha producido un error con la suscripción a este autor!", "error");
+    triggerInformation("¡Se ha producido con la suscripción a este autor!", "error");
   }
 };
 
@@ -1055,6 +1105,15 @@ const goBack = () => {
     router.push('/works');
   }
 };
+
+const confirmHandleLogout = () => {
+  triggerInformation(
+    "¿Estás seguro de que deseas cerrar sesión?",
+    "confirm",
+    () => handleLogout()
+  );
+};
+
 
 const handleLogout = () => {
   authStore.logout();
@@ -1095,6 +1154,7 @@ onMounted(async () => {
   fetchSubscriptionPlan();
   fetchMySubscription();
   fetchSavedWorks();
+  fetchSubscribedAuthors();
 });
 </script>
 

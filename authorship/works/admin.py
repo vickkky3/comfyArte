@@ -133,7 +133,7 @@ class WorkAdmin(admin.ModelAdmin):
         return "Sin muestra"
     download_resume_link.short_description = "Muestra / Resumen"
     
-    @admin.action(description="Aprobar obras seleccionadas (Notificar al autor)")
+    @admin.action(description="Aprobar obras seleccionadas")
     def manual_approve_work(self, request, queryset):
         approved_works = 0
         for work in queryset:

@@ -80,7 +80,7 @@
           </div>
         </div>
 
-        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+        <button @click="confirmHandleLogout" class="btn-logout">Cerrar Sesión</button>
       </div>
     </nav>
 
@@ -88,14 +88,22 @@
       <div v-if="information.show" :class="['popup-notification', information.type]">
         <div class="popup-icon">
           <i v-if="information.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
+          <i v-else-if="information.type === 'confirm'" class="fa-solid fa-circle-question"></i>
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
           <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
+          <span class="popup-title" v-else-if="information.type === 'confirm'">Confirmar Acción</span>
           <span class="popup-title" v-else>¡Acción Exitosa!</span>
           <p class="popup-message">{{ information.message }}</p>
+
+          <div v-if="information.type === 'confirm'" class="popup-actions">
+            <button @click="handleConfirm" class="btn-popup btn-confirm">Confirmar</button>
+            <button @click="closeInformation" class="btn-popup btn-cancel">Cancelar</button>
+          </div>
         </div>
-        <button @click="information.show = false" class="popup-close">
+
+        <button @click="closeInformation" class="popup-close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -146,11 +154,21 @@
               <span class="pill-type-tag">{{ getWorkTypeName(workItem.work_type) }}</span>
 
               <div class="work-card-buttons">
-                <button v-if="user.es_consumidor" type="button" @click="saveWork(workItem.work_id || workItem.id)"
-                  class="btn-bookmark-action"
-                  :title="isSaved(workItem.work_id || workItem.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'">
-                  <i
-                    :class="isSaved(workItem.work_id || workItem.id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'"></i>
+                <button v-if="user.es_consumidor" type="button"
+                  @click="confirmSaveWork(workItem.work_id || workItem.id)" class="btn-bookmark-action">
+
+                  <template v-if="isSaved(workItem.work_id || workItem.id)">
+                    <span title="Quitar de favoritos">
+                      <i class="fa-solid fa-bookmark"></i>
+                    </span>
+                  </template>
+
+                  <template v-else>
+                    <span title="Guardar en favoritos">
+                      <i class="fa-regular fa-bookmark"></i>
+                    </span>
+                  </template>
+
                 </button>
 
                 <router-link :to="`/works/${workItem.work_id || workItem.id}`" class="btn-card-details">
@@ -189,16 +207,29 @@ const savedWorks = ref([]);
 const workSearchQuery = ref("");
 const savedWorkIds = ref(new Set());
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const information = ref({
   show: false,
   message: "",
-  type: "error"
+  type: "error",
+  onConfirm: null
 });
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const triggerInformation = (message, type = 'error', onConfirm = null) => {
+  information.value = { show: true, message, type, onConfirm };
+};
 
-const triggerInformation = (message, type = 'error') => {
-  information.value = { show: true, message, type };
+const handleConfirm = () => {
+  if (information.value.onConfirm) {
+    information.value.onConfirm();
+  }
+  closeInformation();
+};
+
+const closeInformation = () => {
+  information.value.show = false;
+  information.value.onConfirm = null;
 };
 
 const workTypeNames = {
@@ -328,6 +359,14 @@ const isSaved = (workId) => {
   return savedWorkIds.value.has(workId);
 };
 
+const confirmSaveWork = (workId) => {
+  triggerInformation(
+    "¿Estás seguro de que deseas eliminar esta obra de favoritos?",
+    "confirm",
+    () => saveWork(workId)
+  );
+};
+
 const saveWork = async (workId) => {
   const token = authStore.token || localStorage.getItem("token");
   const config = {
@@ -360,6 +399,15 @@ const saveWork = async (workId) => {
     console.error("Error al actualizar guardados:", error);
   }
 };
+
+const confirmHandleLogout = () => {
+  triggerInformation(
+    "¿Estás seguro de que deseas cerrar sesión?",
+    "confirm",
+    () => handleLogout()
+  );
+};
+
 
 const handleLogout = () => {
   authStore.logout();
