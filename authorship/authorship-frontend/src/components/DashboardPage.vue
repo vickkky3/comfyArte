@@ -63,7 +63,9 @@
                       <span class="notif-title" v-else-if="notif.notification_type === 'rejected_work'">
                         Obra rechazada
                       </span>
-                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'rejected_work'">
+                        Tu suscripción está a punto de caducar
+                      </span>
                     </div>
 
                     <p class="notif-text">
@@ -83,6 +85,10 @@
                       </template>
                       <template v-else-if="notif.notification_type === 'rejected_work'">
                         La obra: <em>"{{ notif.work_title }}"</em> ha sido rechazada por el administrador.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'plan_expiring'">
+                        El plan <em>"{{ activeSubscription?.plan_name }}"</em> expirará el día
+                        <strong>{{ formatDate(activeSubscription?.end_date) }}</strong>. Renuévalo para no perderte nada. 
                       </template>
                     </p>
 

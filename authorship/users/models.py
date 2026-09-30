@@ -23,6 +23,7 @@ class Notification(models.Model):
         ('new_saved_work', 'Nueva obra guardada'),
         ('approved_work', 'Obra aprobada por el administrador'),
         ('rejected_work', 'Obra rechazada por el administrador'),
+        ('plan_expiring', 'Plan a punto de expirar'),
     ]
 
     recipient = models.ForeignKey(

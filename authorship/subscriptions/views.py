@@ -32,10 +32,40 @@ class MySubscriptionAPIView(APIView):
     def get(self, request):
         try:
             subscription = UserSubscription.objects.get(user=request.user, active=True)
+            
+            self.check_and_notify_expiration(subscription, request.user)
+
             serializer = UserSubscriptionSerializer(subscription)
             return Response(serializer.data)
         except UserSubscription.DoesNotExist:
             return Response({"detail": "No tienes una suscripción activa"}, status=404)
+
+    def check_and_notify_expiration(self, subscription, user):
+        expiration_date = getattr(subscription, 'expires_at', None) or getattr(subscription, 'end_date', None)
+
+        if not expiration_date:
+            return
+
+        exp_date = expiration_date.date() if hasattr(expiration_date, 'date') else expiration_date
+        today = timezone.localdate()
+
+        days_left = (exp_date - today).days
+
+        if days_left == 1:
+            already_notified = Notification.objects.filter(
+                recipient=user,
+                created_at__date=today,
+                notification_type='plan_expiring'
+            ).exists()
+
+            if not already_notified:
+                plan_name = getattr(subscription.plan, 'name', 'tu plan')
+
+                Notification.objects.create(
+                    recipient=user,
+                    notification_type='plan_expiring',
+                    message=f"Tu plan '{plan_name}' expirará mañana ({exp_date.strftime('%d/%m/%Y')}). Renuévalo para no perder tus ventajas."
+                )
         
 class MyWalletAPIView(APIView):
     authentication_classes = [TokenAuthentication]

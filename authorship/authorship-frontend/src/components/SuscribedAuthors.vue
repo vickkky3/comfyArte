@@ -57,7 +57,9 @@
                       <span class="notif-title" v-else-if="notif.notification_type === 'new_saved_work'">
                         Obra guardada
                       </span>
-                      <span v-if="!notif.is_read" class="unread-dot"></span>
+                      <span class="notif-title" v-else-if="notif.notification_type === 'rejected_work'">
+                        Tu suscripción está a punto de caducar
+                      </span>
                     </div>
 
                     <p class="notif-text">
@@ -71,6 +73,11 @@
                       <template v-else-if="notif.notification_type === 'new_saved_work'">
                         El usuario <strong>{{ notif.sender_username }}</strong> ha añadido tu
                         obra: <em>"{{ notif.work_title }}"</em> a sus favoritos.
+                      </template>
+                      <template v-else-if="notif.notification_type === 'plan_expiring'">
+                        El plan <em>"{{ activeSubscription?.plan_name }}"</em> expirará el día
+                        <strong>{{ formatDate(activeSubscription?.end_date) }}</strong>. Renuévalo para no perderte
+                        nada.
                       </template>
                     </p>
 
