@@ -19,7 +19,7 @@
                 <span class="popup-title" v-else>¡Acción Exitosa!</span>
                 <p class="popup-message">{{ notification.message }}</p>
             </div>
-            <button @click="notification.show = false" class="popup-close">
+            <button @click="notification.show = false" class="popup-close" type="button">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -33,7 +33,6 @@
                 </div>
 
                 <h1>Identificación</h1>
-                <p>Accede a tu panel de protección de obras</p>
 
                 <div class="divider-icon">
                     <span class="line"></span>
@@ -95,10 +94,7 @@ const authStore = useAuthStore();
 
 const username = ref("");
 const password = ref("");
-const error = ref("");
 const loading = ref(false);
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const notification = ref({
     show: false,
@@ -106,13 +102,14 @@ const notification = ref({
     type: "error"
 });
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const triggerNotification = (message, type = 'error') => {
     notification.value = { show: true, message, type };
 };
 
 const handleLogin = async () => {
     loading.value = true;
-    error.value = "";
 
     try {
         const response = await axios.post(`${API_BASE}/api/users/login/`, {
@@ -129,6 +126,7 @@ const handleLogin = async () => {
     } catch (err) {
         if (err.response && err.response.data && err.response.data.detail) {
             triggerNotification(err.response.data.detail, "error");
+
         } else {
             triggerNotification("Credenciales incorrectas. Por favor, inténtalo de nuevo.", "error");
         }
@@ -152,7 +150,7 @@ const handleLogin = async () => {
     align-items: center;
 
     background: var(--rosa-claro);
-    color: #8B0029;
+    color: var(--granate-principal);
     font-size: 24px;
 }
 
@@ -168,6 +166,7 @@ const handleLogin = async () => {
 .login-card {
     background: white;
     padding: 45px 35px;
+    border: solid var(--granate-principal);
     border-radius: 20px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.07);
     width: 100%;
@@ -180,12 +179,6 @@ h1 {
     margin: 0 0 10px;
     font-size: 1.8rem;
     font-weight: 800;
-}
-
-.login-header p {
-    color: #777;
-    font-size: 0.95rem;
-    margin-bottom: 35px;
 }
 
 .btn-login {

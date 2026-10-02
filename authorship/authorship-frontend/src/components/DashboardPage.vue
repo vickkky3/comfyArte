@@ -967,7 +967,7 @@ const confirmModifyProfile = () => {
   triggerInformation(
     "¿Estás seguro de que deseas realizar estos cambios en tu perfil?",
     "confirm",
-    () => modifyProfile(id)
+    () => modifyProfile()
   );
 };
 

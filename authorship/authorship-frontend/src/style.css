@@ -252,8 +252,9 @@ body {
   max-width: 580px;
   padding: 28px 34px;
   border-radius: 24px;
-  background: #ffffff;
-  border-left: 10px solid;
+  background: var(--rosa-claro);
+  border: solid var(--granate-principal);
+  border-left: 10px solid var(--granate-principal);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
   box-sizing: border-box;
 }

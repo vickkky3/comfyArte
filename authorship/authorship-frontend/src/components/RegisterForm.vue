@@ -14,11 +14,13 @@
         <i v-if="notification.type === 'error'" class="fa-solid fa-circle-exclamation"></i>
         <i v-else class="fa-solid fa-circle-check"></i>
       </div>
+
       <div class="popup-body">
         <span class="popup-title" v-if="notification.type === 'error'">Operación Denegada</span>
         <span class="popup-title" v-else>¡Acción Exitosa!</span>
         <p class="popup-message">{{ notification.message }}</p>
       </div>
+
       <button @click="notification.show = false" class="popup-close">
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -66,8 +68,8 @@
                 <i class="fa-solid fa-award"></i>
               </div>
               <div class="feature-text">
-                <h2>Certificado digital</h2>
-                <p>Obtén pruebas de la autoría de tus obras.</p>
+                <h2>Evidencia digital de integridad</h2>
+                <p>Genera evidencias técnicas de la integridad de tus obras.</p>
               </div>
             </div>
           </div>
@@ -78,7 +80,7 @@
           <div class="divider-icon">
             <span class="line"></span>
           </div>
-          <p class="subtitle-welcome">Únete a la comunidad ideal para apoyar a creadores independientes y consumir
+          <p class="subtitle-welcome">Únete a la comunidad ideal para apoyar a creadores y consumir
             contenido de forma segura.</p>
           <div class="features-list">
 
@@ -88,7 +90,7 @@
               </div>
               <div class="feature-text">
                 <h2>Exploración exclusiva</h2>
-                <p>Encuentra obras auténticas y filtradas por categorías profesionales.</p>
+                <p>Encuentra obras auténticas y filtradas por categorías.</p>
               </div>
             </div>
 
@@ -108,8 +110,8 @@
               </div>
               <div class="feature-text">
                 <h2>Sigue a tus autores y guarda obras</h2>
-                <p>Guarda tus creaciones favoritas en tu lista personal y mantente al día siguiendo directamente el
-                  trabajo de los creadores.</p>
+                <p>Guarda tus creaciones favoritas en tu lista personal y mantente al día siguiendo a tus creadores
+                  preferidos.</p>
               </div>
             </div>
           </div>
@@ -117,6 +119,7 @@
 
       </div>
     </div>
+
     <div class="form-container">
       <router-link to="/" class="btn-back-top">
         <i class="fa-solid fa-arrow-left"></i>
@@ -147,14 +150,14 @@
       <form @submit.prevent="handleRegister">
         <div class="form-row">
           <div class="form-group">
-            <label for="first_name">Nombre</label>
+            <label for="first_name">Nombre <span class="required">*</span></label>
             <div class="input-container">
               <i class="fa-solid fa-circle-user"></i>
               <input type="text" id="first_name" v-model="firstName" placeholder="Tu nombre">
             </div>
           </div>
           <div class="form-group">
-            <label for="last_name">Apellidos</label>
+            <label for="last_name">Apellidos <span class="required">*</span></label>
             <div class="input-container">
               <i class="fa-solid fa-circle-user"></i>
               <input type="text" id="last_name" v-model="lastName" placeholder="Tus apellidos">
@@ -163,7 +166,7 @@
         </div>
 
         <div class="form-group">
-          <label for="username">Nombre de usuario</label>
+          <label for="username">Nombre de usuario <span class="required">*</span></label>
           <div class="input-container">
             <i class="fa-solid fa-circle-user"></i>
             <input type="text" id="username" v-model="username" placeholder="Tu nombre de usuario">
@@ -171,7 +174,7 @@
         </div>
 
         <div class="form-group">
-          <label for="email">Correo Electrónico</label>
+          <label for="email">Correo Electrónico <span class="required">*</span></label>
           <div class="input-container">
             <i class="fa-solid fa-envelope"></i>
             <input type="email" id="email" v-model="email" placeholder="Tu correo electrónico">
@@ -179,7 +182,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Contraseña</label>
+          <label for="password">Contraseña <span class="required">*</span></label>
           <div class="input-container">
             <i class="fa-solid fa-lock"></i>
             <input type="password" id="password" v-model="password" placeholder="Tu contraseña">
@@ -240,7 +243,6 @@ const biography = ref("");
 const interests = ref([]);
 const currentRol = route.params.role;
 
-const error = ref("");
 const loading = ref(false);
 
 const titles = {
@@ -280,7 +282,6 @@ const triggerNotification = (message, type = 'error') => {
 
 const handleRegister = async () => {
   loading.value = true;
-  error.value = "";
 
   try {
     const payload = {
@@ -295,6 +296,7 @@ const handleRegister = async () => {
     if (currentRol === 'author') {
       payload.biography = biography.value;
     }
+
     else if (currentRol === 'consumer') {
       payload.interests = interests.value.join(',');
     }
@@ -306,14 +308,84 @@ const handleRegister = async () => {
       authStore.setToken(token);
       localStorage.setItem("token", token);
       router.push("/dashboard");
+
     } else {
       router.push("/login");
     }
+
   } catch (err) {
-    if (err.response && err.response.data && err.response.data.detail) {
-      triggerNotification(err.response.data.detail, "error");
+    if (err.response && err.response.data) {
+      const data = err.response.data;
+
+      if (data.first_name) {
+        let msg = "";
+
+        if (Array.isArray(data.first_name)) {
+          msg = data.first_name[0];
+
+        } else {
+          msg = data.first_name;
+        }
+
+        triggerNotification(msg, "error");
+
+      } else if (data.last_name) {
+        let msg = "";
+
+        if (Array.isArray(data.last_name)) {
+          msg = data.last_name[0];
+
+        } else {
+          msg = data.last_name;
+        }
+
+        triggerNotification(msg, "error");
+
+      } else if (data.username) {
+        let msg = "";
+
+        if (Array.isArray(data.username)) {
+          msg = data.username[0];
+
+        } else {
+          msg = data.username;
+        }
+
+        triggerNotification(msg, "error");
+
+      } else if (data.email) {
+        let msg = "";
+
+        if (Array.isArray(data.email)) {
+          msg = data.email[0];
+
+        } else {
+          msg = data.email;
+        }
+
+        triggerNotification(msg, "error");
+
+      } else if (data.password) {
+        let msg = "";
+
+        if (Array.isArray(data.password)) {
+          msg = data.password[0];
+
+        } else {
+          msg = data.password;
+        }
+
+        triggerNotification(msg, "error");
+
+      } else if (data.detail) {
+        triggerNotification(data.detail, "error");
+
+      } else {
+        triggerNotification("Revisa los campos obligatorios.", "error");
+      }
+
     } else {
-      triggerNotification("Error al crear la cuenta. Por favor, inténtalo de nuevo.", "error");
+      triggerNotification("Error al crear la cuenta. Revisa que todos los campos obligatorios estén completos e inténtalo de nuevo.", "error");
     }
   } finally {
     loading.value = false;
@@ -389,21 +461,6 @@ textarea:focus {
   border-color: var(--rosa-fuerte);
   background-color: var(--rosa-claro);
   box-shadow: 0 0 5px rgba(219, 112, 147, 0.2);
-}
-
-.helptext {
-  font-size: 0.8em;
-  color: #888;
-  display: block;
-  margin-top: 5px;
-}
-
-.errorlist {
-  color: #d9534f;
-  font-size: 0.85em;
-  list-style: none;
-  padding: 0;
-  margin: 5px 0;
 }
 
 .btn-register {
@@ -604,5 +661,10 @@ textarea {
   color: #666666;
   font-size: 0.95em;
   line-height: 1.4;
+}
+
+.required {
+  color: var(--rosa-fuerte);
+  font-weight: bold;
 }
 </style>
