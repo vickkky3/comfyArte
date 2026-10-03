@@ -13,10 +13,10 @@ def clean_plain_text(value):
 class WorkSerializer(serializers.ModelSerializer):
     author_username = serializers.ReadOnlyField(source='author.username')
     author = serializers.PrimaryKeyRelatedField(read_only=True)
-    license = serializers.ChoiceField(choices=Work.LICENSES_CHOICES, required=False)
+    license = serializers.ChoiceField(choices=Work.LICENSES_CHOICES, required=True)
+    plan_required = SubscriptionPlanSerializer(read_only=True)
     binary_file = serializers.FileField(write_only=True, required=False)
     resume_file = serializers.FileField(write_only=True, required=False)
-    plan_required = SubscriptionPlanSerializer(read_only=True)
     isbn = serializers.CharField(required=False, write_only=True)
     language = serializers.CharField(required=False, write_only=True)
     album = serializers.CharField(required=False, write_only=True)
@@ -34,6 +34,20 @@ class WorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Work
         fields = '__all__'
+        read_only_fields = (
+            'file_name',
+            'file_type',
+            'resume_name',
+            'resume_type',
+            'hash_security',
+            'status',
+            'rejection_reason'
+        )
+        
+        extra_kwargs = {
+            'binary_file': {'write_only': True},
+            'resume_file': {'write_only': True},
+        }
         
     def validate_title(self, value):
         return clean_plain_text(value)

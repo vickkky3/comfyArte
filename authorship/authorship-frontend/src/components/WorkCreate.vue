@@ -677,7 +677,7 @@ const handleSubmit = async () => {
   formData.append("description", description.value);
   formData.append("work_type", workType);
   formData.append("file_upload", selectedFile.value);
-  formData.append("resume_upload", selectedFile.value);
+  formData.append("resume_upload", selectedResume.value);
   formData.append("license", selectedLicense.value);
   formData.append("plan_required", selectedPlan.value);
   formData.append("request_manual_review", requestManualReview.value);

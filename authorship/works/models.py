@@ -22,29 +22,30 @@ class Work(models.Model):
         ('by-nc-nd', 'BY-NC-ND'),
     ]
     
-    title = models.CharField(max_length=200)
-    description=models.TextField()
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    work_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='book')
-    license = models.CharField(max_length=50, choices=LICENSES_CHOICES, default='by')
+    title = models.CharField(max_length=200, verbose_name="Título")
+    description=models.TextField(verbose_name="Descripción")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Autor")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creando el")
+    work_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='book', verbose_name="Tipo de obra")
+    license = models.CharField(max_length=50, choices=LICENSES_CHOICES, default='by', verbose_name="Licencia")
     
-    binary_file = models.BinaryField(blank=True, null=True)
-    file_name = models.CharField(max_length=200, blank=True)
-    file_type = models.CharField(max_length=120, blank=True)
-    resume_file = models.BinaryField(blank=True, null=True)
-    resume_name = models.CharField(max_length=200, blank=True)
-    resume_type = models.CharField(max_length=120, blank=True)
+    binary_file = models.BinaryField(blank=True, null=True, verbose_name="Obra original")
+    file_name = models.CharField(max_length=200, blank=True, verbose_name="Nombre fichero obra original")
+    file_type = models.CharField(max_length=120, blank=True, verbose_name="Tipo fichero obra original")
+    resume_file = models.BinaryField(blank=True, null=True, verbose_name="Muestra gratuita")
+    resume_name = models.CharField(max_length=200, blank=True, verbose_name="Nombre fichero muestra gratuita")
+    resume_type = models.CharField(max_length=120, blank=True, verbose_name="Tipo fichero muestra gratuita")
     
     plan_required = models.ForeignKey(
         SubscriptionPlan, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        related_name='works'
+        related_name='works',
+        verbose_name="Plan mínimo requerido"
     ) 
     
-    hash_security = models.CharField(max_length=512, blank=True, null=True)
+    hash_security = models.CharField(max_length=512, blank=True, null=True, verbose_name="Hash de la obra")
     
     STATUS_CHOICES = [
         ('approved', 'Aprobada'),
@@ -86,66 +87,66 @@ class Work(models.Model):
         return 'generic'
     
 class Book(Work):
-    pages = models.IntegerField()
-    isbn = models.CharField(max_length=30)
-    genre = models.CharField(max_length=100, blank=True)
-    language = models.CharField(max_length=100, blank=True)
+    pages = models.IntegerField(verbose_name="Páginas")
+    isbn = models.CharField(max_length=30, verbose_name="ISBN")
+    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
+    language = models.CharField(max_length=100, blank=True, verbose_name="Lenguaje")
     
     class Meta:
         verbose_name = 'Libro'
         verbose_name_plural = 'Libros'
 
 class Music(Work):
-    duration = models.FloatField()
-    album = models.CharField(max_length=200, blank=True)
-    genre = models.CharField(max_length=100, blank=True)
+    duration = models.FloatField(verbose_name="Duración")
+    album = models.CharField(max_length=200, blank=True, verbose_name="Álbum")
+    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
     
     class Meta:
         verbose_name = 'Música'
         verbose_name_plural = 'Música'
     
 class Video(Work):
-    duration = models.FloatField()
-    genre = models.CharField(max_length=100, blank=True)
+    duration = models.FloatField(verbose_name="Duración")
+    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
     
     class Meta:
         verbose_name = 'Vídeo'
         verbose_name_plural = 'Vídeos'
     
 class Software(Work):
-    programming_language = models.CharField(max_length=50)
-    repository_url = models.URLField(blank=True, null=True)
-    documentation_url = models.URLField(blank=True,  null=True)
+    programming_language = models.CharField(max_length=50, verbose_name="Lenguaje de programación")
+    repository_url = models.URLField(blank=True, null=True, verbose_name="Url repositorio del proyecto")
+    documentation_url = models.URLField(blank=True,  null=True, verbose_name="Url repositorio de la documentación")
     
     class Meta:
         verbose_name = 'Software'
         verbose_name_plural = 'Software'
     
 class Paint(Work):
-    height = models.FloatField()
-    weight = models.FloatField()
+    height = models.FloatField(verbose_name="Altura")
+    weight = models.FloatField(verbose_name="Ancho")
     PAINT_TYPES = (
         ('oil', 'Óleo'),
         ('acrylic', 'Acrílico'),
         ('watercolor', 'Acuarela'),
         ('digital', 'Digital'),
     )
-    type = models.CharField(max_length=20, choices=PAINT_TYPES)
+    type = models.CharField(max_length=20, choices=PAINT_TYPES, verbose_name="Tipo")
     
     class Meta:
         verbose_name = 'Pintura'
         verbose_name_plural = 'Pinturas'
     
 class Sculpture(Work):
-    height = models.FloatField()
-    weight = models.FloatField()
+    height = models.FloatField(verbose_name="Altura")
+    weight = models.FloatField(verbose_name="Ancho")
     SCULPTURE_TYPES = (
     ('marble', 'Mármol'),
         ('bronze', 'Bronce'),
         ('wood', 'Madera'),
         ('clay', 'Arcilla'),
     )
-    type = models.CharField(max_length=20, choices=SCULPTURE_TYPES)
+    type = models.CharField(max_length=20, choices=SCULPTURE_TYPES, verbose_name="Tipo")
     
     class Meta:
         verbose_name = 'Escultura'

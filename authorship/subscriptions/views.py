@@ -37,8 +37,9 @@ class MySubscriptionAPIView(APIView):
 
             serializer = UserSubscriptionSerializer(subscription)
             return Response(serializer.data)
+        
         except UserSubscription.DoesNotExist:
-            return Response({"detail": "No tienes una suscripción activa"}, status=404)
+            return Response({"detail": "No tienes una suscripción activa"}, status=200)
 
     def check_and_notify_expiration(self, subscription, user):
         expiration_date = getattr(subscription, 'expires_at', None) or getattr(subscription, 'end_date', None)

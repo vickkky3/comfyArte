@@ -24,8 +24,6 @@ class WorkAdmin(admin.ModelAdmin):
     readonly_fields = (
         'created_at', 
         'hash_security', 
-        'has_binary_file', 
-        'has_resume_file', 
         'download_binary_link',
         'download_resume_link',
         'rejection_reason',
@@ -45,23 +43,21 @@ class WorkAdmin(admin.ModelAdmin):
         ('Licencia y Monetización', {
             'fields': ('license', 'plan_required')
         }),
-        ('Seguridad Criptográfica y Firma', {
+        ('Seguridad Criptográfica', {
             'classes': ('collapse',),
             'fields': ('hash_security',)
         }),
         ('Archivos Binarios Asociados', {
             'fields': (
                 'download_binary_link',
-                'has_binary_file',
                 'file_name',
                 'file_type',
                 'download_resume_link',
-                'has_resume_file',
                 'resume_name',
                 'resume_type'
             )
         }),
-        ('Auditoría', {
+        ('Fecha de creación', {
             'classes': ('collapse',),
             'fields': ('created_at',)
         }),
@@ -70,14 +66,6 @@ class WorkAdmin(admin.ModelAdmin):
     @admin.display(boolean=True, description='Certificada')
     def has_hash(self, obj):
         return bool(obj.hash_security)
-
-    @admin.display(boolean=True, description='Archivo principal cargado')
-    def has_binary_file(self, obj):
-        return bool(obj.binary_file)
-
-    @admin.display(boolean=True, description='Archivo resumen cargado')
-    def has_resume_file(self, obj):
-        return bool(obj.resume_file)
     
     def get_urls(self):
         urls = super().get_urls()

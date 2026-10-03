@@ -4,7 +4,7 @@
       <div class="brand-spinner"></div>
       <div class="spinner-inner-dot"></div>
     </div>
-    <p class="loading-label">Cargando detalles de la obra...</p>
+    <p class="loading-label">Cargando detalles...</p>
   </div>
 
   <div v-else>

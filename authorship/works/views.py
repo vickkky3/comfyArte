@@ -60,10 +60,10 @@ class WorkListCreateAPIView(APIView):
         user = request.user
         
         if user.groups.filter(name="Author").exists():
-            queryset = Work.objects.filter(author=user)
+            queryset = Work.objects.defer('binary_file', 'resume_file').filter(author=user)
             
         else:
-            queryset = Work.objects.filter(status='published')
+            queryset = Work.objects.defer('binary_file', 'resume_file').filter(status='published')
             
         serializer = WorkSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -202,12 +202,14 @@ class WorkDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, pk):
-        work = get_object_or_404(Work, pk=pk)
+        work = get_object_or_404(Work.objects.defer('binary_file', 'resume_file'), pk=pk)
+        
         serializer = WorkSerializer(work)
         return Response(serializer.data)
      
     def patch(self, request, pk):
-        work = get_object_or_404(Work, pk=pk)
+        work = get_object_or_404(Work.objects.defer('binary_file', 'resume_file'), pk=pk)
+        
         user = request.user
 
         if work.author != user:
@@ -271,10 +273,10 @@ class ListWorksByAuthorAPIView(APIView):
         is_owner = (user.id == int(author_id))
         
         if is_owner:
-            queryset = Work.objects.filter(author_id=author_id)
+            queryset = Work.objects.defer('binary_file', 'resume_file').filter(author_id=author_id)
             
         else:
-            queryset = Work.objects.filter(status__in=['published'], author_id=author_id)
+            queryset = Work.objects.defer('binary_file', 'resume_file').filter(status__in=['published'], author_id=author_id)
         
         serializer = WorkSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -328,17 +330,17 @@ class RecommendedWorksAPIView(APIView):
         
         recommended_authors = get_recommended_authors_for_user(consumer)
         
+        base_qs = Work.objects.defer('binary_file', 'resume_file')
+        
         if not recommended_authors:
             interests = consumer.interests or ""
             interests_list = [i.strip() for i in interests.split(',') if i.strip()]
             
-            recommended_works = Work.objects.filter(status='published', work_type__in=interests_list)
-            
+            recommended_works = base_qs.filter(status='published', work_type__in=interests_list)
         else:
-            recommended_works = Work.objects.filter(status='published', author__in=recommended_authors)
+            recommended_works = base_qs.filter(status='published', author__in=recommended_authors)
                     
         recommended_works = recommended_works.distinct().order_by('-created_at')[:20]
         
         serializer = WorkSerializer(recommended_works, many=True)
-        
         return Response(serializer.data, status=status.HTTP_200_OK)
