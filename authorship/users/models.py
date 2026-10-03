@@ -12,9 +12,13 @@ class User(AbstractUser):
         ('consumer', 'Consumidor'),
     )
     
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='consumer')
-    biography = models.TextField(blank=True)
-    interests = models.CharField(max_length=200, blank=True)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='consumer', verbose_name="Rol")
+    biography = models.TextField(blank=True, verbose_name="Biografía")
+    interests = models.CharField(max_length=200, blank=True, verbose_name="Intereses")
+    
+    class Meta:
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
 
 class Notification(models.Model):
     TYPE_CHOICES = [
@@ -59,6 +63,8 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'Notificacion'
+        verbose_name_plural = 'Notificaciones'
 
     def __str__(self):
         return f"Notificación ({self.notification_type}) para {self.recipient.username}"

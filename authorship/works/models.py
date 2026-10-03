@@ -73,6 +73,9 @@ class Work(models.Model):
             ("view_all_works", "Can view all works"),
         ]
         
+        verbose_name = 'Obra'
+        verbose_name_plural = 'Obras'
+        
     def get_work_type(self):
         if hasattr(self, 'book'): return 'book'
         if hasattr(self, 'music'): return 'music'
@@ -87,20 +90,36 @@ class Book(Work):
     isbn = models.CharField(max_length=30)
     genre = models.CharField(max_length=100, blank=True)
     language = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        verbose_name = 'Libro'
+        verbose_name_plural = 'Libros'
 
 class Music(Work):
     duration = models.FloatField()
     album = models.CharField(max_length=200, blank=True)
     genre = models.CharField(max_length=100, blank=True)
     
+    class Meta:
+        verbose_name = 'Música'
+        verbose_name_plural = 'Música'
+    
 class Video(Work):
     duration = models.FloatField()
     genre = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        verbose_name = 'Vídeo'
+        verbose_name_plural = 'Vídeos'
     
 class Software(Work):
     programming_language = models.CharField(max_length=50)
     repository_url = models.URLField(blank=True, null=True)
     documentation_url = models.URLField(blank=True,  null=True)
+    
+    class Meta:
+        verbose_name = 'Software'
+        verbose_name_plural = 'Software'
     
 class Paint(Work):
     height = models.FloatField()
@@ -113,6 +132,10 @@ class Paint(Work):
     )
     type = models.CharField(max_length=20, choices=PAINT_TYPES)
     
+    class Meta:
+        verbose_name = 'Pintura'
+        verbose_name_plural = 'Pinturas'
+    
 class Sculpture(Work):
     height = models.FloatField()
     weight = models.FloatField()
@@ -123,5 +146,9 @@ class Sculpture(Work):
         ('clay', 'Arcilla'),
     )
     type = models.CharField(max_length=20, choices=SCULPTURE_TYPES)
+    
+    class Meta:
+        verbose_name = 'Escultura'
+        verbose_name_plural = 'Esculturas'
 
 

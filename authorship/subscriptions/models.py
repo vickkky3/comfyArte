@@ -18,6 +18,10 @@ class SubscriptionPlan(models.Model):
     def __str__(self):
         return f"{self.name} ({self.points} pts)"
     
+    class Meta:
+        verbose_name = 'Plan de suscripción'
+        verbose_name_plural = 'Planes de suscripción'
+    
 class UserSubscription(models.Model):
     user = models.OneToOneField(
         User, 
@@ -36,6 +40,10 @@ class UserSubscription(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.plan.name}"
     
+    class Meta:
+        verbose_name = 'Suscripción de usuario'
+        verbose_name_plural = 'Suscripciones de usuario'
+    
 class UserWallet(models.Model):
     user = models.OneToOneField(
         User, 
@@ -46,6 +54,10 @@ class UserWallet(models.Model):
     
     def __str__(self):
         return f"Cartera de {self.user.username} — Saldo: {self.points} puntos"
+    
+    class Meta:
+        verbose_name = 'Cartera de puntos'
+        verbose_name_plural = 'Carteras de puntos'
     
 class AuthorSubscription(models.Model):
     consumer = models.ForeignKey(
@@ -68,6 +80,10 @@ class AuthorSubscription(models.Model):
     def __str__(self):
         return f"El consumidor {self.consumer.username} está suscrito al autor  {self.author.username}"
     
+    class Meta:
+        verbose_name = 'Suscripción a autor'
+        verbose_name_plural = 'Suscripciones a autores'
+    
 class SaveWork(models.Model):
     consumer = models.ForeignKey(
         User, 
@@ -88,3 +104,7 @@ class SaveWork(models.Model):
 
     def __str__(self):
         return f"El consumidor {self.consumer.username} ha guardado la obra  {self.work.title}"
+    
+    class Meta:
+        verbose_name = 'Obra guardada'
+        verbose_name_plural = 'Obras guardadas'
