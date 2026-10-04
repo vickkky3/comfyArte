@@ -600,12 +600,10 @@ const userInterestsArray = computed(() => {
 
 const isInteresting = (type) => {
   let typeNormalizado = type;
-  if (type === 'book') {
-    typeNormalizado = 'libro';
-  }
-
   if (userInterestsArray.value.includes(typeNormalizado)) {
+
     return true;
+    
   } else {
     return false;
   }

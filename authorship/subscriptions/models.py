@@ -11,7 +11,7 @@ class SubscriptionPlan(models.Model):
 
     def save(self, *args, **kwargs):
         if self.price is not None:
-            self.points = int(self.price * 10)
+            self.points = round(self.price * 10)
             
         super().save(*args, **kwargs)
 

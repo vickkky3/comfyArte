@@ -162,7 +162,7 @@ const isCurrentPlan = (planId) => {
   if (!userSubscription.value) return false;
 
   const activePlanId = userSubscription.value.plan?.id || userSubscription.value.plan;
-  
+
   return Number(activePlanId) === Number(planId);
 };
 
@@ -224,7 +224,11 @@ const handleSubscribe = async (planId) => {
     triggerInformation(response.data.detail || "¡Suscripción realizada con éxito!", "success");
 
     setTimeout(() => {
-      router.push("/dashboard");
+      if (window.history.state?.back) {
+        router.back();
+      } else {
+        router.push('/dashboard');
+      }
     }, 1500);
   } catch (err) {
     if (err.response && err.response.data && err.response.data.detail) {

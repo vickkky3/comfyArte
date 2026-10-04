@@ -124,7 +124,7 @@ class Software(Work):
     
 class Paint(Work):
     height = models.FloatField(verbose_name="Altura")
-    weight = models.FloatField(verbose_name="Ancho")
+    weight = models.FloatField(verbose_name="Peso")
     PAINT_TYPES = (
         ('oil', 'Óleo'),
         ('acrylic', 'Acrílico'),
@@ -139,7 +139,7 @@ class Paint(Work):
     
 class Sculpture(Work):
     height = models.FloatField(verbose_name="Altura")
-    weight = models.FloatField(verbose_name="Ancho")
+    weight = models.FloatField(verbose_name="Peso")
     SCULPTURE_TYPES = (
     ('marble', 'Mármol'),
         ('bronze', 'Bronce'),
