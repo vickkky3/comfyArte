@@ -88,12 +88,12 @@ class SubscribeAPIView(APIView):
         except SubscriptionPlan.DoesNotExist:
             return Response({"detail": "No existe este plan"}, status=404)
         
-        is_subscrited = UserSubscription.objects.filter(
+        is_subscribed = UserSubscription.objects.filter(
             user=request.user, 
             active=True
         ).exists()
 
-        if is_subscrited:
+        if is_subscribed:
             return Response(
                 {"detail": "Ya tienes una suscripción activa en tu cuenta."}, 
                 status=400
@@ -148,12 +148,12 @@ class AuthorSubscribeAPIView(APIView):
         if consumer.id == author.id:
             return Response({"detail": "No puedes suscribirte a ti mismo."}, status=400)
 
-        is_subscrited = AuthorSubscription.objects.filter(
+        is_subscribed = AuthorSubscription.objects.filter(
             consumer=consumer, 
             author=author
         ).exists()
 
-        if is_subscrited:
+        if is_subscribed:
             return Response(
                 {"detail": "Ya estás suscrito a este autor."}, 
                 status=400
@@ -185,18 +185,18 @@ class AuthorSubscribeAPIView(APIView):
         if consumer.id == author.id:
             return Response({"detail": "No puedes desuscribirte a ti mismo."}, status=400)
 
-        suscription = AuthorSubscription.objects.filter(
+        subscription = AuthorSubscription.objects.filter(
             consumer=consumer, 
             author=author
         ).first()
 
-        if not suscription:
+        if not subscription:
             return Response(
                 {"detail": "No estás suscrito a este autor."}, 
                 status=400
             )
             
-        suscription.delete()
+        subscription.delete()
             
         return Response({"detail": f"Te has desuscrito con éxito al autor {author.username}"})
     
@@ -256,18 +256,18 @@ class SaveWorkAPIView(APIView):
         except Work.DoesNotExist:
             return Response({"detail": "No existe esta obra"}, status=404)
 
-        suscription = SaveWork.objects.filter(
+        subscription = SaveWork.objects.filter(
             consumer=consumer, 
             work=work
         ).first()
 
-        if not suscription:
+        if not subscription:
             return Response(
                 {"detail": "No tienes guardada esta obra."}, 
                 status=400
             )
             
-        suscription.delete()
+        subscription.delete()
             
         return Response({"detail": f"Has eliminado de guardados correctamente la obra {work.title}"})
     

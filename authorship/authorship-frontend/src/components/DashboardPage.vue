@@ -929,7 +929,7 @@ const getUserPoints = async () => {
   }
 };
 
-const getSuscribedAuthors = async () => {
+const getSubscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
@@ -1158,7 +1158,7 @@ const handleLogout = () => {
 onMounted(() => {
   getUserData();
   getUserPoints();
-  getSuscribedAuthors();
+  getSubscribedAuthors();
   getSavedWorks();
   getRecommendedWorks();
   fetchMySubscription();

@@ -2,12 +2,15 @@ import openai
 import json
 import io
 import base64
+import logging
 
 from pypdf import PdfReader
 from django.conf import settings
 from subscriptions.models import AuthorSubscription
 
 max_chars = 5000
+
+logger = logging.getLogger(__name__)
 
 def validate_work_content(title, description, file_info, resume_info):
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -78,22 +81,29 @@ def validate_work_content(title, description, file_info, resume_info):
         )
         return json.loads(response.choices[0].message.content)
     except Exception as e:
+        logger.error(
+            "Error llamando a GPT-4o-mini para validar la obra."
+        )
+        
         return {
             "is_valid": False,
             "reason": f"Error al procesar la validación con la IA: {str(e)}"
         }
     
 def process_file_for_ai(file_obj):
-    
-    
     if not file_obj:
         return 'none', None
     
     filename = file_obj.name.lower()
     content_type = getattr(file_obj, 'content_type', '').lower()
     
-    file_bytes = file_obj.read()
-    file_obj.seek(0)
+    try:
+        file_bytes = file_obj.read()
+        file_obj.seek(0)
+        
+    except Exception as e:
+        logger.error("Error al leer los bytes del fichero.")
+        return 'none', None
 
     if filename.endswith('.pdf') or 'pdf' in content_type:
         return process_pdf_for_ai(file_bytes)
@@ -111,8 +121,8 @@ def process_file_for_ai(file_obj):
         try:
             code_text = file_bytes.decode('utf-8', errors='ignore')
             return 'text', code_text[:max_chars]
-        
-        except Exception:
+        except Exception as e:
+            logger.warning("No se pudo decodificar el archivo de código.")
             return 'none', None
 
     return 'none', None
@@ -133,7 +143,10 @@ def process_pdf_for_ai(file_bytes):
                 
             return 'text', text[:max_chars]
         
-    except Exception:
+    except Exception as e:
+        logger.error(
+            "Error al extraer el texto del pdf."
+        )
         return 'none', None
 
 def process_audio_for_ai(file_bytes, filename):
@@ -149,7 +162,10 @@ def process_audio_for_ai(file_bytes, filename):
         )
         return 'text', transcript.text[:max_chars]
     
-    except Exception:
+    except Exception as e:
+        logger.error(
+            "Error al transcribir el audio."
+        )
         return 'none', None      
 
 def get_recommended_authors_for_user(user):
@@ -175,6 +191,8 @@ def get_recommended_authors_for_user(user):
         return recommended_authors
 
     except Exception as e:
-        print(f"Error en recomendación: {e}")
+        logger.error(
+            "Error calculando autores recomendados."
+        )
         return []
         

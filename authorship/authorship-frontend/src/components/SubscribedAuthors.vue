@@ -306,7 +306,7 @@
               </div>
 
               <div class="modal-footer">
-                <button @click="confirmCancelSuscriptionToAuthor(selectedAuthor.id)" class="btn-subscribe">
+                <button @click="confirmCancelSubscriptionToAuthor(selectedAuthor.id)" class="btn-subscribe">
                   <i class="fa-solid fa-bell"></i> Anular suscripción a este Autor
                 </button>
               </div>
@@ -409,7 +409,7 @@ const fetchMySubscription = async () => {
   }
 };
 
-const getSuscribedAuthors = async () => {
+const getSubscribedAuthors = async () => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
@@ -495,15 +495,15 @@ const closeAuthorModal = () => {
   authorWorks.value = [];
 };
 
-const confirmCancelSuscriptionToAuthor = (authorId) => {
+const confirmCancelSubscriptionToAuthor = (authorId) => {
   triggerInformation(
     "¿Estás seguro de que deseas dejar de seguir a este autor?",
     "confirm",
-    () => cancelSuscriptionToAuthor(authorId)
+    () => cancelSubscriptionToAuthor(authorId)
   );
 };
 
-const cancelSuscriptionToAuthor = async (authorId) => {
+const cancelSubscriptionToAuthor = async (authorId) => {
   try {
     const token = authStore.token || localStorage.getItem("token");
 
@@ -602,7 +602,7 @@ onMounted(async () => {
   await Promise.all([
     getUserData(),
     getUserPoints(),
-    getSuscribedAuthors(),
+    getSubscribedAuthors(),
     fetchMySubscription()
   ]);
 

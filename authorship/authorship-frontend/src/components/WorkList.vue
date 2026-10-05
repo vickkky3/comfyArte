@@ -451,7 +451,7 @@
 
               <div class="modal-footer">
                 <template v-if="isConsumer">
-                  <button v-if="isSuscribed(selectedAuthor.id)" type="button"
+                  <button v-if="isSubscribed(selectedAuthor.id)" type="button"
                     @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe" title="Quitar de guardados">
                     <div>
                       <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
@@ -713,7 +713,7 @@ const closeAuthorModal = () => {
   authorWorks.value = [];
 };
 
-const suscribedAuthorsIds = ref(new Set());
+const subscribedAuthorsIds = ref(new Set());
 
 const fetchSubscribedAuthors = async () => {
   try {
@@ -722,7 +722,7 @@ const fetchSubscribedAuthors = async () => {
       headers: { Authorization: `Token ${token}` }
     });
 
-    suscribedAuthorsIds.value = new Set(
+    subscribedAuthorsIds.value = new Set(
       response.data.map(item => item.author_id || item.author?.id || item.id)
     );
   } catch (error) {
@@ -748,8 +748,8 @@ const fetchMySubscription = async () => {
   }
 };
 
-const isSuscribed = (authorId) => {
-  return suscribedAuthorsIds.value.has(authorId);
+const isSubscribed = (authorId) => {
+  return subscribedAuthorsIds.value.has(authorId);
 };
 
 const subscribeToAuthor = async (authorId) => {
@@ -762,10 +762,10 @@ const subscribeToAuthor = async (authorId) => {
   };
 
   try {
-    if (isSuscribed(authorId)) {
+    if (isSubscribed(authorId)) {
 
       await axios.delete(`${API_BASE}/api/subscriptions/authors/subscribe/`, config);
-      suscribedAuthorsIds.value.delete(authorId);
+      subscribedAuthorsIds.value.delete(authorId);
 
       triggerInformation("¡Has eliminado con éxito tu suscripción a este autor!", "success");
 
@@ -774,7 +774,7 @@ const subscribeToAuthor = async (authorId) => {
       await axios.post(`${API_BASE}/api/subscriptions/authors/subscribe/`, { author_id: authorId }, {
         headers: { Authorization: `Token ${token}` }
       });
-      suscribedAuthorsIds.value.add(authorId);
+      subscribedAuthorsIds.value.add(authorId);
 
       triggerInformation("¡Te has suscrito con éxito a este autor!", "success");
     }

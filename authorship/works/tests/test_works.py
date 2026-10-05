@@ -327,7 +327,7 @@ class RecommendationServiceTests(TestCase):
     def setUp(self):
         self.user_a = User.objects.create_user(username="user_a", password="password123")
         self.user_b = User.objects.create_user(username="user_b", password="password123")
-        self.user_without_suscriptions = User.objects.create_user(username="user_new", password="password123")
+        self.user_without_subscriptions = User.objects.create_user(username="user_new", password="password123")
 
         self.author_1 = User.objects.create_user(username="author_1", password="password123")
         self.author_2 = User.objects.create_user(username="author_2", password="password123")
