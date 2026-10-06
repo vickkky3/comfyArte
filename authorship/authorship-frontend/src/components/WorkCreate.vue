@@ -123,7 +123,7 @@
         <div class="form-grid-top">
           <div class="form-group">
             <label for="title">Título de la Obra <span class="required">*</span></label>
-            <input type="text" id="title" v-model="title" placeholder="Ej: Mi gran novela" required>
+            <input type="text" id="title" v-model="title" placeholder="Ej: Mi gran obra">
           </div>
 
           <div class="form-group">
@@ -157,43 +157,29 @@
           <div v-if="workType === 'book'" class="grid-4-cols">
             <div class="form-group-compact">
               <label>Número de páginas <span class="required">*</span></label>
-              <input type="number" v-model="pages" placeholder="Ej: 320" required>
+              <input type="number" v-model="pages" placeholder="Ej: 320">
             </div>
             <div class="form-group-compact">
-              <label>ISBN <span class="required">*</span></label>
-              <input type="text" v-model="isbn" placeholder="Ej: 978-84-123456-7-8" required>
+              <label>ISBN</label>
+              <input type="text" v-model="isbn" placeholder="Ej: 978-84-123456-7-8">
             </div>
             <div class="form-group-compact">
               <label>Género <span class="required">*</span></label>
-              <select v-model="genre" required>
+              <select v-model="genre">
                 <option value="" disabled selected>Selecciona un género</option>
-                <option value="Narrativa / Ficción">Narrativa / Ficción</option>
-                <option value="Misterio / Suspense">Misterio / Suspense</option>
-                <option value="Ciencia Ficción / Fantasía">Ciencia Ficción / Fantasía</option>
-                <option value="Novela Romántica">Novela Romántica</option>
-                <option value="Novela Histórica">Novela Histórica</option>
-                <option value="Poesía">Poesía</option>
-                <option value="Teatro">Teatro</option>
-                <option value="Ensayo">Ensayo</option>
-                <option value="Biografía">Biografía</option>
-                <option value="Divulgación Científica">Divulgación Científica</option>
-                <option value="Desarrollo Personal">Desarrollo Personal</option>
-                <option value="Infantil / Juvenil">Infantil / Juvenil</option>
-                <option value="Cómic">Cómic</option>
-                <option value="Otro">Otro</option>
+                <option v-for="g in bookGenres" :key="g.value" :value="g.value">
+                  {{ g.label }}
+                </option>
               </select>
             </div>
 
             <div class="form-group-compact">
               <label>Idioma <span class="required">*</span></label>
-              <select v-model="language" class="select-pink" required>
+              <select v-model="language" class="select-pink">
                 <option value="" disabled selected>Selecciona un idioma</option>
-                <option value="Español">Español</option>
-                <option value="Inglés">Inglés</option>
-                <option value="Francés">Francés</option>
-                <option value="Alemán">Alemán</option>
-                <option value="Italiano">Italiano</option>
-                <option value="Otro">Otro</option>
+                <option v-for="g in bookLanguages" :key="g.value" :value="g.value">
+                  {{ g.label }}
+                </option>
               </select>
             </div>
           </div>
@@ -201,26 +187,19 @@
           <div v-else-if="workType === 'music'" class="grid-3-cols">
             <div class="form-group-compact">
               <label>Duración (minutos) <span class="required">*</span></label>
-              <input type="number" step="0.01" v-model="duration" placeholder="Ej: 3.45" required>
+              <input type="number" step="0.01" v-model="duration" placeholder="Ej: 3.45">
             </div>
             <div class="form-group-compact">
-              <label>Álbum <span class="required">*</span></label>
-              <input type="text" v-model="album" placeholder="Ej: Nombre del álbum" required>
+              <label>Álbum</label>
+              <input type="text" v-model="album" placeholder="Ej: Nombre del álbum">
             </div>
             <div class="form-group-compact">
               <label>Género<span class="required">*</span></label>
-              <select v-model="genre" class="select-pink" required>
-                <option value="" disabled selected>Selecciona una geńero músical</option>
-                <option value="Pop">Pop</option>
-                <option value="Rock">Rock</option>
-                <option value="Urbano / Reggaetón / Trap">Urbano / Reggaetón / Trap</option>
-                <option value="Electrónica / Dance / Lo-Fi">Electrónica / Dance / Lo-Fi</option>
-                <option value="Hip Hop / Rap">Hip Hop / Rap</option>
-                <option value="Indie / Cantautor">Indie / Cantautor</option>
-                <option value="Clásica / Instrumental">Clásica / Instrumental'</option>
-                <option value="Jazz">Jazz</option>
-                <option value="Folk / Tradicional / Flamenco">Folk / Tradicional / Flamenco</option>
-                <option value="Otro">Otro</option>
+              <select v-model="genre" class="select-pink">
+                <option value="" disabled selected>Selecciona un género</option>
+                <option v-for="g in musicGenres" :key="g.value" :value="g.value">
+                  {{ g.label }}
+                </option>
               </select>
             </div>
           </div>
@@ -228,22 +207,15 @@
           <div v-else-if="workType === 'video'" class="grid-2-cols">
             <div class="form-group-compact">
               <label>Duración (minutos) <span class="required">*</span></label>
-              <input type="number" step="0.01" v-model="duration" placeholder="Ej: 12.50" required>
+              <input type="number" step="0.01" v-model="duration" placeholder="Ej: 12.50">
             </div>
             <div class="form-group-compact">
               <label>Categoría <span class="required">*</span></label>
-              <select v-model="genre" class="select-pink" required>
+              <select v-model="genre" class="select-pink">
                 <option value="" disabled selected>Selecciona una categoría</option>
-                <option value="Ficción">Ficción</option>
-                <option value="Documental">Documental</option>
-                <option value="Videoclip">Videoclip</option>
-                <option value="Animación">Animación</option>
-                <option value="Tutorial">Tutorial</option>
-                <option value="Cortometraje">Cortometraje</option>
-                <option value="Entrevista / Charlas / Podcast">Entrevista / Charlas / Podcast</option>
-                <option value="Publicitario">Publicitario</option>
-                <option value="Teatro / Danza">Teatro / Danza</option>
-                <option value="Otro">Otro</option>
+                <option v-for="g in videoGenres" :key="g.value" :value="g.value">
+                  {{ g.label }}
+                </option>
               </select>
             </div>
           </div>
@@ -251,7 +223,7 @@
           <div v-else-if="workType === 'software'" class="grid-3-cols">
             <div class="form-group-compact">
               <label>Lenguaje <span class="required">*</span></label>
-              <input type="text" v-model="programming_language" placeholder="Ej: Python, TypeScript..." required>
+              <input type="text" v-model="programming_language" placeholder="Ej: Python, TypeScript...">
             </div>
             <div class="form-group-compact">
               <label>URL del Repositorio</label>
@@ -265,28 +237,26 @@
 
           <div v-else-if="workType === 'paint' || workType === 'sculpture'" class="grid-3-cols">
             <div class="form-group-compact">
-              <label>Altura (cm) <span class="required">*</span></label>
-              <input type="number" step="0.1" v-model="height" placeholder="Ej: 50" required>
+              <label>Altura (cm) </label>
+              <input type="number" step="0.1" v-model="height" placeholder="Ej: 50">
             </div>
             <div class="form-group-compact">
-              <label>Peso (kg) <span class="required">*</span></label>
-              <input type="number" step="0.1" v-model="weight" placeholder="Ej: 2.5" required>
+              <label>Peso (kg) </label>
+              <input type="number" step="0.1" v-model="weight" placeholder="Ej: 2.5">
             </div>
             <div class="form-group-compact">
               <label>Material / Técnica <span class="required">*</span></label>
-              <select v-model="type_detail" required>
+              <select v-model="type_detail">
                 <option value="" disabled selected>Selecciona técnica</option>
                 <template v-if="workType === 'paint'">
-                  <option value="oil">Óleo</option>
-                  <option value="acrylic">Acrílico</option>
-                  <option value="watercolor">Acuarela</option>
-                  <option value="digital">Digital</option>
+                  <option v-for="g in paintTypes" :key="g.value" :value="g.value">
+                    {{ g.label }}
+                  </option>
                 </template>
                 <template v-else>
-                  <option value="marble">Mármol</option>
-                  <option value="bronze">Bronce</option>
-                  <option value="wood">Madera</option>
-                  <option value="clay">Arcilla</option>
+                  <option v-for="g in sculptureTypes" :key="g.value" :value="g.value">
+                    {{ g.label }}
+                  </option>
                 </template>
               </select>
             </div>
@@ -440,7 +410,7 @@ const workTypeName = computed(() => {
   const types = {
     book: 'Libro',
     music: 'Música',
-    video: 'Video',
+    video: 'Vídeo',
     software: 'Software',
     paint: 'Pintura',
     sculpture: 'Escultura'
@@ -517,6 +487,96 @@ const licenseMeanings = {
     derivatives: false,
     sameLicense: false,
   },
+};
+
+const bookGenres = ref([]);
+
+const fetchBookGenres = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/books/genres/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    bookGenres.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar géneros de libro:', error);
+  }
+};
+
+const bookLanguages = ref([]);
+
+const fetchBookLanguages = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/books/languages/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    bookLanguages.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar los idiomas de los libro:', error);
+  }
+};
+
+const paintTypes = ref([]);
+
+const fetchPaintTypes = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/paint/types/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    paintTypes.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar los tipos de pintura:', error);
+  }
+};
+
+const sculptureTypes = ref([]);
+
+const fetchSculptureTypes = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/sculpture/types/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    sculptureTypes.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar los tipos de escultura:', error);
+  }
+};
+
+const musicGenres = ref([]);
+
+const fetchMusicGenres = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/music/genres/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    musicGenres.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar los géneros de música:', error);
+  }
+};
+
+const videoGenres = ref([]);
+
+const fetchVideoGenres = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE}/api/works/video/genres/`, {
+      headers: { Authorization: `Token ${token}` }
+    });
+
+    videoGenres.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar las categorías de video:', error);
+  }
 };
 
 const getLicenseBadge = (licenseKey) => {
@@ -626,7 +686,7 @@ const fetchNotifications = async () => {
     const response = await axios.get(`${API_BASE}/api/users/notifications/`, {
       headers: { Authorization: `Token ${token}` }
     });
-    
+
     const excludedTypes = ['approved_work', 'rejected_work'];
     notifications.value = response.data.filter(
       notif => !excludedTypes.includes(notif.notification_type)
@@ -650,10 +710,6 @@ const fetchPlans = async () => {
     loadingPlans.value = false;
   }
 };
-
-onMounted(() => {
-  fetchPlans();
-});
 
 const handleFileChange = (event) => {
   selectedFile.value = event.target.files[0];
@@ -693,19 +749,23 @@ const handleSubmit = async () => {
   } else if (workType === 'music') {
     formData.append("duration", duration.value);
     formData.append("album", album.value);
-    formData.append("genre", genre.value);
+    formData.append("music_genre", genre.value);
   } else if (workType === 'video') {
     formData.append("duration", duration.value);
-    formData.append("genre", genre.value)
+    formData.append("video_genre", genre.value)
   } else if (workType === 'software') {
     formData.append("programming_language", programming_language.value);
     formData.append("repository_url", repository_url.value);
     formData.append("documentation_url", documentation_url.value);
-  } else if (workType === 'paint' || workType === 'sculpture') {
-    formData.append("height", height.value);
-    formData.append("weight", weight.value);
-    formData.append("type_detail", type_detail.value);
-  }
+  } else if (workType === 'paint') {
+  formData.append("height", height.value);
+  formData.append("weight", weight.value);
+  formData.append("paint_type", type_detail.value); 
+} else if (workType === 'sculpture') {
+  formData.append("height", height.value);
+  formData.append("weight", weight.value);
+  formData.append("sculpture_type", type_detail.value);
+}
 
   try {
     const res = await axios.post(`${API_BASE}/api/works/`, formData, {
@@ -788,6 +848,13 @@ const handleLogout = () => {
 
 onMounted(() => {
   getUserData();
+  fetchPlans();
+  fetchBookGenres();
+  fetchBookLanguages();
+  fetchPaintTypes();
+  fetchSculptureTypes();
+  fetchVideoGenres();
+  fetchMusicGenres();
 });
 </script>
 

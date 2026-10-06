@@ -33,7 +33,7 @@ class RegisterAPIView(APIView):
             response_data['token'] = token.key
             response_data['role'] = user.role
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDataAPIView(APIView):

@@ -217,10 +217,8 @@
               <tr>
                 <th class="col-type">Tipo</th>
                 <th class="col-title">Título de la Obra</th>
-                <th v-if="isConsumer" class="col-meta">Recomendación</th>
-                <th v-else class="col-meta">Fecha</th>
+                <th class="col-meta">Recomendación</th>
                 <th class="col-actions">Detalles</th>
-                <th v-if="isAuthor" class="col-delete">Eliminar Obra</th>
               </tr>
             </thead>
             <tbody>
@@ -235,20 +233,17 @@
                   <span class="work-title">{{ work.title }}</span>
                 </td>
 
-                <td v-if="isAuthor" class="col-meta">
+                <td class="col-meta">
                   <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
                 </td>
-                <td v-else class="col-meta">
+                <td class="col-meta">
                   <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
                   <span v-else class="badge-neutral">-</span>
                 </td>
 
                 <td class="col-actions">
                   <div class="actions-cell">
-                    <router-link v-if="isAuthor" :to="`/worksAuthor/${work.id}`" class="btn-table">
-                      <span>Ver Detalles</span>
-                    </router-link>
-                    <router-link v-else :to="`/works/${work.id}`" class="btn-table">
+                    <router-link :to="`/works/${work.id}`" class="btn-table">
                       <span>Consultar</span>
                     </router-link>
                     <button v-if="isSaved(work.id)" type="button" @click="saveWork(work.id)" class="btn-icon btn-saved"
@@ -260,21 +255,13 @@
                     </button>
                   </div>
                 </td>
-
-                <td v-if="isAuthor" class="col-delete">
-                  <button @click="deleteWork(work.id)" class="btn-delete">Eliminar</button>
-                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div v-else class="empty-msg">
-          <p v-if="isAuthor">Aún no has registrado ninguna obra en la plataforma.</p>
-          <p v-else>No hay obras disponibles que coincidan con tus criterios.</p>
-          <router-link v-if="isAuthor" to="/dashboard" class="btn-table" style="margin-top: 15px;">
-            Ir al panel para registrar una obra
-          </router-link>
+          <p>No hay obras disponibles que coincidan con tus criterios.</p>
         </div>
       </div>
 
@@ -450,7 +437,7 @@
               </div>
 
               <div class="modal-footer">
-                <template v-if="isConsumer">
+                <template>
                   <button v-if="isSubscribed(selectedAuthor.id)" type="button"
                     @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe" title="Quitar de guardados">
                     <div>
@@ -488,9 +475,6 @@ const router = useRouter();
 const works = ref([]);
 const loading = ref(true);
 const user = ref({ interests: "" });
-
-const isAuthor = computed(() => user.value.role === 'author');
-const isConsumer = computed(() => user.value.role === 'consumer');
 
 const isTypeOpen = ref(false);
 const isPlanOpen = ref(false);
@@ -911,39 +895,11 @@ const getUserPoints = async () => {
   }
 };
 
-
-const deleteWork = async (id) => {
-  if (!confirm("¿Estás seguro de que deseas eliminar esta obra de forma permanente?")) {
-    return;
-  }
-
-  try {
-    const token = authStore.token || localStorage.getItem("token");
-    const response = await axios.delete(`${API_BASE}/api/works/${id}/`, {
-      headers: { Authorization: `Token ${token}` }
-    });
-
-    works.value = works.value.filter(work => work.id !== id);
-
-    triggerInformation("Obra eliminada correctamente.", "success");
-
-  } catch (err) {
-    triggerInformation("¡Se ha producido un error al intentar eliminar la obra!", "error");
-    console.error("Error al eliminar la obra:", err);
-
-  } finally {
-    loading.value = false;
-  }
-};
-
 const isNotificationsOpen = ref(false);
 
 const notifications = ref([
 ]);
 
-const unreadCount = computed(() => {
-  return notifications.value.filter(n => !n.is_read).length;
-});
 
 const toggleNotifications = () => {
   isNotificationsOpen.value = !isNotificationsOpen.value;

@@ -18,9 +18,11 @@ class WorkAdmin(admin.ModelAdmin):
         'download_resume_link',
         'created_at'
     )
+    
     list_filter = ('status', 'work_type', 'license', 'plan_required', 'created_at')
     search_fields = ('title', 'author__username', 'description', 'rejection_reason')
     autocomplete_fields = ('author', 'plan_required')
+    
     readonly_fields = (
         'created_at', 
         'hash_security', 
@@ -28,6 +30,7 @@ class WorkAdmin(admin.ModelAdmin):
         'download_resume_link',
         'rejection_reason',
     )
+    
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
     
@@ -36,16 +39,6 @@ class WorkAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Identificación de la Obra', {
             'fields': ('title', 'author', 'work_type', 'description')
-        }),
-        ('Estado de Revisión y Validación', {
-            'fields': ('status', 'rejection_reason')
-        }),
-        ('Licencia y Monetización', {
-            'fields': ('license', 'plan_required')
-        }),
-        ('Seguridad Criptográfica', {
-            'classes': ('collapse',),
-            'fields': ('hash_security',)
         }),
         ('Archivos Binarios Asociados', {
             'fields': (
@@ -57,18 +50,24 @@ class WorkAdmin(admin.ModelAdmin):
                 'resume_type'
             )
         }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
         ('Fecha de creación', {
-            'classes': ('collapse',),
             'fields': ('created_at',)
         }),
     )
 
-    @admin.display(boolean=True, description='Certificada')
-    def has_hash(self, obj):
-        return bool(obj.hash_security)
     
     def get_urls(self):
         urls = super().get_urls()
+        
         custom_urls = [
             path(
                 '<int:work_id>/download/binary/',
@@ -81,6 +80,7 @@ class WorkAdmin(admin.ModelAdmin):
                 name='work-download-resume',
             ),
         ]
+        
         return custom_urls + urls
     
     def download_binary(self, request, work_id):
@@ -93,6 +93,7 @@ class WorkAdmin(admin.ModelAdmin):
 
         response = HttpResponse(work.binary_file, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
         return response
     
     def download_resume(self, request, work_id):
@@ -105,25 +106,33 @@ class WorkAdmin(admin.ModelAdmin):
 
         response = HttpResponse(work.resume_file, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
         return response
 
-    def download_binary_link(self, obj):
-        if obj and obj.binary_file:
-            url = reverse('admin:work-download-binary', args=[obj.pk])
+    def download_binary_link(self,work):
+        if work and work.binary_file:
+            url = reverse('admin:work-download-binary', args=[work.pk])
+            
             return format_html('<a href="{}" target="_blank">Descargar archivo principal</a>', url)
+        
         return "Sin archivo"
+    
     download_binary_link.short_description = "Archivo principal"
 
-    def download_resume_link(self, obj):
-        if obj and obj.resume_file:
-            url = reverse('admin:work-download-resume', args=[obj.pk])
+    def download_resume_link(self, work):
+        if work and work.resume_file:
+            url = reverse('admin:work-download-resume', args=[work.pk])
+            
             return format_html('<a href="{}" target="_blank">Descargar muestra</a>', url)
+        
         return "Sin muestra"
-    download_resume_link.short_description = "Muestra / Resumen"
+    
+    download_resume_link.short_description = "Muestra gratuita"
     
     @admin.action(description="Aprobar obras seleccionadas")
     def manual_approve_work(self, request, queryset):
         approved_works = 0
+        
         for work in queryset:
             work.status = 'approved'
             work.save()
@@ -134,6 +143,7 @@ class WorkAdmin(admin.ModelAdmin):
                 notification_type='approved_work',
                 message=f"Tu obra '{work.title}' ha sido revisada y aprobada por el equipo de administración."
             )
+            
             approved_works += 1
             
         self.message_user(request, f"{approved_works} obras aprobadas y sus autores han sido notificados.")
@@ -141,6 +151,7 @@ class WorkAdmin(admin.ModelAdmin):
     @admin.action(description="Rechazar obras definitivamente")
     def manual_reject_work(self, request, queryset):
         reject_works = 0
+        
         for work in queryset:
             work.status = 'rejected_manual'
             work.save()
@@ -158,35 +169,213 @@ class WorkAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'pages', 'isbn', 'genre', 'language', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username', 'isbn', 'genre')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('pages', 'isbn', 'genre', 'language')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
 
 
 @admin.register(Music)
 class MusicAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'album', 'duration', 'genre', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username', 'album', 'genre')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('album', 'duration', 'genre')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
 
 
 @admin.register(Video)
 class VideoAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'duration', 'genre', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username', 'genre')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('duration', 'genre')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
+    
 
 
 @admin.register(Software)
 class SoftwareAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'programming_language', 'repository_url', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username', 'programming_language')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('programming_language', 'repository_url', 'documentation_url')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
+    
 
 
 @admin.register(Paint)
 class PaintAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'type', 'height', 'weight', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('type', 'height', 'weight')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
+    
 
 
 @admin.register(Sculpture)
 class SculptureAdmin(WorkAdmin):
-    list_display = ('title', 'author', 'status', 'type', 'height', 'weight', 'download_binary_link', 'created_at')
     search_fields = ('title', 'author__username')
+    fieldsets = (
+        ('Identificación de la Obra', {
+            'fields': ('title', 'author', 'work_type', 'description')
+        }),
+        ('Detalles adicionales', {
+            'fields': ('type', 'height', 'weight')
+        }),
+        ('Archivos Binarios Asociados', {
+            'fields': (
+                'download_binary_link',
+                'file_name',
+                'file_type',
+                'download_resume_link',
+                'resume_name',
+                'resume_type'
+            )
+        }),
+        ('Estado de Revisión y Validación', {
+            'fields': ('status', 'rejection_reason')
+        }),
+        ('Licencia y Monetización', {
+            'fields': ('license', 'plan_required')
+        }),
+        ('Seguridad Criptográfica', {
+            'fields': ('hash_security',)
+        }),
+        ('Fecha de creación', {
+            'fields': ('created_at',)
+        }),
+    )
+    

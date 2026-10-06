@@ -280,7 +280,7 @@
                 <router-link :to="{ path: '/works/create', query: { type: 'video' } }" class="nav-item-link"
                   active-class="active">
                   <i class="fa-solid fa-video"></i>
-                  <span>Registrar video</span>
+                  <span>Registrar vídeo</span>
                 </router-link>
 
                 <router-link :to="{ path: '/works/create', query: { type: 'software' } }" class="nav-item-link"
@@ -1155,13 +1155,23 @@ const handleLogout = () => {
   router.push("/login");
 };
 
-onMounted(() => {
-  getUserData();
-  getUserPoints();
-  getSubscribedAuthors();
-  getSavedWorks();
-  getRecommendedWorks();
-  fetchMySubscription();
+onMounted(async () => {
+  try {
+    await getUserData();
+
+    if (user.value.role === 'consumer') {
+      getUserPoints();
+      getSubscribedAuthors();
+      getSavedWorks();
+      getRecommendedWorks();
+      fetchMySubscription();
+    } else if (user.value.role === 'author') {
+      getMyWorks();
+      getAuthorStats();
+    }
+  } catch (error) {
+    console.error("Error al inicializar el dashboard:", error);
+  }
 });
 </script>
 

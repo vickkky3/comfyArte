@@ -110,9 +110,18 @@ class WorkListCreateAPIView(APIView):
                 
             else:
                 create_data['plan_required'] = None
+                
+            if work_type == 'music' and 'music_genre' in clean_data:
+                create_data['genre'] = clean_data['music_genre']
+
+            elif work_type == 'video' and 'video_genre' in clean_data:
+                create_data['genre'] = clean_data['video_genre']
             
-            if work_type in ['paint', 'sculpture'] and 'type_detail' in clean_data:
-                create_data['type'] = clean_data['type_detail']
+            elif work_type == 'paint' and 'paint_type' in clean_data:
+                create_data['type'] = clean_data['paint_type']
+                
+            elif work_type == 'sculpture' and 'sculpture_type' in clean_data:
+                create_data['type'] = clean_data['sculpture_type']
             
             file = request.FILES.get('file_upload')
             resume = request.FILES.get('resume_upload')
@@ -344,3 +353,45 @@ class RecommendedWorksAPIView(APIView):
         
         serializer = WorkSerializer(recommended_works, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class BookGenresView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        genres = [{'value': code, 'label': label} for code, label in Book.GENRE_CHOICES]
+        return Response(genres)
+    
+class BookLanguagesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        languages = [{'value': code, 'label': label} for code, label in Book.LANGUAGE_CHOICES]
+        return Response(languages)
+    
+class PaintTypeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        paint_types = [{'value': code, 'label': label} for code, label in Paint.PAINT_TYPES]
+        return Response(paint_types)
+    
+class SculptureTypeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        sculpture_types = [{'value': code, 'label': label} for code, label in Sculpture.SCULPTURE_TYPES]
+        return Response(sculpture_types)
+
+class MusicGenreView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        genres = [{'value': code, 'label': label} for code, label in Music.GENRE_CHOICES]
+        return Response(genres)    
+    
+class VideoGenreView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        genres = [{'value': code, 'label': label} for code, label in Video.GENRE_CHOICES]
+        return Response(genres)

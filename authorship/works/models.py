@@ -25,7 +25,7 @@ class Work(models.Model):
     title = models.CharField(max_length=200, verbose_name="Título")
     description=models.TextField(verbose_name="Descripción")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Autor")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creando el")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
     work_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='book', verbose_name="Tipo de obra")
     license = models.CharField(max_length=50, choices=LICENSES_CHOICES, default='by', verbose_name="Licencia")
     
@@ -88,26 +88,74 @@ class Work(models.Model):
     
 class Book(Work):
     pages = models.IntegerField(verbose_name="Páginas")
-    isbn = models.CharField(max_length=30, verbose_name="ISBN")
-    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
-    language = models.CharField(max_length=100, blank=True, verbose_name="Lenguaje")
+    isbn = models.CharField(blank=True, null=True, max_length=30, verbose_name="ISBN")
+    GENRE_CHOICES = (
+        ('fiction', 'Narrativa / Ficción'),
+        ('mystery', 'Misterio / Suspense'),
+        ('scifi_fantasy', 'Ciencia Ficción / Fantasía'),
+        ('romance', 'Novela Romántica'),
+        ('historical', 'Novela Histórica'),
+        ('poetry', 'Poesía'),
+        ('theater', 'Teatro'),
+        ('essay', 'Ensayo'),
+        ('biography', 'Biografía'),
+        ('science', 'Divulgación Científica'),
+        ('self_help', 'Desarrollo Personal'),
+        ('children', 'Infantil / Juvenil'),
+        ('comic', 'Cómic'),
+        ('other', 'Otro'),
+    )
+    genre = models.CharField(choices=GENRE_CHOICES, max_length=100, verbose_name="Género")
+    LANGUAGE_CHOICES = (
+        ('es', 'Español'),
+        ('en', 'Inglés'),
+        ('fr', 'Francés'),
+        ('de', 'Alemán'),
+        ('it', 'Italiano'),
+        ('other', 'Otro'),
+    )
+    language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100, verbose_name="Idioma")
     
     class Meta:
         verbose_name = 'Libro'
         verbose_name_plural = 'Libros'
 
 class Music(Work):
-    duration = models.FloatField(verbose_name="Duración")
+    duration = models.FloatField(verbose_name="Duración (min)")
     album = models.CharField(max_length=200, blank=True, verbose_name="Álbum")
-    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
+    GENRE_CHOICES = (
+        ('pop', 'Pop'),
+        ('rock', 'Rock'),
+        ('urban', 'Urbano / Reggaetón / Trap'),
+        ('electronic', 'Electrónica / Dance / Lo-Fi'),
+        ('hiphop', 'Hip Hop / Rap'),
+        ('indie', 'Indie / Cantautor'),
+        ('classical', 'Clásica / Instrumental'),
+        ('jazz', 'Jazz'),
+        ('folk', 'Folk / Tradicional / Flamenco'),
+        ('other', 'Otro'),
+    )
+    genre = models.CharField(choices=GENRE_CHOICES, max_length=100, verbose_name="Género")
     
     class Meta:
         verbose_name = 'Música'
         verbose_name_plural = 'Música'
     
 class Video(Work):
-    duration = models.FloatField(verbose_name="Duración")
-    genre = models.CharField(max_length=100, blank=True, verbose_name="Género")
+    duration = models.FloatField(verbose_name="Duración (min)")
+    GENRE_CHOICES = (
+        ('fiction', 'Ficción'),
+        ('documentary', 'Documental'),
+        ('videoclip', 'Videoclip'),
+        ('animation', 'Animación'),
+        ('tutorial', 'Tutorial'),
+        ('short_film', 'Cortometraje'),
+        ('talk_podcast', 'Entrevista / Charlas / Podcast'),
+        ('advertising', 'Publicitario'),
+        ('theater_dance', 'Teatro / Danza'),
+        ('other', 'Otro'),
+    )
+    genre = models.CharField(choices=GENRE_CHOICES, max_length=100, verbose_name="Género")
     
     class Meta:
         verbose_name = 'Vídeo'
@@ -123,8 +171,8 @@ class Software(Work):
         verbose_name_plural = 'Software'
     
 class Paint(Work):
-    height = models.FloatField(verbose_name="Altura")
-    weight = models.FloatField(verbose_name="Peso")
+    height = models.FloatField(blank=True, null=True, verbose_name="Altura (cm)")
+    weight = models.FloatField(blank=True, null=True, verbose_name="Peso (kg)")
     PAINT_TYPES = (
         ('oil', 'Óleo'),
         ('acrylic', 'Acrílico'),
@@ -138,8 +186,8 @@ class Paint(Work):
         verbose_name_plural = 'Pinturas'
     
 class Sculpture(Work):
-    height = models.FloatField(verbose_name="Altura")
-    weight = models.FloatField(verbose_name="Peso")
+    height = models.FloatField(blank=True, null=True, verbose_name="Altura (cm)")
+    weight = models.FloatField(blank=True, null=True, verbose_name="Peso (kg)")
     SCULPTURE_TYPES = (
     ('marble', 'Mármol'),
         ('bronze', 'Bronce'),

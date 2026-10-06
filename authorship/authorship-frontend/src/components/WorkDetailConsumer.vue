@@ -395,7 +395,7 @@
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
                   <span class="tech-label">Género</span>
-                  <span class="tech-value">{{ work.genre }}</span>
+                  <span class="tech-value">{{ work.music_genre }}</span>
                 </div>
                 <div class="divider-icon2"><span class="line"></span></div>
                 <div class="technical-row">
@@ -415,7 +415,7 @@
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-tags"></i></div>
                   <span class="tech-label">Género</span>
-                  <span class="tech-value">{{ work.genre }}</span>
+                  <span class="tech-value">{{ work.video_genre }}</span>
                 </div>
               </template>
 
@@ -447,7 +447,7 @@
                 </div>
               </template>
 
-              <template v-else-if="work.work_type === 'paint' || work.work_type === 'sculpture'">
+              <template v-else-if="work.work_type === 'paint'">
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-arrows-up-down"></i></div>
                   <span class="tech-label">Altura</span>
@@ -463,7 +463,27 @@
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-palette"></i></div>
                   <span class="tech-label">Material / Técnica</span>
-                  <span class="tech-value">{{ work.type_detail || '-' }}</span>
+                  <span class="tech-value">{{ work.paint_type || '-' }}</span>
+                </div>
+              </template>
+
+              <template v-else-if="work.work_type === 'sculpture'">
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-arrows-up-down"></i></div>
+                  <span class="tech-label">Altura</span>
+                  <span class="tech-value">{{ work.height }} cm</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-weight-hanging"></i></div>
+                  <span class="tech-label">Peso</span>
+                  <span class="tech-value">{{ work.weight }} kg</span>
+                </div>
+                <div class="divider-icon2"><span class="line"></span></div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-palette"></i></div>
+                  <span class="tech-label">Material / Técnica</span>
+                  <span class="tech-value">{{ work.sculpture_type || '-' }}</span>
                 </div>
               </template>
             </div>
