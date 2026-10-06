@@ -15,11 +15,7 @@ from subscriptions.models import AuthorSubscription
 from .serializers import WorkSerializer
 from .models import Work, Book, Music, Video, Software, Paint, Sculpture
 from rest_framework.parsers import MultiPartParser, FormParser
-import base64
 from .services import validate_work_content, process_file_for_ai, get_recommended_authors_for_user
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import serialization
 from .throttles import CryptoOpsRateThrottle
 
 ALLOWED_EXTENSIONS = {
@@ -57,6 +53,12 @@ class WorkListCreateAPIView(APIView):
     throttle_classes = [CryptoOpsRateThrottle]
     
     def get(self, request):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         user = request.user
         
         if user.groups.filter(name="Author").exists():
@@ -123,8 +125,8 @@ class WorkListCreateAPIView(APIView):
             elif work_type == 'sculpture' and 'sculpture_type' in clean_data:
                 create_data['type'] = clean_data['sculpture_type']
             
-            file = request.FILES.get('file_upload')
-            resume = request.FILES.get('resume_upload')
+            file = request.FILES.get('file_upload') or request.data.get('file_upload')
+            resume = request.FILES.get('resume_upload') or request.data.get('resume_upload')
             
             if not file:
                 return Response({"error": "Es obligatorio adjuntar un archivo para registrar la obra."}, status=status.HTTP_400_BAD_REQUEST)
@@ -135,11 +137,13 @@ class WorkListCreateAPIView(APIView):
             if not is_extension_allowed(file.name) or (resume and not is_extension_allowed(resume.name)):
                 return Response({"error": "Formato de archivo no permitido."}, status=status.HTTP_400_BAD_REQUEST)
 
+            file.seek(0)
             file_info = process_file_for_ai(file)
             file.seek(0)
             
             resume_info = None
             if resume:
+                resume.seek(0)
                 resume_info = process_file_for_ai(resume)
                 resume.seek(0)
 
@@ -169,6 +173,7 @@ class WorkListCreateAPIView(APIView):
                         status=status.HTTP_400_BAD_REQUEST
                     )
             
+            file.seek(0)
             binary_file = file.read()
             clean_filename = Path(file.name).name
             
@@ -179,6 +184,7 @@ class WorkListCreateAPIView(APIView):
             create_data['hash_security'] = file_hash
                 
             if resume:
+                resume.seek(0)
                 clean_resume_name = Path(resume.name).name
                 create_data['resume_file'] = resume.read()
                 create_data['resume_name'] = clean_resume_name
@@ -189,6 +195,7 @@ class WorkListCreateAPIView(APIView):
                 
                 if obj.status == 'published':
                     subscriptions = AuthorSubscription.objects.filter(author=request.user)
+                    
                     notifications = [
                         Notification(
                             recipient=sub.consumer,
@@ -211,6 +218,12 @@ class WorkDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, pk):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         work = get_object_or_404(Work.objects.defer('binary_file', 'resume_file'), pk=pk)
         
         serializer = WorkSerializer(work)
@@ -263,6 +276,12 @@ class WorkDetailAPIView(APIView):
     def delete(self, request, pk):
         work = get_object_or_404(Work, pk=pk)
         
+        if not request.user.has_perm('works.delete_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para eliminar obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         if(work.author != request.user):
             return Response(
             {"error": "No tienes permiso para eliminar esta obra."}, 
@@ -277,6 +296,12 @@ class ListWorksByAuthorAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, author_id):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         user = request.user
 
         is_owner = (user.id == int(author_id))
@@ -299,6 +324,12 @@ class ServeWorkFileAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         work = get_object_or_404(Work, pk=pk)
         
         if not work.binary_file:
@@ -319,6 +350,12 @@ class ServeWorkResumeAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         work = get_object_or_404(Work, pk=pk)
         
         if not work.resume_file:
@@ -335,6 +372,12 @@ class RecommendedWorksAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        if not request.user.has_perm('works.view_work'):
+            return Response(
+                {"error": "Tu cuenta no tiene permisos para ver obras en la plataforma."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         consumer = request.user
         
         recommended_authors = get_recommended_authors_for_user(consumer)

@@ -53,6 +53,14 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             statusCode: 200,
             body: []
         }).as('getNotifications');
+
+        cy.intercept('GET', '**/api/subscriptions/me*', {
+            statusCode: 200,
+            body: {
+              plan: { name: 'Plan Creador', price: 9.99 },
+              status: 'active'
+            }
+          }).as('getMySubscription');
     });
 
     it('muestra los detalles técnicos del libro', () => {
@@ -61,6 +69,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             body: book
         }).as('getWorkDetail');
 
+        cy.loginAsAuthor()
         cy.visit(`/worksAuthor/${workId}`);
 
         cy.wait(['@getUserMe', '@getWorkDetail', '@getPlans']);
@@ -92,6 +101,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             body: book
         }).as('getWorkDetail');
 
+        cy.loginAsAuthor()
         cy.visit(`/worksAuthor/${workId}`);
         cy.wait('@getWorkDetail');
 
@@ -114,6 +124,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             body: 'Contenido PDF'
         }).as('downloadResume');
 
+        cy.loginAsAuthor()
         cy.visit(`/worksAuthor/${workId}`);
         cy.wait('@getWorkDetail');
 
@@ -127,6 +138,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             body: book
         }).as('getWorkDetail');
 
+        cy.loginAsAuthor()
         cy.visit(`/worksAuthor/${workId}`);
         cy.wait('@getWorkDetail');
 
@@ -153,6 +165,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
             body: {}
         }).as('deleteWorkRequest');
 
+        cy.loginAsAuthor()
         cy.visit(`/worksAuthor/${workId}`);
         cy.wait('@getWorkDetail');
 
@@ -282,6 +295,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Consumidor', () => {
                 body: []
             }).as('getSavedWorks');
 
+            cy.loginAsConsumer()
             cy.visit(`/works/${workId}`, {
                 onBeforeLoad(win) {
                     win.localStorage.setItem('token', token);
@@ -355,6 +369,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Consumidor', () => {
                 body: []
             }).as('getSavedWorks');
 
+            cy.loginAsConsumer()
             cy.visit(`/works/${workId}`, {
                 onBeforeLoad(win) {
                     win.localStorage.setItem('token', token);
@@ -409,6 +424,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Consumidor', () => {
                 body: authorStats
             }).as('getAuthorModalStats');
 
+            cy.loginAsConsumer()
             cy.visit(`/works/${workId}`, {
                 onBeforeLoad(win) {
                     win.localStorage.setItem('token', token);
@@ -459,7 +475,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Consumidor', () => {
                 .and('contain', '¡Te has suscrito con éxito a este autor!');
 
             cy.get('.btn-subscribe')
-                .contains('Desuscribirse a este Autor')
+                .contains('Desuscribirse de este Autor')
                 .scrollIntoView()
                 .should('be.visible')
                 .click();
@@ -534,6 +550,7 @@ describe('Flujo de Catálogo y Directorio de Autores para Consumidor', () => {
         cy.intercept('GET', '**/api/subscriptions/me/', { statusCode: 200, body: null }).as('getMySubscription');
         cy.intercept('GET', '**/api/subscriptions/points/', { statusCode: 200, body: { points: 80 } }).as('getPoints');
 
+        cy.loginAsConsumer()
         cy.visit('/works', {
             onBeforeLoad(win) {
                 win.localStorage.setItem('token', token);
@@ -640,7 +657,7 @@ describe('Flujo de Catálogo y Directorio de Autores para Consumidor', () => {
             cy.get('.popup-notification.success')
                 .should('be.visible')
                 .and('contain', '¡Te has suscrito con éxito a este autor!');
-            cy.get('.btn-subscribe').should('contain', 'Desuscribirse a este Autor');
+            cy.get('.btn-subscribe').should('contain', 'Desuscribirse de este Autor');
 
             cy.get('.modal-close-btn').click();
             cy.get('.modal-overlay').should('not.exist');

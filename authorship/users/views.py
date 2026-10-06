@@ -1,12 +1,30 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.models import Group
 from .serializers import UserSerializer, AuthorPublicSerializer, NotificationSerializer
 from .models import User, Notification
+
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        user = serializer.validated_data['user']
+        token, _ = Token.objects.get_or_create(user=user)
+
+        is_author = user.groups.filter(name="Author").exists()
+        role = "Author" if is_author else "Consumer"
+
+        return Response({
+            'token': token.key,
+            'role': role,
+            'username': user.username
+        })
 
 class RegisterAPIView(APIView):
     permission_classes = [permissions.AllowAny]

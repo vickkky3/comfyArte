@@ -80,6 +80,7 @@ def validate_work_content(title, description, file_info, resume_info):
             response_format={"type": "json_object"}
         )
         return json.loads(response.choices[0].message.content)
+    
     except Exception as e:
         logger.error(
             "Error llamando a GPT-4o-mini para validar la obra."

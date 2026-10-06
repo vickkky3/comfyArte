@@ -21,14 +21,33 @@ export const router = createRouter({
     
     { path: "/dashboard", component: DashboardPage },
     
-    { path: "/works", component: WorkList },
-    { path: "/works/create", component: WorkCreate },
-    { path: "/works/:id", component: WorkDetailConsumer },
-    { path: "/worksAuthor/:id", component: WorkDetailAuthor },
-    { path: "/subscription/plans", component: SubscriptionPlans },
-    { path: "/subscription/authors/subscribe/", component: SubscribedAuthors },
-    { path: "/subscription/works/subscribe/", component: SavedWorks },
+    { path: "/works", component: WorkList, meta: { requiresAuth: true, requiresConsumerRole: true } },
+    { path: "/works/create", component: WorkCreate, meta: { requiresAuth: true, requiresAuthorRole: true }},
+    { path: "/works/:id", component: WorkDetailConsumer, meta: { requiresAuth: true, requiresConsumerRole: true }},
+    { path: "/worksAuthor/:id", component: WorkDetailAuthor, meta: { requiresAuth: true, requiresAuthorRole: true }},
+    { path: "/subscription/plans", component: SubscriptionPlans, meta: { requiresAuth: true, requiresConsumerRole: true } },
+    { path: "/subscription/authors/subscribe/", component: SubscribedAuthors, meta: { requiresAuth: true, requiresConsumerRole: true } },
+    { path: "/subscription/works/subscribe/", component: SavedWorks, meta: { requiresAuth: true, requiresConsumerRole: true } },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (to.meta.requiresAuth && !token) {
+    return next({ path: "/login" });
+  }
+
+  if (to.meta.requiresAuthorRole && role !== "Author") {
+    return next({ path: "/dashboard" });
+  }
+
+  if (to.meta.requiresConsumerRole && role !== "Consumer") {
+    return next({ path: "/dashboard" });
+  }
+
+  next();
 });
 
 export default router;

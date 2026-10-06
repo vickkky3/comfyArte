@@ -1165,10 +1165,7 @@ onMounted(async () => {
       getSavedWorks();
       getRecommendedWorks();
       fetchMySubscription();
-    } else if (user.value.role === 'author') {
-      getMyWorks();
-      getAuthorStats();
-    }
+    } 
   } catch (error) {
     console.error("Error al inicializar el dashboard:", error);
   }

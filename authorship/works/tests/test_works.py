@@ -48,7 +48,7 @@ class WorkModelTests(TestCase):
             work_type="music",
             duration=3.15,
             album="Doble",
-            genre="Rock"
+            genre="rock"
         )
         
         self.assertEqual(music.get_work_type(), "music")
@@ -57,7 +57,7 @@ class WorkModelTests(TestCase):
         self.assertEqual(music.author.username, "author1")
         self.assertEqual(music.duration, 3.15)
         self.assertEqual(music.album, "Doble")
-        self.assertEqual(music.genre, "Rock")
+        self.assertEqual(music.genre, "rock")
         
         video = Video.objects.create(
             title="Cortometraje",
@@ -65,7 +65,7 @@ class WorkModelTests(TestCase):
             author=self.user,
             work_type="video",
             duration=10.15,
-            genre="Cortometraje"
+            genre="short_film"
         )
         
         self.assertEqual(video.get_work_type(), "video")
@@ -73,7 +73,7 @@ class WorkModelTests(TestCase):
         self.assertEqual(video.description, "Un cortometraje de suspense")
         self.assertEqual(video.author.username, "author1")
         self.assertEqual(video.duration, 10.15)
-        self.assertEqual(video.genre, "Cortometraje")
+        self.assertEqual(video.genre, "short_film")
         
         software = Software.objects.create(
             title="Microservicio de Autenticación Criptográfica",
@@ -114,7 +114,7 @@ class WorkModelTests(TestCase):
             title="Suspendido",
             description="Pieza volumétrica abstracta trabajada en fundición metálica y soporte pétreo.",
             author=self.user,
-            work_type="paint",
+            work_type="sculpture",
             height=145,
             weight=18.5,
             type="bronze"
@@ -141,7 +141,10 @@ class WorkSerializerTests(TestCase):
             "description": "Texto <b onclick='hack()'>con</b> HTML",
             "license": "by",
             "work_type": "book",
-            "isbn": "<script>evil()</script>123456"
+            "isbn": "<script>evil()</script>123456",
+            "pages": 150,
+            "genre": "comic",
+            "language": "es",
         }
         serializer = WorkSerializer(data=malicious_data)
         
@@ -158,7 +161,7 @@ class WorkSerializerTests(TestCase):
             work_type="music",
             duration=3.15,
             album="Doble",
-            genre="Rock",
+            genre="rock",
             binary_file=b"\x00\x01\x02\x03",
             file_name="cancion.mp3",
             file_type="audio/mpeg"
@@ -168,7 +171,7 @@ class WorkSerializerTests(TestCase):
 
         self.assertEqual(data["duration"], 3.15)
         self.assertEqual(data["album"], "Doble")
-        self.assertEqual(data["genre"], "Rock")
+        self.assertEqual(data["music_genre"], "Rock")
         self.assertEqual(data["file_name"], "cancion.mp3")
 
         self.assertNotIn("binary_file", data)
@@ -181,11 +184,18 @@ class WorkAPITests(APITestCase):
         self.author = User.objects.create_user(username="autor_api", password="password123")
         self.consumer = User.objects.create_user(username="consumer_api", password="password123")
 
-        add_work_perm = Permission.objects.get(codename="add_work", content_type__app_label="works")
-        self.author.user_permissions.add(add_work_perm)
-
         author_group, _ = Group.objects.get_or_create(name="Author")
+        consumer_group, _ = Group.objects.get_or_create(name="Consumer")
+
+        view_work_perm = Permission.objects.get(codename="view_work", content_type__app_label="works")
+        add_work_perm = Permission.objects.get(codename="add_work", content_type__app_label="works")
+        delete_work_perm = Permission.objects.get(codename="delete_work", content_type__app_label="works")
+
+        author_group.permissions.add(view_work_perm, add_work_perm, delete_work_perm)
+        consumer_group.permissions.add(view_work_perm)
+
         self.author.groups.add(author_group)
+        self.consumer.groups.add(consumer_group)
 
         self.plan = SubscriptionPlan.objects.create(name="Plan básico", price=4.99)
 
@@ -207,7 +217,7 @@ class WorkAPITests(APITestCase):
             "license": "by",
             "duration": 3.15,
             "album": "Doble",
-            "genre": "Rock",
+            "music_genre": "rock",
             "file_upload": dummy_main_file,
             "resume_upload": dummy_resume_file,
             "plan_required": self.plan.id
@@ -267,6 +277,7 @@ class WorkAPITests(APITestCase):
             "description": "Test",
             "work_type": "software",
             "license": "by",
+            "programming_language": "Python",
             "file_upload": exe_file
         }
 
@@ -371,6 +382,9 @@ class RecommendedWorksAPITests(APITestCase):
             interests="music,video"
         )
         
+        perm_view = Permission.objects.get(codename="view_work", content_type__app_label="works")
+        self.consumer.user_permissions.add(perm_view)
+
         self.author_rec = User.objects.create_user(username="musico", password="password123")
         self.client.force_authenticate(user=self.consumer)
 

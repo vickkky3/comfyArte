@@ -65,6 +65,7 @@ describe('Flujo de Obras Favoritas', () => {
 
         cy.intercept('GET', '**/api/works/**', { statusCode: 200, body: [] });
 
+        cy.loginAsConsumer()
         cy.visit('/subscription/works/subscribe', {
             onBeforeLoad(win) {
                 win.localStorage.setItem('token', token);
@@ -219,6 +220,7 @@ describe('Flujo de Autores Seguidos', () => {
 
         cy.intercept('GET', '**/api/works/**', { statusCode: 200, body: [] });
 
+        cy.loginAsConsumer()
         cy.visit('/subscription/authors/subscribe', {
             onBeforeLoad(win) {
                 win.localStorage.setItem('token', token);
@@ -406,6 +408,7 @@ describe('Flujo de Planes de Suscripción', () => {
   
       cy.intercept('GET', '**/api/works/**', { statusCode: 200, body: [] });
   
+      cy.loginAsConsumer()
       cy.visit('/subscription/plans', {
         onBeforeLoad(win) {
           win.localStorage.setItem('token', token);

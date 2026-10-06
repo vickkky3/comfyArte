@@ -294,7 +294,7 @@
                           @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
                           title="Quitar de guardados">
                           <div>
-                            <i class="fa-solid fa-bell"></i> Desuscribirse a este Autor
+                            <i class="fa-solid fa-bell"></i> Desuscribirse de este Autor
                           </div>
                         </button>
 

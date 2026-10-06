@@ -31,10 +31,49 @@ describe('Flujo de Registro de Obras', () => {
             statusCode: 200,
             body: []
         }).as('getNotifications');
+
+        cy.intercept('GET', '**/api/works/**/genres/**', {
+            statusCode: 200,
+            body: [
+                { value: 'misterio', label: 'Misterio / Suspense' }
+            ]
+        }).as('getGenres');
+
+        cy.intercept('GET', '**/api/works/**/languages/**', {
+            statusCode: 200,
+            body: [
+                { value: 'spanish', label: 'Español' }
+            ]
+        }).as('getGenres');
+
+        cy.intercept('GET', '**/api/works/**/types/**', {
+            statusCode: 200,
+            body: []
+        }).as('getPaintTypes');
+
+        cy.intercept('GET', '**/api/works/**/types/**', {
+            statusCode: 200,
+            body: []
+        }).as('getSculptureTypes');
+
+        cy.intercept('GET', '**/authors/stats*', {
+            statusCode: 200,
+            body: {
+                total_subscribers: 0,
+                active_subscriptions: 0,
+                total_earnings: 0.0
+            }
+        }).as('getAuthorStats');
+
+        cy.intercept('GET', '**/api/works/authors/**', {
+            statusCode: 200,
+            body: []
+        }).as('getAuthorWorks');
     });
 
     describe('Formulario de Libro', () => {
         beforeEach(() => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=book');
             cy.wait(['@getUserMe', '@getPlans']);
         });
@@ -91,6 +130,8 @@ describe('Flujo de Registro de Obras', () => {
                 .should('be.visible')
                 .and('contain', '¡Obra registrada y protegida con éxito!');
 
+            cy.wait('@getAuthorStats');
+            cy.wait('@getAuthorWorks');
             cy.url({ timeout: 6000 }).should('include', '/dashboard');
         });
 
@@ -135,6 +176,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Formulario de Música', () => {
         it('muestra los campos específicos para proyectos de música', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=music');
             cy.wait(['@getUserMe', '@getPlans']);
 
@@ -151,6 +193,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Formulario de Vídeos', () => {
         it('muestra los campos específicos para proyectos de vídeo', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=video');
             cy.wait(['@getUserMe', '@getPlans']);
 
@@ -164,6 +207,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Formulario de Software', () => {
         it('muestra los campos específicos para proyectos de software', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=software');
             cy.wait(['@getUserMe', '@getPlans']);
 
@@ -176,6 +220,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Formulario de Pintura', () => {
         it('muestra los campos específicos para proyectos de pintura', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=paint');
             cy.wait(['@getUserMe', '@getPlans']);
 
@@ -189,6 +234,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Formulario de Escultura', () => {
         it('muestra los campos específicos para proyectos de escultura', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=sculpture');
             cy.wait(['@getUserMe', '@getPlans']);
 
@@ -202,6 +248,7 @@ describe('Flujo de Registro de Obras', () => {
 
     describe('Control de sesión desde el navbar', () => {
         it('muestra el pop up de confirmación al pulsar "Cerrar Sesión"', () => {
+            cy.loginAsAuthor()
             cy.visit('/works/create?type=book');
             cy.wait(['@getUserMe', '@getPlans']);
 

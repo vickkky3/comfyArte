@@ -120,7 +120,10 @@ const handleLogin = async () => {
         const token = response.data.token;
 
         authStore.setToken(token);
-        localStorage.setItem("token", token);
+        
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
 
         router.push("/dashboard");
     } catch (err) {
