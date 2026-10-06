@@ -77,6 +77,9 @@ class Work(models.Model):
         verbose_name = 'Obra'
         verbose_name_plural = 'Obras'
         
+    def __str__(self):
+        return self.title
+        
     def get_work_type(self):
         if hasattr(self, 'book'): return 'book'
         if hasattr(self, 'music'): return 'music'

@@ -10,7 +10,7 @@ from .models import (
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
     list_display = ('name', 'price', 'points', 'duration_days', 'subscribers_count')
-    list_filter = ('duration_days',)
+    list_filter = ('duration_days', 'points', 'price')
     search_fields = ('name', 'description')
     ordering = ('price',)
 
@@ -18,7 +18,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         ('Información básica', {
             'fields': ('name', 'description')
         }),
-        ('Tarificación y Recompensas', {
+        ('Precio', {
             'fields': ('price', 'duration_days'),
             'description': 'Los puntos se asignan automáticamente de forma proporcional: 1 € = 10 puntos.'
         }),
@@ -26,10 +26,12 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 
     def points(self, obj):
         return obj.points
+    
     points.short_description = 'Puntos asignados'
 
     def subscribers_count(self, obj):
         return obj.usersubscription_set.count()
+    
     subscribers_count.short_description = 'Suscripciones activas'
 
 
@@ -62,7 +64,8 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
 @admin.register(UserWallet)
 class UserWalletAdmin(admin.ModelAdmin):
     list_display = ('user', 'points')
-    search_fields = ('user__username', 'user__email')
+    list_filter = ('user', 'points')
+    search_fields = ('user', 'points')
     autocomplete_fields = ('user',)
     ordering = ('-points',)
 
@@ -85,8 +88,10 @@ class SaveWorkAdmin(admin.ModelAdmin):
 
     def work_title(self, obj):
         return obj.work.title
+    
     work_title.short_description = 'Obra guardada'
 
     def work_type(self, obj):
         return obj.work.get_work_type_display() if hasattr(obj.work, 'get_work_type_display') else obj.work.work_type
+    
     work_type.short_description = 'Tipo'

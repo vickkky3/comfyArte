@@ -17,41 +17,50 @@ class UserAdmin(BaseUserAdmin):
         'username',
         'email',
         'role',
-        'is_staff',
+        'is_superuser',
         'date_joined'
     )
     
-    list_filter = ('role', 'is_staff', 'is_superuser', 'is_active', 'date_joined')
-    search_fields = ('username', 'email', 'first_name', 'last_name', 'interests')
-    ordering = ('-date_joined',)
+    readonly_fields = ('date_joined', 'last_login', 'role', 'groups', 'display_interests',)
     
-    readonly_fields = ('date_joined', 'last_login', 'display_interests', 'role', 'groups', 'user_permissions')
+    def get_role_display(self, obj):
+        if obj.is_superuser:
+            return "Administrador"
+        if getattr(obj, 'role', None) == 'author' or obj.groups.filter(name__iexact='Author').exists():
+            return "Autor"
+        
+        return "Consumidor"
+    
+    get_role_display.short_description = "Rol"
 
-    fieldsets = (
-        ('Usuario y contraseña', {
-            'fields': ('username', 'password')
-        }),
-        ('Información Personal', {
-            'fields': ('first_name', 'last_name', 'email', 'biography', 'display_interests')
-        }),
-        ('Rol en la Plataforma', {
-            'fields': ('role',)
-        }),
-        ('Permisos y Accesos', {
-            'classes': ('collapse',),
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')
-        }),
-        ('Fecha de Registro', {
-            'classes': ('collapse',),
-            'fields': ('date_joined',)
-        }),
-    )
+    def get_fieldsets(self, request, obj=None):
+        if not obj:
+            return self.add_fieldsets
 
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('Datos Adicionales', {
-            'fields': ('role', 'email', 'interests', 'biography')
-        }),
-    )
+        fieldsets = [
+            (None, {'fields': ('username', 'password')}),
+            ('Información personal', {'fields': ('first_name', 'last_name', 'email')}),
+            ('Permisos', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
+            ('Fechas importantes', {'fields': ('last_login', 'date_joined')}),
+        ]
+
+        is_admin = obj.is_superuser or obj.is_staff or getattr(obj, 'role', '') == 'admin'
+        is_author = getattr(obj, 'role', '') == 'author' or obj.groups.filter(name__iexact='Author').exists()
+
+        if is_admin:
+            pass
+        
+        elif is_author:
+            fieldsets.insert(2, ('Perfil de Autor', {
+                'fields': ('biography',), 
+            }))
+            
+        else:
+            fieldsets.insert(2, ('Preferencias de Consumidor', {
+                'fields': ('display_interests',), 
+            }))
+
+        return fieldsets
     
     @admin.display(description='Intereses')
     def display_interests(self, obj):
@@ -82,13 +91,14 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('recipient', 'sender', 'notification_type', 'message_snippet', 'work', 'created_at')
+    list_display = ('recipient', 'sender', 'notification_type', 'message', 'work', 'created_at')
     list_filter = ('notification_type', 'created_at')
     search_fields = ('recipient__username', 'sender__username', 'message', 'work__title')
     autocomplete_fields = ('recipient', 'sender', 'work')
     readonly_fields = ('created_at',)
     date_hierarchy = 'created_at'
 
-    def message_snippet(self, obj):
+    def message(self, obj):
         return obj.message[:60] + "..." if len(obj.message) > 60 else obj.message
-    message_snippet.short_description = 'Mensaje'
+    
+    message.short_description = 'Mensaje'

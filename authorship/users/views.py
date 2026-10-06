@@ -31,6 +31,7 @@ class RegisterAPIView(APIView):
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
+        
         if serializer.is_valid():
             user = serializer.save()
             
@@ -42,16 +43,19 @@ class RegisterAPIView(APIView):
             try:
                 group = Group.objects.get(name=group_name)
                 user.groups.add(group)
+                
             except Group.DoesNotExist:
                 print(f"Error: El grupo {group_name} no existe en la base de datos")
             
             token, _ = Token.objects.get_or_create(user=user)
+            role = "Author" if type_rol == 'author' else "Consumer"
             
-            response_data = serializer.data
-            response_data['token'] = token.key
-            response_data['role'] = user.role
+            return Response({
+                'token': token.key,
+                'role': role,
+                'username': user.username
+            }, status=status.HTTP_201_CREATED)
             
-            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDataAPIView(APIView):
@@ -60,17 +64,21 @@ class UserDataAPIView(APIView):
     def get(self, request, pk=None):
         if pk is not None:
             user_obj = get_object_or_404(User, pk=pk)
+            
         else:
             user_obj = request.user
             
         serializer = UserSerializer(user_obj)
         data = serializer.data
+        
         data['es_autor'] = user_obj.groups.filter(name="Author").exists()
         data['es_consumidor'] = user_obj.groups.filter(name="Consumer").exists()
+        
         return Response(data)
     
     def patch(self, request):
         serializer = UserSerializer(request.user, data=request.data, partial=True)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

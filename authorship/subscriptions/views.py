@@ -24,6 +24,7 @@ class SubscriptionPlanListAPIView(APIView):
     def get(self, request):
         planes = SubscriptionPlan.objects.all()
         serializer = SubscriptionPlanSerializer(planes, many=True)
+        
         return Response(serializer.data)
     
 class MySubscriptionAPIView(APIView):
@@ -53,6 +54,7 @@ class MySubscriptionAPIView(APIView):
         days_left = (exp_date - today).days
 
         if days_left == 1:
+            
             already_notified = Notification.objects.filter(
                 recipient=user,
                 created_at__date=today,
@@ -75,6 +77,7 @@ class MyWalletAPIView(APIView):
     def get(self, request):
         wallet, created = UserWallet.objects.get_or_create(user=request.user)
         serializer = UserWalletSerializer(wallet)
+        
         return Response(serializer.data)
 
         
@@ -85,6 +88,7 @@ class SubscribeAPIView(APIView):
         try:
             plan_id = request.data.get('plan_id')
             plan = SubscriptionPlan.objects.get(id=plan_id)
+            
         except SubscriptionPlan.DoesNotExist:
             return Response({"detail": "No existe este plan"}, status=404)
         
@@ -142,6 +146,7 @@ class AuthorSubscribeAPIView(APIView):
         
         try:
             author = User.objects.get(id=author_id, role="author")
+            
         except User.DoesNotExist:
             return Response({"detail": "No existe este autor"}, status=404)
         
@@ -179,6 +184,7 @@ class AuthorSubscribeAPIView(APIView):
         
         try:
             author = User.objects.get(id=author_id, role="author")
+            
         except User.DoesNotExist:
             return Response({"detail": "No existe este autor"}, status=404)
         
@@ -218,6 +224,7 @@ class SaveWorkAPIView(APIView):
         
         try:
             work = Work.objects.get(id=work_id)
+            
         except Work.DoesNotExist:
             return Response({"detail": "No existe esta obra"}, status=404)
 
@@ -279,6 +286,7 @@ class AuthorStatsAPIView(APIView):
         
         if author_id:
             target_user = get_object_or_404(User, id=author_id)
+            
         else:
             target_user = request.user
         

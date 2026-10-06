@@ -166,7 +166,6 @@ class WorkAdmin(admin.ModelAdmin):
             
         self.message_user(request, f"{reject_works} obras rechazadas definitivamente.")
 
-
 @admin.register(Book)
 class BookAdmin(WorkAdmin):
     search_fields = ('title', 'author__username', 'isbn', 'genre')
@@ -200,7 +199,6 @@ class BookAdmin(WorkAdmin):
             'fields': ('created_at',)
         }),
     )
-
 
 @admin.register(Music)
 class MusicAdmin(WorkAdmin):
@@ -236,7 +234,6 @@ class MusicAdmin(WorkAdmin):
         }),
     )
 
-
 @admin.register(Video)
 class VideoAdmin(WorkAdmin):
     search_fields = ('title', 'author__username', 'genre')
@@ -270,8 +267,6 @@ class VideoAdmin(WorkAdmin):
             'fields': ('created_at',)
         }),
     )
-    
-
 
 @admin.register(Software)
 class SoftwareAdmin(WorkAdmin):
@@ -307,8 +302,6 @@ class SoftwareAdmin(WorkAdmin):
         }),
     )
     
-
-
 @admin.register(Paint)
 class PaintAdmin(WorkAdmin):
     search_fields = ('title', 'author__username')
@@ -343,8 +336,6 @@ class PaintAdmin(WorkAdmin):
         }),
     )
     
-
-
 @admin.register(Sculpture)
 class SculptureAdmin(WorkAdmin):
     search_fields = ('title', 'author__username')

@@ -8,6 +8,7 @@ from django.conf import settings
 
 class User(AbstractUser):
     ROLE_CHOICES = (
+        ('admin', 'Administrador'),
         ('author', 'Autor'),
         ('consumer', 'Consumidor'),
     )
@@ -19,6 +20,12 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
+        
+    def save(self, *args, **kwargs):
+        if (self.is_superuser or self.is_staff) and self.role != 'admin':
+            self.role = 'admin'
+            
+        super().save(*args, **kwargs)
 
 class Notification(models.Model):
     TYPE_CHOICES = [
@@ -33,7 +40,8 @@ class Notification(models.Model):
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='notifications'
+        related_name='notifications',
+        verbose_name='Destinatario'
     )
     
     sender = models.ForeignKey(
@@ -41,7 +49,8 @@ class Notification(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='sent_notifications'
+        related_name='sent_notifications',
+        verbose_name='Remitente'
     )
     
     work = models.ForeignKey(
@@ -49,17 +58,19 @@ class Notification(models.Model):
         on_delete=models.CASCADE,
         null=True, 
         blank=True,
-        related_name='notifications'
+        related_name='notifications',
+        verbose_name='Obra'
     )
     
     notification_type = models.CharField(
         max_length=30, 
         choices=TYPE_CHOICES, 
-        default='new_work'
+        default='new_work',
+        verbose_name='Tipo de notificación'
     )
     
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField(verbose_name='Mensaje')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
     
     class Meta:
         ordering = ['-created_at']

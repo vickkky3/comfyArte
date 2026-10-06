@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.core.validators import validate_email as django_validate_email
+from django.contrib.auth.password_validation import validate_password as django_validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import User, Notification
 import bleach
@@ -103,6 +104,21 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre de usuario ya está en uso. Por favor, elige otro.")
         
         return cleaned
+    
+    def validate_password(self, value):
+        try:
+            user_data = self.initial_data
+            user_instance = User(
+                username=user_data.get('username', ''),
+                email=user_data.get('email', '')
+            )
+            
+            django_validate_password(value, user=user_instance)
+            
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(list(error.messages))
+        
+        return value
 
     def validate_email(self, value):
         cleaned = clean_plain_text(value).lower()
