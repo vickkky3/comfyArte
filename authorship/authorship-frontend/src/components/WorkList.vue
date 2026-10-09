@@ -436,22 +436,17 @@
 
               </div>
 
-              <div class="modal-footer">
-                <template>
-                  <button v-if="isSubscribed(selectedAuthor.id)" type="button"
-                    @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe" title="Quitar de guardados">
-                    <div>
-                      <i class="fa-solid fa-bell"></i> Desuscribirse de este Autor
-                    </div>
-                  </button>
+              <div class="modal-footer" v-if="selectedAuthor && selectedAuthor.id">
+                <button v-if="isSubscribed(selectedAuthor.id)" type="button"
+                  @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe btn-unsubscribe">
+                  <i class="fa-solid fa-bell-slash"></i>
+                  <span>Desuscribirse de este Autor</span>
+                </button>
 
-                  <button v-else type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe"
-                    title="Guardar obra">
-                    <div>
-                      <i class="fa-solid fa-bell"></i> Suscribirse a este Autor
-                    </div>
-                  </button>
-                </template>
+                <button v-else type="button" @click="subscribeToAuthor(selectedAuthor.id)" class="btn-subscribe">
+                  <i class="fa-solid fa-bell"></i>
+                  <span>Suscribirse a este Autor</span>
+                </button>
               </div>
 
             </div>
@@ -587,7 +582,7 @@ const isInteresting = (type) => {
   if (userInterestsArray.value.includes(typeNormalizado)) {
 
     return true;
-    
+
   } else {
     return false;
   }

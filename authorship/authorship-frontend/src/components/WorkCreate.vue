@@ -165,7 +165,7 @@
             </div>
             <div class="form-group-compact">
               <label>Género <span class="required">*</span></label>
-              <select v-model="genre">
+              <select v-model="genre" class="select-pink">
                 <option value="" disabled selected>Selecciona un género</option>
                 <option v-for="g in bookGenres" :key="g.value" :value="g.value">
                   {{ g.label }}
@@ -246,7 +246,7 @@
             </div>
             <div class="form-group-compact">
               <label>Material / Técnica <span class="required">*</span></label>
-              <select v-model="type_detail">
+              <select v-model="type_detail" class="select-pink">
                 <option value="" disabled selected>Selecciona técnica</option>
                 <template v-if="workType === 'paint'">
                   <option v-for="g in paintTypes" :key="g.value" :value="g.value">
