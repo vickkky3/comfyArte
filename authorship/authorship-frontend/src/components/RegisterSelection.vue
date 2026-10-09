@@ -21,9 +21,8 @@
       <span class="line"></span>
     </div>
 
-    <h3 class="description">La plataforma segura y confiable para proteger, <br>
-      gestionar y comercializar tus creaciones intelectuales</h3>
-
+    <h3 class="description">La plataforma segura y confiable para conectar la creación, <br>
+      protección y disfrute de obras intelectuales.</h3>
     <div class="selection-container">
       <router-link :to="{ path: '/register/author' }" class="card">
         <h2>Soy Autor</h2>
