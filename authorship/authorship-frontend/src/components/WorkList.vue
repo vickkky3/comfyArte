@@ -232,10 +232,6 @@
                 <td class="col-title">
                   <span class="work-title">{{ work.title }}</span>
                 </td>
-
-                <td class="col-meta">
-                  <span style="color: #555;">{{ formatDate(work.created_at) }}</span>
-                </td>
                 <td class="col-meta">
                   <span v-if="isInteresting(work.work_type)" class="badge-interes">⭐ Sugerido</span>
                   <span v-else class="badge-neutral">-</span>
