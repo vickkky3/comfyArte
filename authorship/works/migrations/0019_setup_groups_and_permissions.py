@@ -34,7 +34,7 @@ def remove_groups_and_permissions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('works', '__latest__'),
+        ('works', '0018_alter_book_isbn_alter_paint_height_and_more'),
         ('contenttypes', '__latest__'),
         ('auth', '__latest__'),
     ]
