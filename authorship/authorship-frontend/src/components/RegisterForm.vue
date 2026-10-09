@@ -579,8 +579,8 @@ textarea {
 }
 
 .textarea-container i {
-  top: 16px !important;
-  transform: none !important;
+  top: 16px;
+  transform: none;
 }
 
 .input-container textarea:focus {

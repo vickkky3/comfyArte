@@ -35,24 +35,24 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             
-            type_rol = request.data.get('role', 'consumer')
-            user.role = type_rol
-            user.save()
-
-            group_name = 'Author' if type_rol == 'author' else 'Consumer'
-            try:
-                group = Group.objects.get(name=group_name)
-                user.groups.add(group)
-                
-            except Group.DoesNotExist:
-                print(f"Error: El grupo {group_name} no existe en la base de datos")
+            raw_role = request.data.get('role', 'consumer')
+            type_rol = str(raw_role).strip().lower()
+            
+            is_author = (type_rol == 'author')
+            group_name = 'Author' if is_author else 'Consumer'
+            
+            group, _ = Group.objects.get_or_create(name=group_name)
+            user.groups.add(group)
+            
+            if hasattr(user, 'role'):
+                user.role = group_name.lower()
+                user.save()
             
             token, _ = Token.objects.get_or_create(user=user)
-            role = "Author" if type_rol == 'author' else "Consumer"
             
             return Response({
                 'token': token.key,
-                'role': role,
+                'role': group_name,
                 'username': user.username
             }, status=status.HTTP_201_CREATED)
             
