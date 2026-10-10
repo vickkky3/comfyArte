@@ -281,36 +281,51 @@ const triggerNotification = (message, type = 'error') => {
 };
 
 const handleRegister = async () => {
+  if (loading.value) return;
   loading.value = true;
 
   try {
+    const roleVal = currentRol?.value !== undefined ? currentRol.value : currentRol;
+
     const payload = {
       first_name: firstName.value,
       last_name: lastName.value,
       username: username.value,
       email: email.value,
       password: password.value,
-      role: currentRol,
-    }
+      role: roleVal,
+    };
 
-    if (currentRol === 'author') {
+    if (roleVal === "author") {
       payload.biography = biography.value;
-    }
-
-    else if (currentRol === 'consumer') {
-      payload.interests = interests.value.join(',');
+    } else if (roleVal === "consumer") {
+      payload.interests = interests.value.join(",");
     }
 
     const response = await axios.post(`${API_BASE}/api/users/register/`, payload);
 
     const token = response.data.token;
+    const role = response.data.role;
+    const usernameVal = response.data.username;
+
     if (token) {
       authStore.setToken(token);
-      localStorage.setItem("token", token);
-      router.push("/dashboard");
 
+      localStorage.setItem("token", token);
+      if (role) {
+        localStorage.setItem("role", role);
+      }
+      if (usernameVal) {
+        localStorage.setItem("username", usernameVal);
+      }
+
+      axios.defaults.headers.common["Authorization"] = `Token ${token}`;
+
+      await authStore.fetchUserProfile();
+
+      await router.push("/dashboard");
     } else {
-      router.push("/login");
+      await router.push("/login");
     }
 
   } catch (err) {
@@ -319,66 +334,75 @@ const handleRegister = async () => {
 
       if (data.first_name) {
         let msg = "";
-
         if (Array.isArray(data.first_name)) {
           msg = data.first_name[0];
-
         } else {
           msg = data.first_name;
         }
-
         triggerNotification(msg, "error");
 
       } else if (data.last_name) {
         let msg = "";
-
         if (Array.isArray(data.last_name)) {
           msg = data.last_name[0];
-
         } else {
           msg = data.last_name;
         }
-
         triggerNotification(msg, "error");
 
       } else if (data.username) {
         let msg = "";
-
         if (Array.isArray(data.username)) {
           msg = data.username[0];
-
         } else {
           msg = data.username;
         }
-
         triggerNotification(msg, "error");
 
       } else if (data.email) {
         let msg = "";
-
         if (Array.isArray(data.email)) {
           msg = data.email[0];
-
         } else {
           msg = data.email;
         }
-
         triggerNotification(msg, "error");
 
       } else if (data.password) {
         let msg = "";
-
         if (Array.isArray(data.password)) {
           msg = data.password[0];
-
         } else {
           msg = data.password;
         }
+        triggerNotification(msg, "error");
 
+      } else if (data.biography) {
+        let msg = "";
+        if (Array.isArray(data.biography)) {
+          msg = data.biography[0];
+        } else {
+          msg = data.biography;
+        }
+        triggerNotification(msg, "error");
+
+      } else if (data.interests) {
+        let msg = "";
+        if (Array.isArray(data.interests)) {
+          msg = data.interests[0];
+        } else {
+          msg = data.interests;
+        }
         triggerNotification(msg, "error");
 
       } else if (data.detail) {
-        triggerNotification(data.detail, "error");
+        let msg = "";
+        if (Array.isArray(data.detail)) {
+          msg = data.detail[0];
+        } else {
+          msg = data.detail;
+        }
+        triggerNotification(msg, "error");
 
       } else {
         triggerNotification("Revisa los campos obligatorios.", "error");
