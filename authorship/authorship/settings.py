@@ -31,7 +31,7 @@ load_dotenv(dotenv_path=ENV_PATH)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
