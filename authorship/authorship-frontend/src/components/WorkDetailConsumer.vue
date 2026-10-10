@@ -431,7 +431,7 @@
                   <span class="tech-label">Repositorio de código</span>
                   <span class="tech-value">
                     <a v-if="work.repository_url" :href="work.repository_url" target="_blank">{{ work.repository_url
-                      }}</a>
+                    }}</a>
                     <span v-else>-</span>
                   </span>
                 </div>
@@ -448,28 +448,30 @@
               </template>
 
               <template v-else-if="work.work_type === 'paint'">
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-arrows-up-down fa-fw"></i></div>
+                <div v-if="work.height != null && work.height !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-arrows-up-down fa-fw"></i>
+                  </div>
                   <span class="tech-label">Altura</span>
-                  <span v-if="work.height" class="tech-value">{{ work.height }} cm</span>
-                  <span v-else class="tech-value">-</span>
+                  <span class="tech-value">{{ work.height }} cm</span>
                 </div>
 
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-arrows-left-right fa-fw"></i></div>
+                <div v-if="work.width != null && work.width !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-arrows-left-right fa-fw"></i>
+                  </div>
                   <span class="tech-label">Ancho</span>
-                  <span v-if="work.width" class="tech-value">{{ work.width }} cm</span>
-                  <span v-else class="tech-value">-</span>
+                  <span class="tech-value">{{ work.width }} cm</span>
                 </div>
 
-                <div class="divider-icon2"><span class="line"></span></div>
-
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-weight-hanging fa-fw"></i></div>
+                <div v-if="work.weight != null && work.weight !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-weight-hanging fa-fw"></i>
+                  </div>
                   <span class="tech-label">Peso</span>
-                  <span v-if="work.weight" class="tech-value">{{ work.weight }} kg</span>
-                  <span v-else class="tech-value">-</span>
+                  <span class="tech-value">{{ work.weight }} kg</span>
                 </div>
+
                 <div class="divider-icon2"><span class="line"></span></div>
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-palette fa-fw"></i></div>
@@ -479,22 +481,30 @@
               </template>
 
               <template v-else-if="work.work_type === 'sculpture'">
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-arrows-up-down fa-fw"></i></div>
+                <div v-if="work.height != null && work.height !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-arrows-up-down fa-fw"></i>
+                  </div>
                   <span class="tech-label">Altura</span>
                   <span class="tech-value">{{ work.height }} cm</span>
                 </div>
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-arrows-left-right fa-fw"></i></div>
+
+                <div v-if="work.width != null && work.width !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-arrows-left-right fa-fw"></i>
+                  </div>
                   <span class="tech-label">Ancho</span>
                   <span class="tech-value">{{ work.width }} cm</span>
                 </div>
-                <div class="divider-icon2"><span class="line"></span></div>
-                <div class="technical-row">
-                  <div class="icon-circle"><i class="fa-solid fa-weight-hanging fa-fw"></i></div>
+
+                <div v-if="work.weight != null && work.weight !== ''" class="technical-row">
+                  <div class="icon-circle">
+                    <i class="fa-solid fa-weight-hanging fa-fw"></i>
+                  </div>
                   <span class="tech-label">Peso</span>
                   <span class="tech-value">{{ work.weight }} kg</span>
                 </div>
+
                 <div class="divider-icon2"><span class="line"></span></div>
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-palette fa-fw"></i></div>
@@ -1726,10 +1736,12 @@ onMounted(async () => {
 }
 
 .icon-circle {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
   background-color: var(--rosa-claro);
-  border-radius: 50%;
+  border: 1px solid rgba(112, 0, 32, 0.12);
+  border-radius: 6px;
 
   display: inline-flex;
   align-items: center;
@@ -1737,15 +1749,13 @@ onMounted(async () => {
 
   margin: 0 auto 0 0;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .icon-circle i {
   color: var(--granate-principal);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .tech-label {
