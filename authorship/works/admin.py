@@ -310,7 +310,7 @@ class PaintAdmin(WorkAdmin):
             'fields': ('title', 'author', 'work_type', 'description')
         }),
         ('Detalles adicionales', {
-            'fields': ('type', 'height', 'weight')
+            'fields': ('type', 'height', 'width', 'weight')
         }),
         ('Archivos Binarios Asociados', {
             'fields': (
@@ -344,7 +344,7 @@ class SculptureAdmin(WorkAdmin):
             'fields': ('title', 'author', 'work_type', 'description')
         }),
         ('Detalles adicionales', {
-            'fields': ('type', 'height', 'weight')
+            'fields': ('type', 'height', 'width', 'weight')
         }),
         ('Archivos Binarios Asociados', {
             'fields': (

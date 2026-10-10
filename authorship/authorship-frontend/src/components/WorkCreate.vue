@@ -235,10 +235,14 @@
             </div>
           </div>
 
-          <div v-else-if="workType === 'paint' || workType === 'sculpture'" class="grid-3-cols">
+          <div v-else-if="workType === 'paint' || workType === 'sculpture'" class="grid-4-cols">
             <div class="form-group-compact">
               <label>Altura (cm) </label>
               <input type="number" step="0.1" v-model="height" placeholder="Ej: 50">
+            </div>
+            <div class="form-group-compact">
+              <label>Ancho (cm) </label>
+              <input type="number" step="0.1" v-model="width" placeholder="Ej: 50">
             </div>
             <div class="form-group-compact">
               <label>Peso (kg) </label>
@@ -387,6 +391,7 @@ const programming_language = ref("");
 const repository_url = ref("");
 const documentation_url = ref("");
 const height = ref(0);
+const width = ref(0);
 const weight = ref(0);
 const type_detail = ref("");
 
@@ -759,10 +764,12 @@ const handleSubmit = async () => {
     formData.append("documentation_url", documentation_url.value);
   } else if (workType === 'paint') {
   formData.append("height", height.value);
+  formData.append("width", width.value);
   formData.append("weight", weight.value);
   formData.append("paint_type", type_detail.value); 
 } else if (workType === 'sculpture') {
   formData.append("height", height.value);
+  formData.append("width", width.value);
   formData.append("weight", weight.value);
   formData.append("sculpture_type", type_detail.value);
 }

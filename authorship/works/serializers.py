@@ -35,6 +35,7 @@ class WorkSerializer(serializers.ModelSerializer):
     documentation_url = serializers.URLField(required=False, write_only=True)
     
     height = serializers.FloatField(required=False, write_only=True)
+    width = serializers.FloatField(required=False, write_only=True)
     weight = serializers.FloatField(required=False, write_only=True)
     paint_type = serializers.ChoiceField(choices=Paint.PAINT_TYPES, required=False, write_only=True)
     sculpture_type = serializers.ChoiceField(choices=Sculpture.SCULPTURE_TYPES, required=False, write_only=True)
@@ -175,11 +176,13 @@ class WorkSerializer(serializers.ModelSerializer):
             
         if instance.work_type == 'paint' and hasattr(instance, 'paint'):
             data['height'] = instance.paint.height
+            data['width'] = instance.paint.width
             data['weight'] = instance.paint.weight
             data['paint_type'] = instance.paint.get_type_display()
         
         if instance.work_type == 'sculpture' and hasattr(instance, 'sculpture'):
             data['height'] = instance.sculpture.height
+            data['width'] = instance.sculpture.width
             data['weight'] = instance.sculpture.weight
             data['sculpture_type'] = instance.sculpture.get_type_display()
     

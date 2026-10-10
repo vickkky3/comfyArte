@@ -453,6 +453,11 @@
                   <span class="tech-label">Altura</span>
                   <span class="tech-value">{{ work.height }} cm</span>
                 </div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-arrows-left-right"></i></div>
+                  <span class="tech-label">Ancho</span>
+                  <span class="tech-value">{{ work.width }} cm</span>
+                </div>
                 <div class="divider-icon2"><span class="line"></span></div>
                 <div class="technical-row">
                   <div class="icon-circle"><i class="fa-solid fa-weight-hanging"></i></div>
@@ -472,6 +477,11 @@
                   <div class="icon-circle"><i class="fa-solid fa-arrows-up-down"></i></div>
                   <span class="tech-label">Altura</span>
                   <span class="tech-value">{{ work.height }} cm</span>
+                </div>
+                <div class="technical-row">
+                  <div class="icon-circle"><i class="fa-solid fa-arrows-left-right"></i></div>
+                  <span class="tech-label">Ancho</span>
+                  <span class="tech-value">{{ work.width }} cm</span>
                 </div>
                 <div class="divider-icon2"><span class="line"></span></div>
                 <div class="technical-row">
