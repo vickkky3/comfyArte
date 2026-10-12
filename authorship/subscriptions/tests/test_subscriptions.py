@@ -148,7 +148,7 @@ class SubscriptionAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Ya tienes una suscripción activa", response.data["detail"])
 
-    def test_subscribe_fails_insufficient_funds(self):
+    def test_subscribe_fails_insufficient_points(self):
         self.wallet.points = 10
         self.wallet.save()
 

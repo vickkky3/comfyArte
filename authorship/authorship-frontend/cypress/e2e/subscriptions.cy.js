@@ -75,7 +75,7 @@ describe('Flujo de Obras Favoritas', () => {
         cy.wait(['@getUserMe', '@getUserPoints', '@getSavedWorks', '@getMySubscription']);
     });
 
-    it('mostrar la cabecera, los badges del consumidor y la lista de obras favoritas', () => {
+    it('mostrar la cabecera y la lista de obras favoritas', () => {
         cy.contains('.nav-user', 'carlos_reader').should('be.visible');
         cy.contains('.consumer-badges .points', 'Plan Creador').should('be.visible');
         cy.contains('.consumer-badges .points', '120 Puntos').should('be.visible');

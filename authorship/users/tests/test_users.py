@@ -136,8 +136,8 @@ class UserSerializerTests(TestCase):
 
 class UserAPITests(APITestCase):
     def setUp(self):
-        self.group_author = Group.objects.create(name="Author")
-        self.group_consumer = Group.objects.create(name="Consumer")
+        self.group_author, _ = Group.objects.get_or_create(name="Author")
+        self.group_consumer, _ = Group.objects.get_or_create(name="Consumer")
 
         self.author_user = User.objects.create_user(
             first_name="Lucía",

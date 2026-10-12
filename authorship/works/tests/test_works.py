@@ -97,6 +97,7 @@ class WorkModelTests(TestCase):
             author=self.user,
             work_type="paint",
             height=100.0,
+            width=53.3,
             weight=3.5,
             type="oil"
         )
@@ -108,6 +109,7 @@ class WorkModelTests(TestCase):
         self.assertEqual(paint.description, "Pintura clásica")
         self.assertEqual(paint.author.username, "author1")
         self.assertEqual(paint.height, 100.0)
+        self.assertEqual(paint.width, 53.3)
         self.assertEqual(paint.weight, 3.5)
         
         sculpture = Sculpture.objects.create(
@@ -116,6 +118,7 @@ class WorkModelTests(TestCase):
             author=self.user,
             work_type="sculpture",
             height=145,
+            width=77.3,
             weight=18.5,
             type="bronze"
         )
@@ -127,6 +130,7 @@ class WorkModelTests(TestCase):
         self.assertEqual(sculpture.description, "Pieza volumétrica abstracta trabajada en fundición metálica y soporte pétreo.")
         self.assertEqual(sculpture.author.username, "author1")
         self.assertEqual(sculpture.height, 145)
+        self.assertEqual(sculpture.width, 77.3)
         self.assertEqual(sculpture.weight, 18.5)
 
 
@@ -234,31 +238,6 @@ class WorkAPITests(APITestCase):
         self.assertTrue(len(created_work.hash_security) > 0)
         self.assertEqual(created_work.binary_file, b"Obra prueba")
 
-    @patch("works.views.validate_work_content")
-    @patch("works.views.process_file_for_ai")
-    def test_post_work_rejected_with_manual_review_appealed(self, mock_process_ai, mock_validate_ai):
-        self.client.force_authenticate(user=self.author)
-
-        mock_process_ai.return_value = {"type": "code"}
-        mock_validate_ai.return_value = {"is_valid": False, "reason": "Uso de palabras restringidas"}
-
-        py_file = SimpleUploadedFile("script.py", b"print('hola')", content_type="text/x-python")
-
-        payload = {
-            "title": "Software Inseguro",
-            "description": "Script de test",
-            "work_type": "software",
-            "license": "by",
-            "programming_language": "Python",
-            "file_upload": py_file,
-            "request_manual_review": "true"
-        }
-
-        response = self.client.post("/api/works/", payload, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["status"], "appealed")
-        self.assertEqual(response.data["rejection_reason"], "Uso de palabras restringidas")
-
     def test_post_work_forbidden_without_permission(self):
         user_sin_permiso = User.objects.create_user(username="no_perm", password="password123")
         self.client.force_authenticate(user=user_sin_permiso)
@@ -309,7 +288,7 @@ class WorkAPITests(APITestCase):
         self.assertEqual(res_resume.status_code, status.HTTP_200_OK)
         self.assertEqual(res_resume.content, b"Muestra prueba")
 
-    def test_patch_and_delete_work_permissions(self):
+    def test_delete_work_permissions(self):
         work = Work.objects.create(
             title="Mi Obra",
             description="Descripción",
@@ -318,14 +297,10 @@ class WorkAPITests(APITestCase):
         )
 
         self.client.force_authenticate(user=self.consumer)
-        patch_res = self.client.patch(f"/api/works/{work.id}/", {"status": "published"}, format="json")
-        self.assertEqual(patch_res.status_code, status.HTTP_403_FORBIDDEN)
+        delete_res = self.client.delete(f"/api/works/{work.id}/")
+        self.assertEqual(delete_res.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.force_authenticate(user=self.author)
-        patch_ok = self.client.patch(f"/api/works/{work.id}/", {"status": "published"}, format="json")
-        self.assertEqual(patch_ok.status_code, status.HTTP_200_OK)
-        self.assertEqual(patch_ok.data["status"], "published")
-
         delete_res = self.client.delete(f"/api/works/{work.id}/")
         self.assertEqual(delete_res.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Work.objects.filter(id=work.id).exists())

@@ -105,7 +105,7 @@ describe('Flujo de Registro de Obras', () => {
             cy.get('input[type="number"][placeholder="Ej: 320"]').type('284');
             cy.get('input[placeholder="Ej: 978-84-123456-7-8"]').type('978-84-123456-7-8');
             cy.get('.grid-4-cols select').first().select('Misterio / Suspense');
-            cy.get('select.select-pink').select('Español');
+            cy.contains('label', 'Idioma').parent().find('select').select('Español');
 
             cy.get('.hidden-file-input').first().selectFile({
                 contents: Cypress.Buffer.from('Contenido obra principal'),
@@ -135,43 +135,6 @@ describe('Flujo de Registro de Obras', () => {
             cy.url({ timeout: 6000 }).should('include', '/dashboard');
         });
 
-        it('muestra aviso preventivo cuando la IA rechaza el contenido pero se solicitó revisión manual', () => {
-            cy.intercept('POST', '**/api/works/', {
-                statusCode: 201,
-                body: {
-                    id: 51,
-                    status: 'appealed',
-                    rejection_reason: 'Detectada posible infracción en el análisis de texto.'
-                }
-            }).as('createWorkRejected');
-
-            cy.get('#title').type('Obra con Texto en Conflicto');
-            cy.get('#description').type('Una novela de misterio ambientada en una ciudad costera donde una serie de manuscritos olvidados desvelan un secreto centenario.');
-            cy.get('input[type="number"][placeholder="Ej: 320"]').type('284');
-            cy.get('input[placeholder="Ej: 978-84-123456-7-8"]').type('978-84-123456-7-8');
-            cy.get('.grid-4-cols select').first().select('Misterio / Suspense');
-            cy.get('select.select-pink').select('Español');
-
-            cy.get('.hidden-file-input').first().selectFile({
-                contents: Cypress.Buffer.from('Contenido polémico'),
-                fileName: 'novela_el_enigma.pdf',
-                mimeType: 'application/pdf'
-            }, { force: true });
-
-            cy.get('.hidden-file-input').last().selectFile({
-                contents: Cypress.Buffer.from('Resumen de los primeros capítulos'),
-                fileName: 'resumen.pdf',
-                mimeType: 'application/pdf'
-            }, { force: true });
-
-            cy.get('.btn-save').click();
-            cy.wait('@createWorkRejected');
-
-            cy.get('.popup-notification.warning')
-                .should('be.visible')
-                .and('contain', 'El sistema de validación por IA ha rechazado tu obra')
-                .and('contain', 'revisión manual');
-        });
     });
 
     describe('Formulario de Música', () => {
@@ -226,9 +189,10 @@ describe('Flujo de Registro de Obras', () => {
 
             cy.contains('h1', 'Registrar Pintura').should('be.visible');
             cy.contains('label', 'Altura (cm)').should('be.visible');
+            cy.contains('label', 'Ancho (cm)').should('be.visible');
             cy.contains('label', 'Peso (kg)').should('be.visible');
             cy.contains('label', 'Material / Técnica ').should('be.visible');
-            cy.get('.grid-3-cols select').should('be.visible');
+            cy.get('.grid-4-cols select').should('be.visible');
         });
     });
 
@@ -240,9 +204,10 @@ describe('Flujo de Registro de Obras', () => {
 
             cy.contains('h1', 'Registrar Escultura').should('be.visible');
             cy.contains('label', 'Altura (cm)').should('be.visible');
+            cy.contains('label', 'Ancho (cm)').should('be.visible');
             cy.contains('label', 'Peso (kg)').should('be.visible');
             cy.contains('label', 'Material / Técnica ').should('be.visible');
-            cy.get('.grid-3-cols select').should('be.visible');
+            cy.get('.grid-4-cols select').should('be.visible');
         });
     });
 

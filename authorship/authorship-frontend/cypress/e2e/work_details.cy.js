@@ -109,7 +109,7 @@ describe('Flujo de Detalle y Gestión de Obra desde un Autor', () => {
         cy.get('.btn-copy-signature').should('have.class', 'btn-copied').and('contain', '¡Copiado!');
     });
 
-    it('permite descargar la muestra gratuita del archivo', () => {
+    it('permite descargar el archivo de la muestra gratuita', () => {
         cy.intercept('GET', `**/api/works/${workId}/`, {
             statusCode: 200,
             body: book
