@@ -146,7 +146,7 @@
         <div class="filters-container">
           <div class="filter-field" style="flex: 1;">
             <label class="filter-label">Buscar obra por nombre:</label>
-            <input v-model="workSearchQuery" type="text" placeholder="Escribe el nombre o usuario del autor..."
+            <input v-model="workSearchQuery" type="text" placeholder="Escribe el nombre de la obra..."
               class="filter-input" />
           </div>
         </div>
