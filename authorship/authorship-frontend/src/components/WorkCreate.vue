@@ -84,9 +84,18 @@
           <i v-else class="fa-solid fa-circle-check"></i>
         </div>
         <div class="popup-body">
-          <span class="popup-title" v-if="information.type === 'error'">Operación Denegada</span>
-          <span class="popup-title" v-else-if="information.type === 'confirm'">Confirmar Acción</span>
-          <span class="popup-title" v-else>¡Acción Exitosa!</span>
+          <span class="popup-title" v-if="information.type === 'error'">
+            Operación Denegada
+          </span>
+          <span class="popup-title" v-else-if="information.type === 'confirm'">
+            Confirmar Acción
+          </span>
+          <span class="popup-title" v-else-if="information.type === 'warning'">
+            Aviso
+          </span>
+          <span class="popup-title" v-else>
+            ¡Acción Exitosa!
+          </span>
           <p class="popup-message">{{ information.message }}</p>
 
           <div v-if="information.type === 'confirm'" class="popup-actions">
@@ -763,16 +772,16 @@ const handleSubmit = async () => {
     formData.append("repository_url", repository_url.value);
     formData.append("documentation_url", documentation_url.value);
   } else if (workType === 'paint') {
-  formData.append("height", height.value);
-  formData.append("width", width.value);
-  formData.append("weight", weight.value);
-  formData.append("paint_type", type_detail.value); 
-} else if (workType === 'sculpture') {
-  formData.append("height", height.value);
-  formData.append("width", width.value);
-  formData.append("weight", weight.value);
-  formData.append("sculpture_type", type_detail.value);
-}
+    formData.append("height", height.value);
+    formData.append("width", width.value);
+    formData.append("weight", weight.value);
+    formData.append("paint_type", type_detail.value);
+  } else if (workType === 'sculpture') {
+    formData.append("height", height.value);
+    formData.append("width", width.value);
+    formData.append("weight", weight.value);
+    formData.append("sculpture_type", type_detail.value);
+  }
 
   try {
     const res = await axios.post(`${API_BASE}/api/works/`, formData, {
@@ -791,7 +800,7 @@ const handleSubmit = async () => {
 
       setTimeout(() => {
         router.push("/dashboard");
-      }, 3800);
+      }, 5000);
 
     } else {
       triggerInformation("¡Obra registrada y protegida con éxito!", "success");
