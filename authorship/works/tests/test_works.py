@@ -20,7 +20,7 @@ class WorkModelTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="author1", password="password123")
 
-    def test_child_models_polymorphic_type(self):
+    def test_child_models_type(self):
         book = Book.objects.create(
             title="El Quijote",
             description="Novela clásica",
