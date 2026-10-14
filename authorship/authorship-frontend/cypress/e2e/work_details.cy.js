@@ -624,7 +624,7 @@ describe('Flujo de Catálogo y Directorio de Autores para Consumidor', () => {
             cy.contains('.author-card', 'clara_escritora').should('not.exist');
         });
 
-        it('abre el modal del autor y permite suscribirse', () => {
+        it('abre la tarjeta del autor y permite suscribirse', () => {
             cy.intercept('GET', '**/api/works/authors/21/', {
                 statusCode: 200,
                 body: [{ id: 3, title: 'El Castillo Olvidado', work_type: 'book', status: 'published', created_at: '2026-08-01' }]
