@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.models import Group
 from .serializers import UserSerializer, AuthorPublicSerializer, NotificationSerializer
 from .models import User, Notification
+from subscriptions.models import UserWallet
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -48,6 +49,9 @@ class RegisterAPIView(APIView):
                 user.role = group_name.lower()
                 user.save()
             
+            if group_name == 'Consumer':
+                UserWallet.objects.create(user=user, points=150)
+                
             token, _ = Token.objects.get_or_create(user=user)
             
             return Response({
