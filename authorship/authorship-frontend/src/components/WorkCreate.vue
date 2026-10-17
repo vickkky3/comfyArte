@@ -793,10 +793,17 @@ const handleSubmit = async () => {
     if (res.data.status === 'appealed') {
       const reason = res.data.rejection_reason || "Contenido no validado automáticamente.";
 
-      triggerInformation(
-        `El sistema de validación por IA ha rechazado tu obra.\nMotivo: "${reason}".\n\nAl haber solicitado la revisión manual, tu obra ha quedado registrada y pasará a ser evaluada directamente por el equipo de administración.`,
-        "warning"
-      );
+      const isManualFormat = reason.includes("no compatibles") || reason.includes("vídeo o archivo comprimido");
+
+      let warningMsg = "";
+
+      if (isManualFormat) {
+        warningMsg = `Tu obra ha quedado registrada y derivada directamente a revisión manual por contener formatos de archivo (vídeo o comprimido) no procesables por la moderación automática.`;
+      } else {
+        warningMsg = `El sistema de validación por IA ha rechazado tu obra.\nMotivo: "${reason}".\n\nAl haber solicitado la revisión manual, tu obra ha quedado registrada y pasará a ser evaluada directamente por el equipo de administración.`;
+      }
+
+      triggerInformation(warningMsg, "warning");
 
       setTimeout(() => {
         router.push("/dashboard");

@@ -31,6 +31,8 @@ ALLOWED_EXTENSIONS = {
     'swift', 'kt', 'sql', 'sh', 'ipynb', 'json', 'xml', 'yaml', 'yml'
 }
 
+MANUAL_REVIEW_EXTENSIONS = {'mp4', 'avi', 'mov', 'zip'}
+
 SAFE_INLINE_MIMES = {
     'image/jpeg', 'image/png', 'image/webp', 
     'audio/mpeg', 'audio/ogg', 'audio/wav', 
@@ -136,42 +138,58 @@ class WorkListCreateAPIView(APIView):
 
             if not is_extension_allowed(file.name) or (resume and not is_extension_allowed(resume.name)):
                 return Response({"error": "Formato de archivo no permitido."}, status=status.HTTP_400_BAD_REQUEST)
-
-            file.seek(0)
-            file_info = process_file_for_ai(file)
-            file.seek(0)
             
-            resume_info = None
-            if resume:
-                resume.seek(0)
-                resume_info = process_file_for_ai(resume)
-                resume.seek(0)
-
-            result_ai_validator = validate_work_content(clean_data.get('title'), clean_data.get('description'), file_info, resume_info)
-            ai_is_valid = result_ai_validator.get("is_valid")
+            file_ext = Path(file.name).suffix.lstrip('.').lower()
+            resume_ext = Path(resume.name).suffix.lstrip('.').lower() if resume else ''
             
-            request_review_raw = request.data.get('request_manual_review', False)
+            requires_manual_validation = (
+                file_ext in MANUAL_REVIEW_EXTENSIONS or 
+                resume_ext in MANUAL_REVIEW_EXTENSIONS
+            )
 
-            raw_str = str(request_review_raw).strip().lower()
-            if raw_str in ['true', '1', 'yes', 't']:
-                wants_manual_review = True
-                
-            else:
-                wants_manual_review = False
+            if requires_manual_validation:
+                create_data['status'] = 'appealed' 
+                create_data['rejection_reason'] = (
+                    "Derivada automáticamente a revisión manual por contener formatos "
+                    "no compatibles con la validación asistida (vídeo o archivo comprimido)."
+                )
 
-            if ai_is_valid:
-                create_data['status'] = 'published'
-                
             else:
-                if wants_manual_review:
-                    create_data['status'] = 'appealed'
-                    create_data['rejection_reason'] = result_ai_validator.get('reason', 'Contenido no apto según IA')
+                file.seek(0)
+                file_info = process_file_for_ai(file)
+                file.seek(0)
+                
+                resume_info = None
+                if resume:
+                    resume.seek(0)
+                    resume_info = process_file_for_ai(resume)
+                    resume.seek(0)
+
+                result_ai_validator = validate_work_content(clean_data.get('title'), clean_data.get('description'), file_info, resume_info)
+                ai_is_valid = result_ai_validator.get("is_valid")
+                
+                request_review_raw = request.data.get('request_manual_review', False)
+
+                raw_str = str(request_review_raw).strip().lower()
+                if raw_str in ['true', '1', 'yes', 't']:
+                    wants_manual_review = True
                     
                 else:
-                    return Response(
-                        {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+                    wants_manual_review = False
+
+                if ai_is_valid:
+                    create_data['status'] = 'published'
+                    
+                else:
+                    if wants_manual_review:
+                        create_data['status'] = 'appealed'
+                        create_data['rejection_reason'] = result_ai_validator.get('reason', 'Contenido no apto según IA')
+                        
+                    else:
+                        return Response(
+                            {"error": f"La obra fue rechazada por el sistema de validación: {result_ai_validator.get('reason')}"}, 
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
             
             file.seek(0)
             binary_file = file.read()
