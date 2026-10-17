@@ -3,14 +3,41 @@ import json
 import io
 import base64
 import logging
+import random
 
 from pypdf import PdfReader
 from django.conf import settings
 from subscriptions.models import AuthorSubscription
 
-max_chars = 5000
+NUM_INTERVALS = 5
+INTERVAL_SIZE = 1000
+MAX_CHARS = NUM_INTERVALS*INTERVAL_SIZE
 
 logger = logging.getLogger(__name__)
+
+def sample_text_intervals(text, num_intervals=NUM_INTERVALS, interval_size=INTERVAL_SIZE):
+    if not text:
+        return ""
+        
+    text_length = len(text)
+    max_chars = num_intervals * interval_size
+
+    if text_length <= max_chars:
+        return text
+
+    final_size = text_length // num_intervals
+    intervals = []
+
+    for i in range(num_intervals):
+        range_start = i * final_size
+        range_end = max(range_start, (i + 1) * final_size - interval_size)
+        range_end = min(range_end, text_length - interval_size)
+        
+        start_idx = random.randint(range_start, max(range_start, range_end))
+        interval = text[start_idx:start_idx + interval_size]
+        intervals.append(interval.strip())
+
+    return "\n\n[...]\n\n".join(intervals)
 
 def validate_work_content(title, description, file_info, resume_info):
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -113,6 +140,7 @@ def process_file_for_ai(file_obj):
     elif any(filename.endswith('.' + ext) for ext in ['jpg', 'jpeg', 'png', 'webp']) or content_type.startswith('image/'):
         b64_image = base64.b64encode(file_bytes).decode('utf-8')
         mime = content_type if content_type.startswith('image/') else 'image/jpeg'
+        
         return 'image', {'b64': b64_image, 'mime': mime}
     
     elif any(filename.endswith('.' + ext) for ext in ['mp3', 'wav', 'ogg']) or content_type.startswith('audio/'):
@@ -121,7 +149,8 @@ def process_file_for_ai(file_obj):
     elif any(filename.endswith('.' + ext) for ext in ['py', 'js', 'ts', 'jsx', 'tsx', 'vue', 'html', 'css', 'java', 'c', 'cpp', 'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt', 'sql', 'sh', 'ipynb', 'json', 'xml', 'yaml', 'yml']):
         try:
             code_text = file_bytes.decode('utf-8', errors='ignore')
-            return 'text', code_text[:max_chars]
+            return 'text', sample_text_intervals(code_text)
+        
         except Exception as e:
             logger.warning("No se pudo decodificar el archivo de código.")
             return 'none', None
@@ -138,11 +167,8 @@ def process_pdf_for_ai(file_bytes):
                 extracted = page.extract_text()
                 if extracted:
                     text += extracted + "\n"
-                    
-                if len(text) >= max_chars:
-                    break
                 
-            return 'text', text[:max_chars]
+            return 'text',  sample_text_intervals(text)
         
     except Exception as e:
         logger.error(
@@ -161,7 +187,7 @@ def process_audio_for_ai(file_bytes, filename):
             model="whisper-1", 
             file=audio_file
         )
-        return 'text', transcript.text[:max_chars]
+        return 'text', sample_text_intervals(transcript.text)
     
     except Exception as e:
         logger.error(
